@@ -82,29 +82,6 @@ export const conditionMetric: Record<ChronicCondition, string> = {
   anaemia:         'Hb (g/dL)',
 }
 
-// ─── Progression logic ─────────────────────────────────────────────────────
-export function computeProgression(readings: VitalReading[]): ProgressionStatus {
-  if (readings.length < 2) return 'stable'
-  const vals = readings.slice(-3).map(r => r.numeric)
-  const first = vals[0], last = vals[vals.length - 1]
-  const delta = ((last - first) / first) * 100
-  if (delta > 10)  return 'worsening'
-  if (delta < -10) return 'improving'
-  return 'stable'
-}
-
-export function computeAlertLevel(patient: ChronicPatient): AlertLevel {
-  const missRate = patient.missedCheckups / Math.max(patient.totalCheckups, 1)
-  const progression = computeProgression(patient.readings)
-  const daysOverdue = -Math.min(0, patient.checkups.filter(c => c.status === 'overdue')
-    .reduce((min, c) => Math.min(min, c.daysFromNow), 0))
-
-  if (progression === 'worsening' && daysOverdue > 7) return 'urgent'
-  if (progression === 'worsening' || daysOverdue > 7) return 'warning'
-  if (daysOverdue > 0 || missRate > 0.3) return 'reminder'
-  return 'none'
-}
-
 // ─── Seeded chronic patient cohort ─────────────────────────────────────────
 export const chronicPatients: ChronicPatient[] = [
   // 1 — Meena Patil — Hypertension (worsening)

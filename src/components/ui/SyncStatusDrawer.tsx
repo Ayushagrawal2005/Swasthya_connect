@@ -34,7 +34,7 @@ const typeIcon = {
 }
 
 export function SyncStatusDrawer() {
-  const { isOnline, pendingSyncCount } = useApp()
+  const { isOnline } = useApp()
   const [open, setOpen] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [entries, setEntries] = useState(demoQueue)

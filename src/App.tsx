@@ -40,6 +40,15 @@ import { StaffManagementPage }        from './pages/admin/StaffManagement'
 import { PatientFullRecord }  from './pages/shared/PatientFullRecord'
 import { ChronicCareTracker } from './pages/shared/ChronicCareTracker'
 
+// Patient
+import { PatientHome }          from './pages/patient/PatientHome'
+import { TriagePage }           from './pages/patient/Triage'
+import { AppointmentsPage }     from './pages/patient/Appointments'
+import { HealthRecordsPage }    from './pages/patient/HealthRecords'
+import { MedicineTrackerPage }  from './pages/patient/MedicineTracker'
+import { ReferralTrackerPage }  from './pages/patient/ReferralTracker'
+import { TeleconsultPage }      from './pages/patient/Teleconsult'
+
 function AppShell() {
   const { role, isOnline } = useApp()
 
@@ -86,6 +95,16 @@ function AppShell() {
             <Route path="/admin/diagnostics" element={<DiagnosticCoordinationPage />} />
             <Route path="/admin/followup"    element={<FollowUpBoardPage />} />
             <Route path="/admin/staff"       element={<StaffManagementPage />} />
+
+            {/* Patient */}
+            <Route path="/patient"              element={<PatientHome />} />
+            <Route path="/patient/triage"       element={<TriagePage />} />
+            <Route path="/patient/appointments" element={<AppointmentsPage />} />
+            <Route path="/patient/records"      element={<HealthRecordsPage />} />
+            <Route path="/patient/medicines"    element={<MedicineTrackerPage />} />
+            <Route path="/patient/referrals"    element={<ReferralTrackerPage />} />
+            <Route path="/patient/teleconsult"  element={<TeleconsultPage />} />
+            <Route path="/patient/chronic"      element={<ChronicCareTracker />} />
 
             {/* Catch-all — patient role redirects to asha login */}
             <Route path="*" element={<Navigate to={role ? `/${role}` : '/'} replace />} />

@@ -1,30 +1,17 @@
 // Module 6 — Diagnostic Coordination (admin view)
-import { useState } from 'react'
-import { FlaskConical, AlertTriangle, CheckCircle, Clock, MapPin, Search } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FlaskConical, AlertTriangle, CheckCircle, Clock, MapPin, Search, Loader2 } from 'lucide-react'
+import { diagnosticsApi, type DiagOrder } from '../../services/api'
 
 type DiagStatus = 'ordered' | 'sample-done' | 'result-ready' | 'reviewed' | 'not-available'
 
-interface DiagOrder {
-  id: string
-  patient: string
-  test: string
-  orderedBy: string
-  facility: string
-  date: string
-  status: DiagStatus
-  available: boolean
-  nearestAvailable?: string
-  result?: string
-  flagged?: boolean
-}
-
 const orders: DiagOrder[] = [
-  { id: 'DX001', patient: 'Priya Sharma', test: 'CBC', orderedBy: 'Dr. Patil', facility: 'PHC Beed', date: '20 Aug', status: 'reviewed', available: true, result: 'Hb 11.2 g/dL — Low', flagged: true },
-  { id: 'DX002', patient: 'Meena Jadhav', test: 'Urine Routine + Microscopy', orderedBy: 'Dr. Patil', facility: 'PHC Beed', date: '22 Aug', status: 'sample-done', available: true },
-  { id: 'DX003', patient: 'Priya Sharma', test: 'Obstetric Ultrasound', orderedBy: 'Dr. Patil', facility: 'PHC Beed', date: '22 Aug', status: 'not-available', available: false, nearestAvailable: 'Rural Hospital Beed (8.1 km)' },
-  { id: 'DX004', patient: 'Ramesh Jadhav', test: 'ECG', orderedBy: 'Dr. Patil', facility: 'PHC Beed', date: '19 Aug', status: 'result-ready', available: true, result: 'ST elevation in V1–V4 — Urgent review' , flagged: true },
-  { id: 'DX005', patient: 'Lata Desai', test: 'HbA1c', orderedBy: 'Dr. More', facility: 'PHC Beed', date: '23 Aug', status: 'ordered', available: true },
-  { id: 'DX006', patient: 'Ganesh Wagh', test: 'Sputum AFB', orderedBy: 'ASHA Kavita', facility: 'PHC Beed', date: '21 Aug', status: 'sample-done', available: true },
+  { id: 'DX001', patientId: 'P001', patientName: 'Priya Sharma', test: 'CBC', orderedBy: 'Dr. Patil', facilityId: 'F001', date: '20 Aug', status: 'reviewed', available: true, result: 'Hb 11.2 g/dL — Low', flagged: true },
+  { id: 'DX002', patientId: 'P002', patientName: 'Meena Jadhav', test: 'Urine Routine + Microscopy', orderedBy: 'Dr. Patil', facilityId: 'F001', date: '22 Aug', status: 'sample-done', available: true },
+  { id: 'DX003', patientId: 'P003', patientName: 'Priya Sharma', test: 'Obstetric Ultrasound', orderedBy: 'Dr. Patil', facilityId: 'F001', date: '22 Aug', status: 'not-available', available: false, nearestAvailable: 'Rural Hospital Beed (8.1 km)' },
+  { id: 'DX004', patientId: 'P004', patientName: 'Ramesh Jadhav', test: 'ECG', orderedBy: 'Dr. Patil', facilityId: 'F001', date: '19 Aug', status: 'result-ready', available: true, result: 'ST elevation in V1–V4 — Urgent review' , flagged: true },
+  { id: 'DX005', patientId: 'P005', patientName: 'Lata Desai', test: 'HbA1c', orderedBy: 'Dr. More', facilityId: 'F001', date: '23 Aug', status: 'ordered', available: true },
+  { id: 'DX006', patientId: 'P006', patientName: 'Ganesh Wagh', test: 'Sputum AFB', orderedBy: 'ASHA Kavita', facilityId: 'F001', date: '21 Aug', status: 'sample-done', available: true },
 ]
 
 const statusStyle: Record<DiagStatus, string> = {
@@ -46,12 +33,21 @@ const statusLabel: Record<DiagStatus, string> = {
 const statusOrder: DiagStatus[] = ['ordered', 'sample-done', 'result-ready', 'reviewed']
 
 export function DiagnosticCoordinationPage() {
+  const [orders, setOrders] = useState<DiagOrder[]>([])
+  const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<DiagStatus | 'all'>('all')
 
+  useEffect(() => {
+    diagnosticsApi.list()
+      .then(setOrders)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   const filtered = orders.filter(o =>
     (statusFilter === 'all' || o.status === statusFilter) &&
-    (o.patient.toLowerCase().includes(query.toLowerCase()) || o.test.toLowerCase().includes(query.toLowerCase()))
+    (o.patientName.toLowerCase().includes(query.toLowerCase()) || o.test.toLowerCase().includes(query.toLowerCase()))
   )
 
   return (
@@ -102,10 +98,10 @@ export function DiagnosticCoordinationPage() {
                   <p className="font-semibold text-sm text-[#2C2C2A]">{order.test}</p>
                   <div className="flex gap-1.5 flex-shrink-0">
                     {order.flagged && <AlertTriangle size={14} className="text-amber-500" aria-label="Flagged" />}
-                    <span className={`${statusStyle[order.status]} text-[10px]`}>{statusLabel[order.status]}</span>
+                    <span className={`${statusStyle[order.status as DiagStatus]} text-[10px]`}>{statusLabel[order.status as DiagStatus]}</span>
                   </div>
                 </div>
-                <p className="text-xs text-[#5F5E5A]">{order.patient} · {order.orderedBy} · {order.date}</p>
+                <p className="text-xs text-[#5F5E5A]">{order.patientName} · {order.orderedBy} · {order.date}</p>
 
                 {order.result && (
                   <p className={`text-xs mt-1.5 font-medium ${order.flagged ? 'text-amber-700' : 'text-teal-700'}`}>
@@ -123,7 +119,7 @@ export function DiagnosticCoordinationPage() {
                 {order.available && order.status !== 'not-available' && (
                   <div className="flex items-center gap-1 mt-2">
                     {statusOrder.map((s, i) => {
-                      const done = statusOrder.indexOf(order.status) >= i
+                      const done = statusOrder.indexOf(order.status as DiagStatus) >= i
                       return (
                         <div key={s} className="flex items-center gap-1">
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center ${done ? 'bg-teal-500' : 'bg-gray-100'}`}>
@@ -147,3 +143,4 @@ export function DiagnosticCoordinationPage() {
     </div>
   )
 }
+

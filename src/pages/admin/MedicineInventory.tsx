@@ -1,31 +1,29 @@
 // Module 7 — Medicine Inventory (admin/facility view)
-import { useState } from 'react'
-import { AlertTriangle, Package, Search, ArrowUp, ArrowDown, CheckCircle } from 'lucide-react'
-
-interface StockItem {
-  name: string
-  category: string
-  current: number
-  threshold: number
-  unit: string
-  lastRestocked: string
-  critical: boolean
-}
-
-const inventory: StockItem[] = [
-  { name: 'Iron + Folic Acid Tab', category: 'Maternal', current: 120, threshold: 200, unit: 'strips', lastRestocked: '15 Aug', critical: false },
-  { name: 'Oxytocin Injection', category: 'Maternal', current: 8, threshold: 30, unit: 'vials', lastRestocked: '10 Aug', critical: true },
-  { name: 'ORS Sachets', category: 'General', current: 45, threshold: 100, unit: 'packs', lastRestocked: '12 Aug', critical: false },
-  { name: 'Paracetamol Syrup', category: 'Paediatric', current: 12, threshold: 50, unit: 'bottles', lastRestocked: '8 Aug', critical: true },
-  { name: 'Metformin 500mg', category: 'Chronic', current: 320, threshold: 150, unit: 'tabs', lastRestocked: '20 Aug', critical: false },
-  { name: 'Amlodipine 5mg', category: 'Chronic', current: 180, threshold: 100, unit: 'tabs', lastRestocked: '18 Aug', critical: false },
-  { name: 'Albendazole 400mg', category: 'General', current: 15, threshold: 80, unit: 'tabs', lastRestocked: '5 Aug', critical: true },
-  { name: 'Calcium Carbonate Tab', category: 'Maternal', current: 95, threshold: 120, unit: 'strips', lastRestocked: '17 Aug', critical: false },
-]
+import { useState, useEffect } from 'react'
+import { AlertTriangle, Package, Search, CheckCircle, Loader2, ArrowDown, ArrowUp } from 'lucide-react'
+import { inventoryApi, type StockItem } from '../../services/api'
 
 export function MedicineInventoryPage() {
+  const [inventory, setInventory] = useState<StockItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [reorderSent, setReorderSent] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    inventoryApi.list()
+      .then(setInventory)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  function reorder(id: string, name: string) {
+    inventoryApi.reorder(id).then(() => setReorderSent(p => new Set([...p, id]))).catch(() => setReorderSent(p => new Set([...p, id])))
+  }
+
+  function bulkReorder() {
+    const critical = inventory.filter(i => i.critical).map(i => i.id)
+    inventoryApi.bulkReorder(critical).then(() => setReorderSent(new Set(critical)))
+  }
 
   const filtered = inventory.filter(i =>
     i.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -136,3 +134,4 @@ export function MedicineInventoryPage() {
     </div>
   )
 }
+

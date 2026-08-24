@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   MapPin, Activity, Users, ArrowRight, Star, Shield,
@@ -8,6 +9,7 @@ import {
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip,
 } from 'recharts'
+import { useApp } from '../context/AppContext'
 
 const impactData = [
   { month: 'Jan', patients: 1200 }, { month: 'Feb', patients: 1800 },
@@ -72,6 +74,12 @@ const fadeUp = {
 
 export function LandingPage() {
   const navigate = useNavigate()
+  const { setRole } = useApp()
+
+  // Clear role when landing on this page to hide sidebar
+  useEffect(() => {
+    setRole(null)
+  }, [setRole])
 
   return (
     <div className="min-h-screen">

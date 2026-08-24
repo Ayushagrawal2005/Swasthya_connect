@@ -1,19 +1,20 @@
 // ASHA — Follow-up board (Module 8, frontline view)
-// Mirrors the Meena scenario from report §14
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Clock, CheckCircle, Phone, ChevronDown, Video } from 'lucide-react'
+import { AlertTriangle, Clock, CheckCircle, Phone, ChevronDown, Video, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { AIPill } from '../../components/ui/AIPill'
+import { followupsApi, type FollowUp } from '../../services/api'
 
 type Status = 'overdue' | 'due-today' | 'upcoming' | 'done'
 
 interface Case {
   id: string
   name: string
+  patientName: string
   age: number
   condition: string
-  risk: 'high' | 'medium' | 'low'
+  risk: string
   dueDate: string
   status: Status
   phone: string
@@ -25,7 +26,7 @@ interface Case {
 // Meena scenario + other cases from the report
 const cases: Case[] = [
   {
-    id: 'FU001', name: 'Meena Jadhav', age: 24,
+    id: 'FU001', name: 'Meena Jadhav', patientName: 'Meena Jadhav', age: 24,
     condition: 'High-risk pregnancy (32W) — BP borderline high',
     risk: 'high', dueDate: '21 Aug 2026', status: 'overdue',
     phone: '9876543210',
@@ -34,7 +35,7 @@ const cases: Case[] = [
     nextStep: 'Check BP today + confirm hospital appointment for 25 Aug',
   },
   {
-    id: 'FU002', name: 'Rekha Pawar', age: 19,
+    id: 'FU002', name: 'Rekha Pawar', patientName: 'Rekha Pawar', age: 19,
     condition: 'First pregnancy (20W) — anaemia',
     risk: 'medium', dueDate: '23 Aug 2026', status: 'due-today',
     phone: '9823456789',
@@ -43,7 +44,7 @@ const cases: Case[] = [
     nextStep: 'Verify iron tablet compliance, re-check Hb',
   },
   {
-    id: 'FU003', name: 'Ganesh Wagh', age: 48,
+    id: 'FU003', name: 'Ganesh Wagh', patientName: 'Ganesh Wagh', age: 48,
     condition: 'TB treatment — Week 8 (DOTS)',
     risk: 'medium', dueDate: '23 Aug 2026', status: 'due-today',
     phone: '9765432109',
@@ -52,7 +53,7 @@ const cases: Case[] = [
     nextStep: 'Observe DOTS dose today, record compliance',
   },
   {
-    id: 'FU004', name: 'Sunita Bai', age: 67,
+    id: 'FU004', name: 'Sunita Bai', patientName: 'Sunita Bai', age: 67,
     condition: 'Hypertension (long-term)',
     risk: 'low', dueDate: '27 Aug 2026', status: 'upcoming',
     phone: '9854321098',
@@ -61,7 +62,7 @@ const cases: Case[] = [
     nextStep: 'Routine BP check and medicine refill',
   },
   {
-    id: 'FU005', name: 'Lata Kale', age: 8,
+    id: 'FU005', name: 'Lata Kale', patientName: 'Lata Kale', age: 8,
     condition: 'Malnutrition — Grade II',
     risk: 'high', dueDate: '20 Aug 2026', status: 'overdue',
     phone: '9812345678',
@@ -71,7 +72,7 @@ const cases: Case[] = [
   },
 ]
 
-const statusStyle: Record<Status, string> = {
+const statusStyle: Record<string, string> = {
   overdue:    'bg-red-50 border-l-4 border-l-red-500',
   'due-today':'bg-amber-50 border-l-4 border-l-amber-400',
   upcoming:   'bg-white border-l-4 border-l-teal-300',
@@ -79,23 +80,38 @@ const statusStyle: Record<Status, string> = {
 }
 
 const riskBadge: Record<string, string> = {
-  high: 'badge-red', medium: 'badge-amber', low: 'badge-green',
+  high: 'badge-red', medium: 'badge-amber', low: 'badge-green', emergency: 'badge-red',
 }
 
 export function AshaFollowUpPage() {
   const navigate = useNavigate()
-  const [expanded, setExpanded] = useState<string | null>('FU001') // Meena expanded by default
+  const [cases, setCases] = useState<FollowUp[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
   const [done, setDone] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    followupsApi.list()
+      .then(data => { setCases(data); if (data.length > 0) setExpanded(data[0].id) })
+      .catch(() => {/* empty */})
+      .finally(() => setLoading(false))
+  }, [])
+
+  function markDone(id: string) {
+    followupsApi.markDone(id)
+      .then(() => setDone(p => new Set([...p, id])))
+      .catch(() => setDone(p => new Set([...p, id])))
+  }
 
   const grouped: Record<Status, Case[]> = {
     overdue:     cases.filter(c => !done.has(c.id) && c.status === 'overdue'),
     'due-today': cases.filter(c => !done.has(c.id) && c.status === 'due-today'),
     upcoming:    cases.filter(c => !done.has(c.id) && c.status === 'upcoming'),
-    done:        cases.filter(c => done.has(c.id)),
+    done:        cases.filter(c => done.has(c.id) || c.status === 'done'),
   }
 
-  const overdueCount = grouped.overdue.length
-  const dueTodayCount = grouped['due-today'].length
+  const overdueCount   = grouped.overdue.length
+  const dueTodayCount  = grouped['due-today'].length
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
@@ -110,8 +126,10 @@ export function AshaFollowUpPage() {
         <AIPill />
       </div>
 
+      {loading && <div className="flex justify-center py-8"><Loader2 className="animate-spin text-teal-400" /></div>}
+
       {/* Overdue */}
-      {(['overdue', 'due-today', 'upcoming', 'done'] as Status[]).map(status => {
+      {!loading && (['overdue', 'due-today', 'upcoming', 'done'] as Status[]).map(status => {
         const list = grouped[status]
         if (list.length === 0) return null
         const labels: Record<Status, string> = {
@@ -134,11 +152,11 @@ export function AshaFollowUpPage() {
                       className="w-full p-4 flex items-start gap-3 text-left"
                       aria-expanded={isOpen} aria-controls={`detail-${c.id}`}>
                       <div className="w-10 h-10 rounded-full bg-white border border-[#D3D1C7] flex items-center justify-center text-sm font-semibold text-[#5F5E5A] flex-shrink-0" aria-hidden="true">
-                        {c.name.split(' ').map(n => n[0]).join('')}
+                        {c.patientName.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <p className="font-semibold text-sm text-[#2C2C2A]">{c.name}</p>
+                          <p className="font-semibold text-sm text-[#2C2C2A]">{c.patientName}</p>
                           <span className="text-[10px] text-[#5F5E5A]">{c.age}y</span>
                           <span className={`${riskBadge[c.risk]} text-[10px]`}>
                             {c.risk === 'high' ? 'High risk' : c.risk === 'medium' ? 'Moderate' : 'Stable'}
@@ -192,9 +210,9 @@ export function AshaFollowUpPage() {
                             </button>
                           )}
                           {!isDone && (
-                            <button onClick={() => { setDone(p => new Set([...p, c.id])); setExpanded(null) }}
+                            <button onClick={() => { markDone(c.id); setExpanded(null) }}
                               className="flex items-center gap-1.5 text-xs bg-green-50 border border-green-200 text-green-600 px-3 py-2 rounded-full hover:bg-green-100 transition-colors font-medium"
-                              aria-label={`Mark ${c.name} follow-up done`}>
+                              aria-label={`Mark ${c.patientName} follow-up done`}>
                               <CheckCircle size={12} /> Mark done
                             </button>
                           )}
@@ -214,3 +232,4 @@ export function AshaFollowUpPage() {
     </div>
   )
 }
+

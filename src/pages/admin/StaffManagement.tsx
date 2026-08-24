@@ -1,16 +1,25 @@
 // Admin — Staff management: doctors grouped by hospital
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Users, ChevronDown, ChevronRight, CheckCircle, XCircle, Phone, Stethoscope, Building2 } from 'lucide-react'
-import { facilities, tierLabel, tierColor } from '../../data/facilityData'
+import { Users, ChevronDown, ChevronRight, CheckCircle, XCircle, Phone, Stethoscope, Building2, Loader2 } from 'lucide-react'
+import { staffApi, type FacilityWithDoctors } from '../../services/api'
 
 export function StaffManagementPage() {
-  const [expanded, setExpanded] = useState<string | null>('PHC001')
+  const [facilities, setFacilities] = useState<FacilityWithDoctors[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'available' | 'unavailable'>('all')
 
-  const totalDoctors   = facilities.flatMap(f => f.doctors).length
-  const available      = facilities.flatMap(f => f.doctors).filter(d => d.available).length
-  const unavailable    = totalDoctors - available
+  useEffect(() => {
+    staffApi.list()
+      .then(data => { setFacilities(data); if (data.length > 0) setExpanded(data[0].id) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const totalDoctors = facilities.flatMap(f => f.doctors).length
+  const available    = facilities.flatMap(f => f.doctors).filter(d => d.available).length
+  const unavailable  = totalDoctors - available
 
   return (
     <div className="p-4 sm:p-6 space-y-5 animate-fade-in">
@@ -64,8 +73,8 @@ export function StaffManagementPage() {
               <button onClick={() => setExpanded(isOpen ? null : f.id)}
                 className="w-full flex items-center gap-4 p-5 text-left hover:bg-gray-50 transition-colors"
                 aria-expanded={isOpen} aria-controls={`staff-${f.id}`}>
-                <div className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold border ${tierColor[f.tier]}`}>
-                  {tierLabel[f.tier]}
+                <div className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold border ${"badge-teal"}`}>
+                  {f.tier}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[#2C2C2A]">{f.name}</p>
@@ -142,3 +151,4 @@ export function StaffManagementPage() {
     </div>
   )
 }
+

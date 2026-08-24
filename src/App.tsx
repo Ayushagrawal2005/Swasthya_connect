@@ -8,7 +8,6 @@ import { SyncStatusDrawer } from './components/ui/SyncStatusDrawer'
 // Public
 import { LandingPage }      from './pages/Landing'
 import { LoginPage }        from './pages/Login'
-import { KioskModePage }    from './pages/KioskMode'
 import { IvrSimulatorPage } from './pages/IvrSimulator'
 
 // Frontline Worker (ASHA / ANM)
@@ -63,7 +62,6 @@ function AppShell() {
             {/* Public */}
             <Route path="/"      element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/kiosk" element={<KioskModePage />} />
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
 
             {/* Frontline Worker (ASHA) */}

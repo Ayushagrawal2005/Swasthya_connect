@@ -1,18 +1,37 @@
-﻿// Chronic Care Tracker — tracks disease progression, auto-flags checkups, notifies workers
-import { useState } from "react"
+// Chronic Care Tracker � tracks disease progression, auto-flags checkups, notifies workers
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   TrendingUp, TrendingDown, Minus, AlertTriangle, Clock, CheckCircle,
   ChevronDown, ChevronRight, Phone, Video, Bell, BellOff, Calendar,
-  Activity, User, Pill, ArrowRight,
+  Activity, User, Pill, ArrowRight, Loader2,
 } from "lucide-react"
-import {
-  chronicPatients, alertConfig, progressionConfig, conditionMetric, checkupIntervalDays,
-  type ChronicPatient, type AlertLevel, type ProgressionStatus,
-} from "../../data/chronicData"
+import { chronicApi, type ChronicPatient } from "../../services/api"
 import { AIPill } from "../../components/ui/AIPill"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 import { useNavigate } from "react-router-dom"
+
+type AlertLevel = 'none' | 'reminder' | 'warning' | 'urgent'
+type ProgressionStatus = 'stable' | 'improving' | 'worsening' | 'critical'
+
+const alertConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  none:     { label: 'Stable',   color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
+  reminder: { label: 'Reminder', color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-200' },
+  warning:  { label: 'Warning',  color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
+  urgent:   { label: 'Urgent',   color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-300' },
+}
+
+const progressionConfig: Record<string, { label: string; color: string; arrow: string }> = {
+  stable:    { label: 'Stable',    color: 'text-teal-600',  arrow: '?' },
+  improving: { label: 'Improving', color: 'text-green-600', arrow: '?' },
+  worsening: { label: 'Worsening', color: 'text-red-600',   arrow: '?' },
+  critical:  { label: 'Critical',  color: 'text-red-700',   arrow: '??' },
+}
+
+const conditionMetric: Record<string, string> = {
+  hypertension: 'BP (mmHg)', diabetes: 'HbA1c (%)', tb: 'Compliance (%)',
+  ckd: 'Creatinine (mg/dL)', copd: 'FEV1 (%)', 'heart-disease': 'BP (mmHg)', anaemia: 'Hb (g/dL)',
+}
 
 const conditionColors: Record<string, string> = {
   hypertension: "bg-red-50 text-red-700 border-red-200",
@@ -24,7 +43,11 @@ const conditionColors: Record<string, string> = {
   anaemia: "bg-green-50 text-green-700 border-green-200",
 }
 
-const ProgressionIcon = ({ status }: { status: ProgressionStatus }) => {
+const checkupIntervalDays: Record<string, number> = {
+  hypertension: 30, diabetes: 90, tb: 7, ckd: 30, copd: 60, "heart-disease": 30, anaemia: 60,
+}
+
+const ProgressionIcon = ({ status }: { status: string }) => {
   const cfg = progressionConfig[status]
   if (status === "worsening" || status === "critical") return <TrendingUp size={14} className={cfg.color} />
   if (status === "improving") return <TrendingDown size={14} className={cfg.color} />
@@ -66,7 +89,7 @@ function PatientCard({ patient, onSelect, isSelected }: { patient: ChronicPatien
               <ProgressionIcon status={patient.progressionStatus} />{progCfg.label}
             </span>
           </div>
-          <p className="text-[10px] text-[#5F5E5A] mt-1">Next: {patient.nextCheckupDate} · {patient.worker}</p>
+          <p className="text-[10px] text-[#5F5E5A] mt-1">Next: {patient.nextCheckupDate} � {patient.worker}</p>
         </div>
         <div className="flex-shrink-0">
           <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border ${alertCfg.bg} ${alertCfg.color} ${alertCfg.border}`}>
@@ -124,41 +147,56 @@ function ProgressionChart({ patient }: { patient: ChronicPatient }) {
 
 export function ChronicCareTracker() {
   const navigate = useNavigate()
-  const [selected, setSelected]     = useState<ChronicPatient>(chronicPatients[0])
+  const [patients, setPatients]     = useState<ChronicPatient[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [selected, setSelected]     = useState<ChronicPatient | null>(null)
   const [filter, setFilter]         = useState<AlertLevel | "all">("all")
   const [acknowledged, setAcknowledged] = useState<Set<string>>(new Set())
   const [smsSent, setSmsSent]       = useState<Set<string>>(new Set())
-  const [callLogged, setCallLogged] = useState<Set<string>>(new Set())
   const [expandedCheckup, setExpandedCheckup] = useState<string | null>(null)
 
-  const filtered = chronicPatients.filter(p =>
-    filter === "all" ? true : p.alertLevel === filter
-  )
+  useEffect(() => {
+    chronicApi.list(filter !== 'all' ? { alertLevel: filter } : undefined)
+      .then(data => {
+        setPatients(data)
+        if (!selected && data.length > 0) setSelected(data[0])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [filter])
 
-  const urgentCount  = chronicPatients.filter(p => p.alertLevel === "urgent").length
-  const warningCount = chronicPatients.filter(p => p.alertLevel === "warning").length
-  const reminderCount = chronicPatients.filter(p => p.alertLevel === "reminder").length
+  function acknowledgeAlert(patientId: string, alertId: string) {
+    chronicApi.acknowledge(patientId, alertId)
+      .then(() => setAcknowledged(p => new Set([...p, alertId])))
+      .catch(() => setAcknowledged(p => new Set([...p, alertId])))
+  }
 
   function sendSms(patientId: string) {
-    setSmsSent(p => new Set([...p, patientId]))
+    chronicApi.sendSms(patientId)
+      .then(() => setSmsSent(p => new Set([...p, patientId])))
+      .catch(() => setSmsSent(p => new Set([...p, patientId])))
   }
+
+  const [callLogged, setCallLogged] = useState<Set<string>>(new Set())
 
   function logCall(patientId: string) {
     setCallLogged(p => new Set([...p, patientId]))
   }
 
-  function ackAlert(alertId: string) {
-    setAcknowledged(p => new Set([...p, alertId]))
-  }
+  const filtered = patients
+  const urgentCount   = patients.filter(p => p.alertLevel === "urgent").length
+  const warningCount  = patients.filter(p => p.alertLevel === "warning").length
+  const reminderCount = patients.filter(p => p.alertLevel === "reminder").length
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
+      {loading && <div className="flex justify-center items-center h-32"><Loader2 className="animate-spin text-teal-400" /></div>}
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 border-b border-[#D3D1C7] bg-white flex-shrink-0">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-semibold text-[#2C2C2A]">Chronic Care Tracker</h1>
-            <p className="text-sm text-[#5F5E5A] mt-0.5">Disease progression · auto-flagging · proactive outreach</p>
+            <p className="text-sm text-[#5F5E5A] mt-0.5">Disease progression � auto-flagging � proactive outreach</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {urgentCount > 0  && <span className="badge-red text-[10px]"><AlertTriangle size={10} /> {urgentCount} urgent</span>}
@@ -184,7 +222,7 @@ export function ChronicCareTracker() {
         <div className="w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-[#D3D1C7] overflow-y-auto bg-white p-3 space-y-2">
           {filtered.map((p, i) => (
             <motion.div key={p.id} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-              <PatientCard patient={p} onSelect={() => setSelected(p)} isSelected={selected.id === p.id} />
+              <PatientCard patient={p} onSelect={() => setSelected(p)} isSelected={selected?.id === p.id} />
             </motion.div>
           ))}
           {filtered.length === 0 && (
@@ -207,19 +245,19 @@ export function ChronicCareTracker() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <h2 className="font-semibold text-[#2C2C2A]">{selected.name}</h2>
-                      <span className="text-sm text-[#5F5E5A]">{selected.age}y · {selected.gender}</span>
+                      <span className="text-sm text-[#5F5E5A]">{selected.age}y � {selected.gender}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${conditionColors[selected.condition]}`}>
                         {selected.conditionLabel}
                       </span>
                     </div>
-                    <p className="text-xs text-[#5F5E5A]">{selected.village} · {selected.phone}</p>
-                    <p className="text-xs text-[#5F5E5A] mt-0.5">Worker: {selected.worker} · Since: {selected.since}</p>
+                    <p className="text-xs text-[#5F5E5A]">{selected.village} � {selected.phone}</p>
+                    <p className="text-xs text-[#5F5E5A] mt-0.5">Worker: {selected.worker} � Since: {selected.since}</p>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className={`flex items-center gap-1 text-xs font-medium ${progressionConfig[selected.progressionStatus].color}`}>
                         <ProgressionIcon status={selected.progressionStatus} />
                         {progressionConfig[selected.progressionStatus].label}
                       </span>
-                      <span className="text-[#5F5E5A] text-xs">·</span>
+                      <span className="text-[#5F5E5A] text-xs">�</span>
                       <span className={`text-xs font-medium ${alertConfig[selected.alertLevel].color}`}>
                         {alertConfig[selected.alertLevel].label}
                       </span>
@@ -270,7 +308,7 @@ export function ChronicCareTracker() {
                                 className="flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors font-medium">
                                 <Video size={11} /> Start teleconsult
                               </button>
-                              <button onClick={() => ackAlert(alert.id)}
+                              <button onClick={() => chronicApi.acknowledgeAlert(alert.id).then(() => setAcknowledged(p => new Set([...p, alert.id])))}
                                 className="flex items-center gap-1.5 text-xs bg-gray-50 border border-[#D3D1C7] text-[#5F5E5A] px-3 py-1.5 rounded-full hover:border-gray-400 transition-colors font-medium ml-auto">
                                 <BellOff size={11} /> Acknowledge
                               </button>
@@ -319,7 +357,7 @@ export function ChronicCareTracker() {
                                 </div>
                               </td>
                               <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.recordedBy}</td>
-                              <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.note || "—"}</td>
+                              <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.note || "�"}</td>
                             </tr>
                           )
                         })}
@@ -359,7 +397,7 @@ export function ChronicCareTracker() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-[#2C2C2A]">{c.type}</p>
                               <p className="text-xs text-[#5F5E5A]">
-                                {c.scheduledDate} · {c.status === "overdue" ? `${Math.abs(c.daysFromNow)} days overdue` : c.status === "due-today" ? "Due today" : `In ${c.daysFromNow} days`}
+                                {c.scheduledDate} � {c.status === "overdue" ? `${Math.abs(c.daysFromNow)} days overdue` : c.status === "due-today" ? "Due today" : `In ${c.daysFromNow} days`}
                               </p>
                             </div>
                             <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize flex-shrink-0 ${
@@ -419,7 +457,7 @@ export function ChronicCareTracker() {
                   <div>
                     <p className="font-semibold text-sm text-[#2C2C2A]">Checkup compliance</p>
                     <p className="text-xs text-[#5F5E5A] mt-0.5">
-                      {selected.totalCheckups - selected.missedCheckups} of {selected.totalCheckups} completed · {selected.missedCheckups} missed
+                      {selected.totalCheckups - selected.missedCheckups} of {selected.totalCheckups} completed � {selected.missedCheckups} missed
                     </p>
                     {selected.missedCheckups > 0 && (
                       <p className="text-xs text-amber-700 mt-1">Last contact: {selected.lastContactDate}</p>
@@ -443,4 +481,5 @@ export function ChronicCareTracker() {
     </div>
   )
 }
+
 

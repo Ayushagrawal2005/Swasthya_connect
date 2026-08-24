@@ -1,18 +1,18 @@
 /**
+/**
  * ASHA — Assisted Teleconsultation (Module 3, frontline-facilitated)
- * ANM/ASHA sets up a low-bandwidth audio/video call between patient and PHC doctor.
- * Doctor sees patient's longitudinal record on their side.
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Video, Mic, MicOff, VideoOff, Phone, MessageSquare,
   CheckCircle, Wifi, WifiOff, Volume2, User, FileText,
-  Monitor, Pill,
+  Monitor, Pill, Loader2,
 } from 'lucide-react'
-import { meena } from '../../data/meenaPatient'
+import { teleconsultApi, type Doctor } from '../../services/api'
 import { AIPill } from '../../components/ui/AIPill'
 import { useApp } from '../../context/AppContext'
+import { meena } from '../../data/meenaPatient'
 
 type CallState = 'setup' | 'waiting' | 'live' | 'ended'
 
@@ -25,24 +25,55 @@ const preChecks = [
 
 export function AshaTeleconsultPage() {
   const { isOnline } = useApp()
+  const [availableDoctors, setAvailableDoctors] = useState<(Doctor & { facility: string })[]>([])
+  const [selectedDoctor, setSelectedDoctor] = useState<(Doctor & { facility: string }) | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [callState, setCallState] = useState<CallState>('setup')
   const [micOn, setMicOn]         = useState(true)
   const [camOn, setCamOn]         = useState(true)
   const [chatOpen, setChatOpen]   = useState(false)
   const [chatMsg, setChatMsg]     = useState('')
   const [messages, setMessages]   = useState([
-    { from: 'doctor', text: `Good morning. I can see Meena's record. BP trend is concerning — 152→158→168. I see she was on Amlodipine before. Let me assess her today.` },
+    { from: 'doctor', text: "Good morning. I can see the patient's record. Let me review the vitals and history before we start." },
   ])
   const [postNotes, setPostNotes]   = useState('')
   const [postRx, setPostRx]         = useState('')
   const [notesSaved, setNotesSaved] = useState(false)
+
+  useEffect(() => {
+    teleconsultApi.availableDoctors()
+      .then(docs => {
+        setAvailableDoctors(docs)
+        if (docs.length > 0) setSelectedDoctor(docs[0])
+      })
+      .catch(() => {})
+  }, [])
+
+  function startCall() {
+    startCall()
+    teleconsultApi.initiate('', selectedDoctor?.id || '')
+      .then(res => { setSessionId(res.sessionId); setTimeout(() => setCallState('live'), 1500) })
+      .catch(() => setTimeout(() => setCallState('live'), 1500))
+  }
+
+  function endCall() {
+    endCall()
+    if (sessionId) {
+      teleconsultApi.saveNotes(sessionId, postNotes, postRx).catch(() => {})
+    }
+  }
+
+  function saveNotes() {
+    if (sessionId) teleconsultApi.saveNotes(sessionId, postNotes, postRx).catch(() => {})
+    saveNotes()
+  }
 
   function sendMsg() {
     if (!chatMsg.trim()) return
     setMessages(p => [...p, { from: 'asha', text: chatMsg }])
     setChatMsg('')
     setTimeout(() => {
-      setMessages(p => [...p, { from: 'doctor', text: 'Thanks. Recommend increasing Amlodipine to 10mg and adding Losartan 50mg. She should come in for an in-person review within 5 days.' }])
+      setMessages(p => [...p, { from: 'doctor', text: 'Understood. I recommend reviewing the medication and scheduling a follow-up within 5 days.' }])
     }, 1500)
   }
 
@@ -63,7 +94,7 @@ export function AshaTeleconsultPage() {
             <div className="card p-4 w-full flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center font-semibold text-teal-700 flex-shrink-0">MP</div>
               <div>
-                <p className="font-semibold text-sm text-[#2C2C2A]">{meena.name}</p>
+                <p className="font-semibold text-sm text-[#2C2C2A]">{selectedDoctor ? `Patient (via ${selectedDoctor.name})` : "Patient"}</p>
                 <p className="text-xs text-[#5F5E5A]">{meena.age}y · {meena.conditions.join(', ')}</p>
               </div>
               <span className="ml-auto badge-amber text-[10px]">Risk: 52/100</span>
@@ -73,7 +104,7 @@ export function AshaTeleconsultPage() {
             <div className="card p-4 w-full flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-700 flex-shrink-0">RP</div>
               <div>
-                <p className="font-semibold text-sm text-[#2C2C2A]">Dr. Ramesh Patil</p>
+                <p className="font-semibold text-sm text-[#2C2C2A]">{selectedDoctor?.name ?? "Dr. Patil"}</p>
                 <p className="text-xs text-[#5F5E5A]">PHC Beed · General Medicine</p>
               </div>
               <span className="ml-auto badge-green text-[10px] flex items-center gap-1">
@@ -103,7 +134,7 @@ export function AshaTeleconsultPage() {
               </div>
             </div>
 
-            <button onClick={() => setCallState('waiting')} className="btn-primary w-full justify-center text-base py-3.5">
+            <button onClick={() => startCall()} className="btn-primary w-full justify-center text-base py-3.5">
               <Video size={18} aria-hidden="true" /> Start teleconsult
             </button>
           </motion.div>
@@ -143,7 +174,7 @@ export function AshaTeleconsultPage() {
               <div className="w-full h-full bg-gradient-to-br from-[#1B2E28] to-[#0f1a16] flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-20 h-20 rounded-full bg-indigo-900/60 flex items-center justify-center text-xl font-semibold text-indigo-300 mx-auto mb-2">RP</div>
-                  <p className="text-white font-medium text-sm">Dr. Ramesh Patil</p>
+                  <p className="text-white font-medium text-sm">{selectedDoctor?.name ?? "Dr. Patil"}</p>
                   <div className="flex items-center justify-center gap-1.5 mt-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400 status-dot-live" aria-hidden="true" />
                     <span className="text-green-400 text-xs">Live</span>
@@ -165,7 +196,7 @@ export function AshaTeleconsultPage() {
               {/* Patient info strip */}
               <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
                 <User size={11} aria-hidden="true" />
-                <span>{meena.name} · BP {meena.visits[0].vitals?.bp} · Score 52</span>
+                <span>{selectedDoctor ? `Patient (via ${selectedDoctor.name})` : "Patient"} · BP {meena.visits[0].vitals?.bp} · Score 52</span>
               </div>
 
               {/* Timer */}
@@ -219,7 +250,7 @@ export function AshaTeleconsultPage() {
                 <MessageSquare size={20} />
                 {messages.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-coral-500" aria-hidden="true" />}
               </button>
-              <button onClick={() => setCallState('ended')}
+              <button onClick={() => endCall()}
                 className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
                 aria-label="End call">
                 <Phone size={22} className="rotate-[135deg]" />
@@ -238,7 +269,7 @@ export function AshaTeleconsultPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-[#2C2C2A]">Call ended</h2>
-                <p className="text-sm text-[#5F5E5A]">Duration: 6 min 42 sec · Dr. Ramesh Patil</p>
+                <p className="text-sm text-[#5F5E5A]">Duration: 6 min 42 sec · {selectedDoctor?.name ?? "Dr. Patil"}</p>
               </div>
             </div>
 
@@ -265,7 +296,7 @@ export function AshaTeleconsultPage() {
               </div>
 
               {!notesSaved ? (
-                <button onClick={() => setNotesSaved(true)} className="btn-primary w-full justify-center text-sm py-2.5">
+                <button onClick={() => saveNotes()} className="btn-primary w-full justify-center text-sm py-2.5">
                   Save to Meena's record
                 </button>
               ) : (
@@ -286,3 +317,5 @@ export function AshaTeleconsultPage() {
     </div>
   )
 }
+
+

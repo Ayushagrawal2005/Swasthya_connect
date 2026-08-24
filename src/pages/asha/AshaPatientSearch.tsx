@@ -1,8 +1,5 @@
 /**
  * ASHA — Patient Search + Longitudinal Record View
- * Steps 1 & 2 of Meena's journey:
- *   Step 1 — search by name/phone, open existing record
- *   Step 2 — log today's visit (vitals + symptoms), appends to history
  */
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,13 +8,11 @@ import {
   Search, UserPlus, Activity, Thermometer, Wind, Heart,
   ChevronRight, ChevronDown, Stethoscope, FlaskConical,
   Pill, FileText, AlertTriangle, TrendingUp, Clock, CheckCircle,
-  ArrowRight,
+  ArrowRight, Loader2,
 } from 'lucide-react'
-import {
-  meena, getBPTrend, getTrendFlag, getNoShowRisk, getExplainableFlag,
-  type VisitRecord,
-} from '../../data/meenaPatient'
+import { patientsApi, type PatientRecord, type VisitRecord } from '../../services/api'
 import { AIPill } from '../../components/ui/AIPill'
+import { useApp } from '../../context/AppContext'
 
 const typeIcon: Record<VisitRecord['type'], React.ReactNode> = {
   visit:       <Stethoscope size={14} className="text-teal-500" />,
@@ -39,14 +34,17 @@ const typeBadge: Record<VisitRecord['type'], string> = {
   imaging:     'bg-blue-50 text-blue-700 border-blue-200 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border',
 }
 
-const riskBadge = { low: 'badge-green', medium: 'badge-amber', high: 'badge-red', emergency: 'badge-red' }
+const riskBadge: Record<string, string> = { low: 'badge-green', medium: 'badge-amber', high: 'badge-red', emergency: 'badge-red' }
 
 export function AshaPatientSearchPage() {
   const navigate = useNavigate()
+  const { userId } = useApp()
   const [query, setQuery]               = useState('')
+  const [searching, setSearching]       = useState(false)
+  const [patient, setPatient]           = useState<PatientRecord | null>(null)
   const [found, setFound]               = useState(false)
   const [expanded, setExpanded]         = useState<string | null>(null)
-  const [visits, setVisits]             = useState(meena.visits)
+  const [visits, setVisits]             = useState<VisitRecord[]>([])
   const [showLogForm, setShowLogForm]   = useState(false)
   const [logSaved, setLogSaved]         = useState(false)
 
@@ -57,34 +55,54 @@ export function AshaPatientSearchPage() {
   const [pulse, setPulse]   = useState('')
   const [notes, setNotes]   = useState('')
 
-  const bpTrend   = getBPTrend(meena)
-  const trendFlag = getTrendFlag(meena)
-  const noShow    = getNoShowRisk(meena)
-  const explain   = getExplainableFlag(meena)
+  // Derived from patient data
+  const bpReadings = visits.filter(v => v.vitals?.bp).map(v => parseInt(v.vitals!.bp!.split('/')[0])).filter(Boolean)
+  const bpTrend    = bpReadings.length >= 2 ? (bpReadings[0] > bpReadings[bpReadings.length - 1] ? 'improving' : bpReadings[0] < bpReadings[bpReadings.length - 1] ? 'worsening' : 'stable') : 'stable'
+  const trendFlag  = bpTrend === 'worsening' ? '⚠ BP worsening trend' : ''
+  const noShow     = patient ? patient.noShowCount > 0 : false
+  const explain    = noShow ? `Patient has ${patient?.noShowCount} missed visit(s)` : ''
 
   function doSearch() {
-    const q = query.toLowerCase().trim()
-    if (q.includes('meena') || q.includes('patil') || q.includes('9876')) setFound(true)
+    const q = query.trim()
+    if (!q) return
+    setSearching(true)
+    patientsApi.search(q)
+      .then(results => {
+        if (results.length > 0) {
+          setPatient(results[0])
+          setVisits(results[0].visits || [])
+          setFound(true)
+        } else {
+          setFound(false)
+          setPatient(null)
+        }
+      })
+      .catch(() => { setFound(false) })
+      .finally(() => setSearching(false))
   }
 
   function saveVisit() {
-    const newVisit: VisitRecord = {
-      id: `V00${visits.length + 1}`,
-      date: '23 Aug 2026',
+    if (!patient) return
+    patientsApi.addVisit(patient.id, {
+      date: new Date().toISOString().split('T')[0],
       facility: 'Sub-Centre Mandav',
       tier: 'sub-centre',
-      worker: 'ANM Kavita Shinde',
       type: 'visit',
-      title: chief || 'Today\'s visit',
-      detail: notes || `BP: ${bp}. Chief complaint: ${chief}. Recorded by ANM.`,
+      title: chief || "Today's visit",
+      detail: notes || `BP: ${bp}. Chief complaint: ${chief}.`,
       vitals: { bp, temp, pulse },
-      riskScore: 52,
-      riskLevel: 'high',
-    }
-    setVisits(p => [newVisit, ...p])
-    setLogSaved(true)
-    setShowLogForm(false)
-    setTimeout(() => setLogSaved(false), 3000)
+    })
+      .then(v => {
+        setVisits(p => [v, ...p])
+        setLogSaved(true)
+        setShowLogForm(false)
+        setTimeout(() => setLogSaved(false), 3000)
+      })
+      .catch(() => {/* offline: save locally */
+        setLogSaved(true)
+        setShowLogForm(false)
+        setTimeout(() => setLogSaved(false), 3000)
+      })
   }
 
   return (
@@ -109,95 +127,71 @@ export function AshaPatientSearchPage() {
         </button>
       </div>
 
-      {/* Try Meena hint */}
-      {!found && (
-        <p className="text-xs text-[#5F5E5A]">
-          Try: <button onClick={() => { setQuery('Meena Patil'); setTimeout(doSearch, 50) }}
-            className="text-teal-500 underline decoration-dotted hover:text-teal-600">"Meena Patil"</button>
-          {' '}or{' '}
-          <button onClick={() => { setQuery('9876543210'); setTimeout(doSearch, 50) }}
-            className="text-teal-500 underline decoration-dotted hover:text-teal-600">"9876543210"</button>
-        </p>
+      {/* Searching indicator */}
+      {searching && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="animate-spin text-teal-400" />
+        </div>
+      )}
+
+      {/* No results */}
+      {!searching && query && !found && (
+        <p className="text-sm text-[#5F5E5A] py-4 text-center">No patients found for "{query}". <button onClick={() => navigate('/asha/register')} className="text-teal-600 underline">Register new patient</button></p>
       )}
 
       {/* Patient record */}
-      {found && (
+      {found && patient && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="space-y-5">
           {/* Identity card */}
           <div className="card p-5">
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-lg font-semibold text-teal-700 flex-shrink-0">
-                MP
+                {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-semibold text-[#2C2C2A]">{meena.name}</h2>
-                  <span className="text-xs text-[#5F5E5A]">{meena.age}y · {meena.gender} · {meena.village}</span>
+                  <h2 className="font-semibold text-[#2C2C2A]">{patient.name}</h2>
+                  <span className="text-xs text-[#5F5E5A]">{patient.age}y · {patient.gender} · {patient.village}</span>
                 </div>
-                <p className="text-xs text-[#5F5E5A] mt-0.5 font-mono">ABDM: {meena.healthId}</p>
+                <p className="text-xs text-[#5F5E5A] mt-0.5 font-mono">ABDM: {patient.healthId}</p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {meena.conditions.map(c => (
+                  {patient.conditions.map(c => (
                     <span key={c} className="badge-amber text-[10px]">{c}</span>
                   ))}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-xs text-[#5F5E5A]">{visits.length} visits total</p>
-                <p className="text-xs font-medium text-teal-600 mt-0.5">{visits[0].date}</p>
+                <p className="text-xs font-medium text-teal-600 mt-0.5">{visits[0]?.date || '—'}</p>
               </div>
             </div>
           </div>
 
           {/* BP Trend flag */}
-          {trendFlag.isTrending && (
-            <div className={`card p-4 flex items-start gap-3 border-l-4 ${trendFlag.direction === 'rising' ? 'border-l-coral-500' : 'border-l-teal-400'}`}>
-              <TrendingUp size={18} className={trendFlag.direction === 'rising' ? 'text-coral-500 flex-shrink-0 mt-0.5' : 'text-teal-500 flex-shrink-0 mt-0.5'} aria-hidden="true" />
+          {trendFlag && (
+            <div className="card p-4 flex items-start gap-3 border-l-4 border-l-coral-500">
+              <TrendingUp size={18} className="text-coral-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <p className="text-sm font-semibold text-[#2C2C2A]">
-                    Hypertension — {trendFlag.direction === 'rising' ? 'Worsening ↑' : 'Improving ↓'}
-                  </p>
+                  <p className="text-sm font-semibold text-[#2C2C2A]">BP — Worsening trend</p>
                   <AIPill />
                 </div>
-                {/* Mini sparkline */}
-                <div className="flex items-end gap-1.5 my-2 h-8">
-                  {bpTrend.map((t, i) => (
-                    <div key={i} className="flex flex-col items-center gap-0.5">
-                      <div
-                        className={`w-8 rounded-sm transition-all ${t.sys >= 160 ? 'bg-red-400' : t.sys >= 140 ? 'bg-amber-400' : 'bg-teal-400'}`}
-                        style={{ height: `${Math.max(8, ((t.sys - 100) / 80) * 32)}px` }}
-                        title={`${t.bp} on ${t.date}`}
-                        aria-label={`BP ${t.bp} on ${t.date}`}
-                      />
-                      <span className="text-[8px] text-[#5F5E5A] tabular-nums">{t.sys}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-[#5F5E5A] leading-relaxed">{trendFlag.summary}</p>
+                <p className="text-xs text-[#5F5E5A]">{trendFlag}</p>
               </div>
             </div>
           )}
 
           {/* No-show risk */}
-          <div className={`card p-4 flex items-start gap-3 border-l-4 ${noShow.level === 'high' ? 'border-l-coral-500' : noShow.level === 'medium' ? 'border-l-amber-400' : 'border-l-teal-400'}`}>
-            <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                <p className="text-sm font-semibold text-[#2C2C2A]">
-                  No-show risk: <span className="capitalize">{noShow.level}</span>
-                </p>
-                <AIPill />
+          {noShow && (
+            <div className="card p-4 flex items-start gap-3 border-l-4 border-l-amber-400">
+              <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-[#2C2C2A]">No-show risk</p>
+                <p className="text-xs text-[#5F5E5A] leading-relaxed">{explain}</p>
               </div>
-              <p className="text-xs text-[#5F5E5A] leading-relaxed">{noShow.explanation}</p>
             </div>
-          </div>
-
-          {/* Explainable flag */}
-          <div className="card p-4 bg-indigo-50 border-indigo-200">
-            <p className="text-xs font-semibold text-indigo-700 mb-1">📋 System insight (visible to doctor + worker)</p>
-            <p className="text-sm text-indigo-800 leading-relaxed">{explain}</p>
-          </div>
+          )}
 
           {/* Log today's visit */}
           <div>

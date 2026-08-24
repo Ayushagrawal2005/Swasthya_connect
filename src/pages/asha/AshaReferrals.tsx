@@ -1,21 +1,23 @@
 // ASHA — Create & track referrals (Module 5)
-// Urgency-based hospital recommendations from facilityData
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, CheckCircle, Clock, AlertTriangle, MapPin, Plus, Sparkles } from 'lucide-react'
-import {
-  getRecommendedFacilities, tierLabel, tierColor,
-  facilities as allFacilities,
-  type UrgencyLevel,
-} from '../../data/facilityData'
+import { ArrowRight, CheckCircle, Clock, AlertTriangle, MapPin, Plus, Sparkles, Loader2 } from 'lucide-react'
+import { referralsApi, appointmentsApi, type Referral, type FacilityWithDoctors } from '../../services/api'
 
-type ReferralStatus = 'pending' | 'reached' | 'treated' | 'missed'
-interface Referral {
-  id: string; patient: string; from: string; to: string;
-  reason: string; urgency: UrgencyLevel; date: string; status: ReferralStatus
+type UrgencyLevel = 'routine' | 'urgent' | 'emergency'
+
+interface LocalReferral {
+  id: string
+  patient: string
+  from: string
+  to: string
+  reason: string
+  urgency: UrgencyLevel
+  date: string
+  status: string
 }
 
-const existingReferrals: Referral[] = [
+const existingReferrals: LocalReferral[] = [
   { id: 'REF-A01', patient: 'Meena Patil', from: 'Sub-centre Mandav', to: 'District Hospital Beed',
     reason: 'High BP 148/92 in 32W pregnancy — specialist obstetric review needed', urgency: 'urgent', date: '21 Aug 2026', status: 'pending' },
   { id: 'REF-A02', patient: 'Lata Kale (child)', from: 'Sub-centre Mandav', to: 'Rural Hospital Beed',
@@ -24,9 +26,15 @@ const existingReferrals: Referral[] = [
     reason: 'Suspected TB — sputum AFB test required', urgency: 'routine', date: '10 Aug 2026', status: 'treated' },
 ]
 
-const urgencyBadge: Record<UrgencyLevel, string> = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
-const statusBadge: Record<ReferralStatus, string> = { pending: 'badge-amber', reached: 'badge-teal', treated: 'badge-green', missed: 'badge-red' }
-const statusLabel: Record<ReferralStatus, string> = { pending: 'Pending', reached: 'Reached', treated: 'Treated', missed: 'Missed' }
+const urgencyBadge: Record<string, string> = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
+const statusBadge: Record<string, string> = { pending: 'badge-amber', accepted: 'badge-teal', reached: 'badge-teal', treated: 'badge-green', missed: 'badge-red', redirected: 'badge-amber' }
+const statusLabel: Record<string, string>  = { pending: 'Pending', accepted: 'Accepted', reached: 'Reached', treated: 'Treated', missed: 'Missed', redirected: 'Redirected' }
+
+const stepFlow = [
+  { key: 'sent', label: 'Sent' },
+  { key: 'reached', label: 'Reached' },
+  { key: 'treated', label: 'Treated' },
+]
 
 const urgencyConfig: Record<UrgencyLevel, { label: string; desc: string; icon: React.ReactNode; color: string }> = {
   routine:   { label: 'Routine',   desc: 'Non-urgent — within 24-48 hours',          icon: <Clock size={14} />,         color: 'bg-teal-50 border-teal-300 text-teal-800' },
@@ -34,38 +42,44 @@ const urgencyConfig: Record<UrgencyLevel, { label: string; desc: string; icon: R
   emergency: { label: 'Emergency', desc: 'Immediate — life-threatening situation',   icon: <AlertTriangle size={14} />, color: 'bg-red-50 border-red-300 text-red-800' },
 }
 
-const stepFlow: { key: ReferralStatus; label: string }[] = [
-  { key: 'pending', label: 'Referred' },
-  { key: 'reached', label: 'Patient reached' },
-  { key: 'treated', label: 'Treatment done' },
-]
+const tierPriority: Record<string, number> = { 'sub-centre': 1, phc: 2, 'rural-hospital': 3, district: 4 }
 
 export function AshaReferralsPage() {
   const [view, setView]         = useState<'list' | 'create'>('list')
-  const [referrals, setReferrals] = useState(existingReferrals)
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [facilities, setFacilities] = useState<FacilityWithDoctors[]>([])
+  const [loading, setLoading]   = useState(true)
   const [patient, setPatient]   = useState('')
   const [reason, setReason]     = useState('')
   const [urgency, setUrgency]   = useState<UrgencyLevel>('routine')
   const [selectedFacility, setSelectedFacility] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
-  // Recommended hospitals based on urgency
-  const recommendedFacilities = getRecommendedFacilities(urgency)
-  // All available as fallback
-  const allBookable = allFacilities.filter(f => f.tier !== 'sub-centre')
+  useEffect(() => {
+    Promise.all([referralsApi.outgoing(), appointmentsApi.facilities()])
+      .then(([refs, facs]) => { setReferrals(refs); setFacilities(facs) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const urgencyOrder: Record<UrgencyLevel, number> = { emergency: 3, urgent: 2, routine: 1 }
+  const recommendedFacilities = facilities
+    .filter(f => f.tier !== 'sub-centre')
+    .sort((a, b) => {
+      if (urgency === 'emergency') return tierPriority[b.tier] - tierPriority[a.tier]
+      return tierPriority[a.tier] - tierPriority[b.tier]
+    })
+    .slice(0, urgency === 'emergency' ? 3 : 2)
 
   function createReferral() {
     if (!patient.trim() || !reason.trim() || !selectedFacility) return
-    const newRef: Referral = {
-      id: `REF-A0${referrals.length + 4}`,
-      patient, from: 'Sub-centre Mandav', to: selectedFacility,
-      reason, urgency,
-      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-      status: 'pending',
-    }
-    setReferrals(p => [newRef, ...p])
-    setSubmitted(true)
-    setTimeout(() => { setSubmitted(false); setView('list'); setPatient(''); setReason(''); setUrgency('routine'); setSelectedFacility('') }, 2000)
+    referralsApi.create({ patientName: patient, toFacilityName: selectedFacility, reason, urgency })
+      .then(ref => {
+        setReferrals(p => [ref, ...p])
+        setSubmitted(true)
+        setTimeout(() => { setSubmitted(false); setView('list'); setPatient(''); setReason(''); setUrgency('routine'); setSelectedFacility('') }, 2000)
+      })
+      .catch(() => {/* silent */})
   }
 
   return (
@@ -141,8 +155,8 @@ export function AshaReferralsPage() {
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all
                       ${selectedFacility === f.name ? 'border-teal-500 bg-teal-50' : 'border-teal-200 bg-teal-50/40 hover:border-teal-400'}`}
                     aria-pressed={selectedFacility === f.name}>
-                    <div className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${tierColor[f.tier]}`}>
-                      {tierLabel[f.tier]}
+                    <div className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${"badge-teal"}`}>
+                      {f.tier}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-[#2C2C2A]">{f.name}</p>
@@ -159,11 +173,11 @@ export function AshaReferralsPage() {
                   Other facilities (not recommended for this urgency)
                 </summary>
                 <div className="p-2 space-y-1.5 bg-gray-50/50">
-                  {allBookable.filter(f => !recommendedFacilities.some(r => r.id === f.id)).map(f => (
+                  {facilities.filter(f => !recommendedFacilities.some(r => r.id === f.id)).map(f => (
                     <button key={f.id} type="button" onClick={() => setSelectedFacility(f.name)}
                       className={`w-full flex items-center gap-3 p-2.5 rounded-lg border text-left text-xs transition-all
                         ${selectedFacility === f.name ? 'border-teal-500 bg-teal-50' : 'border-[#D3D1C7] bg-white hover:border-gray-300'}`}>
-                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${tierColor[f.tier]}`}>{tierLabel[f.tier]}</span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${"badge-teal"}`}>{f.tier}</span>
                       <span className="flex-1 font-medium text-[#2C2C2A]">{f.name}</span>
                       <span className="text-[#5F5E5A]">{f.distance}</span>
                     </button>
@@ -191,7 +205,7 @@ export function AshaReferralsPage() {
           <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="space-y-3">
             {referrals.map((ref, i) => {
-              const stepIdx = stepFlow.findIndex(s => s.key === ref.status)
+              const stepIdx = [ref.status === 'reached',ref.status === 'treated'].indexOf(true)
               return (
                 <motion.article key={ref.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.07 }}
@@ -199,12 +213,12 @@ export function AshaReferralsPage() {
                   <div className="flex items-start justify-between gap-2 flex-wrap">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <p className="font-semibold text-sm text-[#2C2C2A]">{ref.patient}</p>
+                        <p className="font-semibold text-sm text-[#2C2C2A]">{ref.patientName}</p>
                         <span className="text-[10px] font-mono text-[#5F5E5A]">{ref.id}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-[#5F5E5A]">
-                        <MapPin size={11} className="text-teal-500" /> {ref.from}
-                        <ArrowRight size={11} /> {ref.to}
+                        <MapPin size={11} className="text-teal-500" /> Sub-centre
+                        <ArrowRight size={11} /> {ref.toFacilityName}
                       </div>
                     </div>
                     <div className="flex gap-1.5">
@@ -231,10 +245,10 @@ export function AshaReferralsPage() {
                   </div>
                   {ref.status === 'pending' && (
                     <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                      <AlertTriangle size={11} /> Patient has not yet reached {ref.to}. Follow up if not arrived within 24h.
+                      <AlertTriangle size={11} /> Patient has not yet reached {ref.toFacilityName}. Follow up if not arrived within 24h.
                     </div>
                   )}
-                  <p className="text-[10px] text-[#5F5E5A] flex items-center gap-1"><Clock size={10} /> {ref.date}</p>
+                  <p className="text-[10px] text-[#5F5E5A] flex items-center gap-1"><Clock size={10} /> {new Date(ref.createdAt).toLocaleDateString('en-IN')}</p>
                 </motion.article>
               )
             })}
@@ -244,3 +258,4 @@ export function AshaReferralsPage() {
     </div>
   )
 }
+

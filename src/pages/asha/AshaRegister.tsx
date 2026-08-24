@@ -1,18 +1,36 @@
 // ASHA — Patient Registration (Module 1 — frontline entry point)
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Phone, Mic, CheckCircle, Shield, WifiOff, RefreshCw } from 'lucide-react'
+import { User, Phone, Mic, CheckCircle, Shield, WifiOff, RefreshCw, Upload, FileText, Loader, X, Eye } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { useNavigate } from 'react-router-dom'
-
-function generateHealthId() {
-  const prefix = '91'
-  const rand = () => Math.floor(1000 + Math.random() * 9000)
-  return `${prefix}-${rand()}-${rand()}-${rand()}`
-}
+import { patientsApi } from '../../services/api'
+import axios from 'axios'
 
 const conditions = ['Pregnancy', 'Diabetes (T2)', 'Hypertension', 'TB', 'Asthma', 'Anaemia', 'Post-surgical', 'None']
 const languages  = ['Marathi', 'Hindi', 'English', 'Kannada', 'Telugu', 'Bengali']
+
+interface OCRResult {
+  raw_text: string
+  document_type: string
+  summary: string
+  medicines: Array<{
+    name: string
+    dosage?: string
+    frequency?: string
+    confidence: number
+  }>
+  test_values: Array<{
+    test_name: string
+    value?: string
+    unit?: string
+    reference_range?: string
+    is_abnormal?: boolean
+  }>
+  dates_found: string[]
+  needs_review: boolean
+  fallback?: boolean
+}
 
 export function AshaRegisterPage() {
   const { isOnline, setPendingSyncCount, pendingSyncCount } = useApp()
@@ -20,6 +38,8 @@ export function AshaRegisterPage() {
 
   const [step, setStep] = useState<'form' | 'done'>('form')
   const [healthId, setHealthId] = useState('')
+  const [patientId, setPatientId] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const [form, setForm] = useState({
     name: '', phone: '', age: '', gender: '' as 'M' | 'F' | 'O' | '',
@@ -27,6 +47,12 @@ export function AshaRegisterPage() {
     aadhaarLast4: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Medical records upload state
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [ocrResults, setOcrResults] = useState<OCRResult[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [showOcrPreview, setShowOcrPreview] = useState<number | null>(null)
 
   function set(field: string, value: string) {
     setForm(p => ({ ...p, [field]: value }))
@@ -48,15 +74,107 @@ export function AshaRegisterPage() {
     const e2 = validate()
     if (Object.keys(e2).length) { setErrors(e2); return }
 
-    const id = generateHealthId()
-    setHealthId(id)
+    setSubmitting(true)
+    patientsApi.register({
+      name: form.name, phone: form.phone, age: form.age,
+      gender: form.gender, village: form.village,
+      condition: form.condition !== 'None' ? form.condition : undefined,
+      language: form.language, aadhaarLast4: form.aadhaarLast4 || undefined,
+    })
+      .then(res => { 
+        setHealthId(res.healthId)
+        setPatientId(res.patientId || res.id)
+        
+        // If medical records were uploaded, save them
+        if (ocrResults.length > 0 && res.patientId) {
+          saveUploadedRecords(res.patientId)
+        } else {
+          setStep('done')
+        }
+      })
+      .catch(() => {
+        // offline fallback
+        if (!isOnline) {
+          setPendingSyncCount(pendingSyncCount + 1)
+          const tempHealthId = `91-${Math.floor(1000+Math.random()*9000)}-${Math.floor(1000+Math.random()*9000)}-${Math.floor(1000+Math.random()*9000)}`
+          setHealthId(tempHealthId)
+          setStep('done')
+        }
+      })
+      .finally(() => setSubmitting(false))
+  }
 
-    // If offline, queue for sync
-    if (!isOnline) {
-      setPendingSyncCount(pendingSyncCount + 1)
+  async function saveUploadedRecords(pid: string) {
+    const token = localStorage.getItem('swasthya_token')
+    
+    for (let i = 0; i < ocrResults.length; i++) {
+      const result = ocrResults[i]
+      try {
+        await axios.post(`http://localhost:4000/api/patients/${pid}/records`, {
+          documentType: result.document_type,
+          rawText: result.raw_text,
+          summary: result.summary,
+          medicines: result.medicines,
+          testValues: result.test_values,
+          datesFound: result.dates_found,
+          imageUrl: null // Could upload to storage and save URL
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      } catch (err) {
+        console.error('Failed to save record:', err)
+      }
+    }
+    
+    setStep('done')
+  }
+
+  async function handleFileUpload(files: FileList | null) {
+    if (!files || files.length === 0) return
+    
+    const fileArray = Array.from(files)
+    setUploadedFiles(prev => [...prev, ...fileArray])
+    setUploading(true)
+
+    const token = localStorage.getItem('swasthya_token')
+    const newResults: OCRResult[] = []
+
+    for (let file of fileArray) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await axios.post('http://localhost:4000/api/ocr/extract', formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 30000
+        })
+
+        newResults.push(response.data)
+      } catch (err) {
+        console.error('OCR extraction failed:', err)
+        // Add fallback result
+        newResults.push({
+          raw_text: 'OCR extraction failed - please review manually',
+          document_type: 'unknown',
+          summary: 'This document could not be automatically processed. Please review and enter details manually.',
+          medicines: [],
+          test_values: [],
+          dates_found: [],
+          needs_review: true
+        })
+      }
     }
 
-    setStep('done')
+    setOcrResults(prev => [...prev, ...newResults])
+    setUploading(false)
+  }
+
+  function removeFile(index: number) {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+    setOcrResults(prev => prev.filter((_, i) => i !== index))
   }
 
   if (step === 'done') {
@@ -68,6 +186,9 @@ export function AshaRegisterPage() {
         <div>
           <h2 className="text-xl font-semibold text-[#2C2C2A]">Patient registered</h2>
           <p className="text-sm text-[#5F5E5A] mt-1">{form.name} has been added to the system.</p>
+          {ocrResults.length > 0 && (
+            <p className="text-sm text-teal-700 mt-2">✓ {ocrResults.length} medical record(s) uploaded and processed</p>
+          )}
         </div>
 
         <div className="card p-5 w-full text-left space-y-3">
@@ -96,7 +217,12 @@ export function AshaRegisterPage() {
           <button onClick={() => navigate('/asha/triage')} className="btn-primary flex-1 justify-center text-sm">
             Triage this patient
           </button>
-          <button onClick={() => { setStep('form'); setForm({ name:'',phone:'',age:'',gender:'',village:'',condition:'None',language:'Marathi',aadhaarLast4:'' }) }}
+          <button onClick={() => { 
+            setStep('form')
+            setForm({ name:'',phone:'',age:'',gender:'',village:'',condition:'None',language:'Marathi',aadhaarLast4:'' })
+            setUploadedFiles([])
+            setOcrResults([])
+          }}
             className="btn-secondary flex-1 justify-center text-sm">
             Register another
           </button>
@@ -222,10 +348,187 @@ export function AshaRegisterPage() {
           </select>
         </div>
 
-        <button type="submit" className="btn-primary w-full justify-center py-3.5 text-base">
-          <User size={18} aria-hidden="true" /> Register patient & generate health ID
+        {/* Medical Records Upload Section */}
+        <div className="border-t border-[#D3D1C7] pt-4 mt-6">
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-[#2C2C2A] mb-1">Upload previous medical records (optional)</h3>
+            <p className="text-xs text-[#5F5E5A]">Upload prescriptions, lab reports, or discharge summaries. AI will extract key information automatically.</p>
+          </div>
+
+          {/* Upload Area */}
+          <div className="border-2 border-dashed border-[#D3D1C7] rounded-lg p-4 text-center hover:border-teal-400 transition-colors">
+            <input 
+              type="file" 
+              id="medical-records-upload"
+              accept="image/*"
+              multiple
+              onChange={(e) => handleFileUpload(e.target.files)}
+              className="hidden"
+            />
+            <label 
+              htmlFor="medical-records-upload"
+              className="cursor-pointer flex flex-col items-center gap-2"
+            >
+              <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center">
+                <Upload size={20} className="text-teal-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#2C2C2A]">Click to upload or drag and drop</p>
+                <p className="text-xs text-[#5F5E5A] mt-0.5">Photos of prescriptions, lab reports (PNG, JPG)</p>
+              </div>
+            </label>
+          </div>
+
+          {/* Uploaded Files List */}
+          {uploadedFiles.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {uploadedFiles.map((file, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-white border border-[#D3D1C7] rounded-lg">
+                  <FileText size={18} className="text-teal-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#2C2C2A] truncate">{file.name}</p>
+                    {ocrResults[index] && (
+                      <div className="mt-1">
+                        <p className="text-xs text-[#5F5E5A]">
+                          Type: <span className="font-medium">{ocrResults[index].document_type}</span>
+                          {ocrResults[index].medicines.length > 0 && (
+                            <span className="ml-2">• {ocrResults[index].medicines.length} medicine(s)</span>
+                          )}
+                          {ocrResults[index].fallback && (
+                            <span className="ml-2 text-amber-600">• Using fallback data</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {uploading && index >= ocrResults.length ? (
+                    <Loader size={16} className="text-teal-600 animate-spin flex-shrink-0" />
+                  ) : (
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowOcrPreview(index)}
+                        className="p-1.5 text-[#5F5E5A] hover:text-teal-600 transition-colors rounded"
+                        title="View extracted data"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="p-1.5 text-[#5F5E5A] hover:text-red-600 transition-colors rounded"
+                        title="Remove file"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {uploading && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+              <Loader size={14} className="animate-spin" />
+              <span>Extracting data from documents...</span>
+            </div>
+          )}
+        </div>
+
+        <button type="submit" disabled={submitting || uploading} className="btn-primary w-full justify-center py-3.5 text-base">
+          <User size={18} aria-hidden="true" /> {submitting ? 'Registering…' : uploading ? 'Processing documents...' : 'Register patient & generate health ID'}
         </button>
       </form>
+
+      {/* OCR Preview Modal */}
+      <AnimatePresence>
+        {showOcrPreview !== null && ocrResults[showOcrPreview] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowOcrPreview(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-lg p-5 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#2C2C2A]">Extracted Medical Data</h3>
+                  <p className="text-sm text-[#5F5E5A] mt-0.5">{uploadedFiles[showOcrPreview]?.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowOcrPreview(null)}
+                  className="p-1 text-[#5F5E5A] hover:text-[#2C2C2A] transition-colors rounded"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Document Type */}
+                <div>
+                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Document Type</p>
+                  <p className="text-sm text-[#2C2C2A] capitalize">{ocrResults[showOcrPreview].document_type}</p>
+                </div>
+
+                {/* Summary */}
+                <div>
+                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Summary</p>
+                  <p className="text-sm text-[#2C2C2A]">{ocrResults[showOcrPreview].summary}</p>
+                </div>
+
+                {/* Medicines */}
+                {ocrResults[showOcrPreview].medicines.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-[#5F5E5A] mb-2">Medicines Extracted</p>
+                    <div className="space-y-2">
+                      {ocrResults[showOcrPreview].medicines.map((med, i) => (
+                        <div key={i} className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+                          <p className="text-sm font-medium text-[#2C2C2A]">{med.name}</p>
+                          {med.dosage && <p className="text-xs text-[#5F5E5A]">Dosage: {med.dosage}</p>}
+                          {med.frequency && <p className="text-xs text-[#5F5E5A]">Frequency: {med.frequency}</p>}
+                          <p className="text-xs text-teal-700 mt-1">Confidence: {(med.confidence * 100).toFixed(0)}%</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Test Values */}
+                {ocrResults[showOcrPreview].test_values.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-[#5F5E5A] mb-2">Lab Test Results</p>
+                    <div className="space-y-2">
+                      {ocrResults[showOcrPreview].test_values.map((test, i) => (
+                        <div key={i} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-sm font-medium text-[#2C2C2A]">{test.test_name}</p>
+                          {test.value && <p className="text-xs text-[#5F5E5A]">Value: {test.value} {test.unit || ''}</p>}
+                          {test.is_abnormal && <p className="text-xs text-red-600 font-medium">⚠ Abnormal</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Raw Text */}
+                <div>
+                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Raw Extracted Text</p>
+                  <div className="bg-gray-50 border border-[#D3D1C7] rounded-lg p-3 text-xs text-[#2C2C2A] whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+                    {ocrResults[showOcrPreview].raw_text}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

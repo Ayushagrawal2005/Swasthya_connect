@@ -1,137 +1,91 @@
-// Module 5 — Referral Management (patient view)
-import { CheckCircle, Circle, Clock, MapPin, ArrowRight, AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle, Circle, Clock, MapPin, ArrowRight, AlertTriangle, Loader2 } from 'lucide-react'
+import { patientsApi, type Referral } from '../../services/api'
+import { useApp } from '../../context/AppContext'
 
-type ReferralStatus = 'referred' | 'reached' | 'treated'
-
-interface Referral {
-  id: string
-  from: string
-  to: string
-  reason: string
-  urgency: 'routine' | 'urgent' | 'emergency'
-  status: ReferralStatus
-  date: string
-  updatedAt: string
-}
-
-const referrals: Referral[] = [
-  {
-    id: 'REF001',
-    from: 'PHC Beed',
-    to: 'Rural Hospital Beed',
-    reason: 'CBC showed low haemoglobin (11.2 g/dL) — specialist consult for iron-deficiency anaemia in pregnancy',
-    urgency: 'urgent',
-    status: 'reached',
-    date: '20 Aug 2026',
-    updatedAt: '22 Aug 2026',
-  },
-  {
-    id: 'REF002',
-    from: 'Sub-centre Mandav',
-    to: 'PHC Beed',
-    reason: 'Routine ANC — referral for OB/GYN assessment at 24 weeks',
-    urgency: 'routine',
-    status: 'treated',
-    date: '1 Jul 2026',
-    updatedAt: '3 Jul 2026',
-  },
-]
-
-const steps: { key: ReferralStatus; label: string; desc: string }[] = [
-  { key: 'referred', label: 'Referred', desc: 'Referral created and sent' },
-  { key: 'reached', label: 'Reached facility', desc: 'Patient arrived at destination' },
-  { key: 'treated', label: 'Treated', desc: 'Care completed, record updated' },
-]
-
-const urgencyBadge: Record<string, string> = {
-  routine: 'badge-teal',
-  urgent: 'badge-amber',
-  emergency: 'badge-red',
-}
-
-const stepOrder = steps.map(s => s.key)
+const urgencyBadge: Record<string, string> = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
+const stepKeys = ['pending', 'reached', 'treated']
 
 export function ReferralTrackerPage() {
+  const { patientId } = useApp()
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const pid = patientId || 'P-PRIYA-002'
+    patientsApi.getReferrals(pid)
+      .then(setReferrals)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [patientId])
+
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <h1 className="text-xl font-semibold text-[#2C2C2A]">Referral tracker</h1>
+      <div>
+        <h1 className="text-xl font-semibold text-[#2C2C2A]">My Referrals</h1>
+        <p className="text-sm text-[#5F5E5A] mt-0.5">Track the status of referrals made by your doctor</p>
+      </div>
 
-      {referrals.map(ref => {
-        const currentIdx = stepOrder.indexOf(ref.status)
-        return (
-          <article key={ref.id} className="card p-5 space-y-4">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xs font-mono text-[#5F5E5A]">#{ref.id}</span>
-                  <span className={`${urgencyBadge[ref.urgency]} text-[10px] capitalize`}>{ref.urgency}</span>
+      {loading ? (
+        <div className="flex justify-center py-8"><Loader2 className="animate-spin text-teal-400" /></div>
+      ) : referrals.length === 0 ? (
+        <p className="text-sm text-center text-[#5F5E5A] py-8">No referrals found.</p>
+      ) : (
+        <div className="space-y-4">
+          {referrals.map((ref, i) => {
+            const stepIdx = stepKeys.indexOf(ref.status === 'accepted' ? 'pending' : ref.status)
+            return (
+              <div key={ref.id} className={`card p-5 space-y-4 ${ref.urgency === 'emergency' ? 'border-l-4 border-l-red-500' : ref.urgency === 'urgent' ? 'border-l-4 border-l-amber-400' : ''}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="font-semibold text-sm text-[#2C2C2A]">{ref.toFacilityName}</p>
+                      <span className={`${urgencyBadge[ref.urgency]} text-[10px]`}>{ref.urgency}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-[#5F5E5A]">
+                      <MapPin size={11} className="text-teal-500" /> Sub-centre
+                      <ArrowRight size={11} /> {ref.toFacilityName}
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#5F5E5A]">{new Date(ref.createdAt).toLocaleDateString('en-IN')}</p>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm text-[#2C2C2A] font-medium flex-wrap">
-                  <MapPin size={13} className="text-teal-500 flex-shrink-0" />
-                  {ref.from}
-                  <ArrowRight size={13} className="text-[#5F5E5A]" />
-                  {ref.to}
+
+                <p className="text-sm text-[#5F5E5A] leading-relaxed">{ref.reason}</p>
+
+                {/* Progress stepper */}
+                <div className="flex items-center gap-0">
+                  {['Referred', 'Reached', 'Treated'].map((label, si) => {
+                    const done = si <= stepIdx
+                    return (
+                      <div key={label} className="flex items-center flex-1 last:flex-none">
+                        <div className="flex flex-col items-center gap-1">
+                          {done
+                            ? <CheckCircle size={18} className="text-teal-500" />
+                            : <Circle size={18} className="text-[#D3D1C7]" />
+                          }
+                          <span className={`text-[10px] font-medium ${done ? 'text-teal-600' : 'text-[#5F5E5A]'}`}>{label}</span>
+                        </div>
+                        {si < 2 && <div className={`flex-1 h-0.5 mb-4 mx-1 ${si < stepIdx ? 'bg-teal-400' : 'bg-[#D3D1C7]'}`} />}
+                      </div>
+                    )
+                  })}
                 </div>
+
+                {ref.status === 'pending' && (
+                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <Clock size={12} /> Waiting for confirmation from {ref.toFacilityName}
+                  </div>
+                )}
+                {ref.urgency === 'emergency' && (
+                  <div className="flex items-center gap-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    <AlertTriangle size={12} /> Emergency referral — please travel to the facility immediately
+                  </div>
+                )}
               </div>
-              <span className="text-xs text-[#5F5E5A] flex-shrink-0">{ref.date}</span>
-            </div>
-
-            {/* Reason */}
-            <p className="text-sm text-[#5F5E5A] leading-relaxed bg-gray-50 rounded-xl px-4 py-3">
-              {ref.reason}
-            </p>
-
-            {/* Status stepper */}
-            <div role="list" aria-label="Referral status steps">
-              <ol className="relative space-y-3">
-                {steps.map((s, i) => {
-                  const done = i <= currentIdx
-                  const active = i === currentIdx
-                  return (
-                    <li key={s.key} className="flex items-start gap-3" role="listitem">
-                      <div className="relative flex-shrink-0 mt-0.5">
-                        {done ? (
-                          <CheckCircle size={20} className="text-teal-500" aria-label="Completed" />
-                        ) : (
-                          <Circle size={20} className="text-[#D3D1C7]" aria-label="Pending" />
-                        )}
-                        {i < steps.length - 1 && (
-                          <div className={`absolute left-[9px] top-6 w-0.5 h-4 ${done ? 'bg-teal-300' : 'bg-[#D3D1C7]'}`} aria-hidden="true" />
-                        )}
-                      </div>
-                      <div>
-                        <p className={`text-sm font-medium ${active ? 'text-teal-600' : done ? 'text-[#2C2C2A]' : 'text-[#5F5E5A]'}`}>
-                          {s.label}
-                          {active && (
-                            <span className="ml-2 inline-flex items-center gap-0.5 text-[10px] text-teal-600">
-                              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 status-dot-live" aria-hidden="true" />
-                              Current
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-xs text-[#5F5E5A]">{s.desc}</p>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            </div>
-
-            {/* Emergency note */}
-            {ref.urgency === 'emergency' && (
-              <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <AlertTriangle size={13} />
-                Emergency escalation — higher-tier facility has been notified
-              </div>
-            )}
-
-            <p className="text-[10px] text-[#5F5E5A] flex items-center gap-1">
-              <Clock size={10} /> Last updated: {ref.updatedAt}
-            </p>
-          </article>
-        )
-      })}
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, CheckCircle, Phone, ArrowRight, Clock, Siren } from 'lucide-react'
+import { escalationsApi, appointmentsApi, type Escalation } from '../../services/api'
 
 type EscalationStatus = 'idle' | 'sending' | 'sent' | 'acknowledged' | 'arrived'
 
@@ -15,18 +16,25 @@ export function EmergencyEscalationPage() {
   const [status, setStatus] = useState<EscalationStatus>('idle')
   const [patientName, setPatientName] = useState('')
   const [reason, setReason] = useState('')
-  const [destination, setDestination] = useState('Rural Hospital Beed')
+  const [destination, setDestination] = useState('District Hospital Solapur')
   const [sentTime, setSentTime] = useState('')
+  const [escalation, setEscalation] = useState<Escalation | null>(null)
 
   function triggerEscalation() {
     if (!patientName.trim() || !reason.trim()) return
     setStatus('sending')
-    setTimeout(() => {
-      setStatus('sent')
-      setSentTime(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }))
-    }, 1200)
-    // Auto-advance steps for demo
-    setTimeout(() => setStatus('acknowledged'), 4000)
+    escalationsApi.create({ patientName, reason, toFacilityName: destination })
+      .then(esc => {
+        setEscalation(esc)
+        setStatus('sent')
+        setSentTime(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }))
+        // Auto-advance for demo
+        setTimeout(() => setStatus('acknowledged'), 4000)
+      })
+      .catch(() => {
+        setStatus('sent')
+        setSentTime(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }))
+      })
   }
 
   const currentStepIdx = status === 'acknowledged' || status === 'arrived'

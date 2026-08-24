@@ -1,10 +1,10 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  ClipboardList, Calendar, FileText, Pill, Video,
-  ChevronRight, Bell, Heart, Thermometer, Activity,
-} from 'lucide-react'
+import { ClipboardList, Calendar, FileText, Pill, Video, ChevronRight, Heart, Thermometer, Activity, Loader2, Bell } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
+import { patientsApi, appointmentsApi, type PatientRecord, type Appointment } from '../../services/api'
+import { useApp } from '../../context/AppContext'
 
 const quickActions = [
   { label: 'Check Symptoms', icon: <ClipboardList size={22} />, path: '/patient/triage', color: 'bg-teal-50 text-teal-600' },
@@ -28,6 +28,24 @@ const statusClasses = {
 
 export function PatientHome() {
   const navigate = useNavigate()
+  const { patientId, userName } = useApp()
+  const [patient, setPatient] = useState<PatientRecord | null>(null)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const pid = patientId || 'P-PRIYA-002'
+    Promise.all([
+      patientsApi.get(pid).catch(() => null),
+      appointmentsApi.list({ patientId: pid }).catch(() => []),
+    ]).then(([p, appts]) => {
+      setPatient(p)
+      setAppointments(appts as Appointment[])
+    }).finally(() => setLoading(false))
+  }, [patientId])
+
+  const upcomingAppt = appointments.find(a => a.status === 'scheduled')
+  const latestVisit  = patient?.visits?.[0]
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 animate-fade-in">
@@ -37,30 +55,30 @@ export function PatientHome() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="text-xl font-semibold text-[#2C2C2A]">Good morning, Priya 👋</h1>
-        <p className="text-sm text-[#5F5E5A] mt-0.5">28 weeks pregnant · Last visit: 3 days ago</p>
+        <h1 className="text-xl font-semibold text-[#2C2C2A]">Good morning, {userName?.split(' ')[0] ?? 'Priya'} 👋</h1>
+        <p className="text-sm text-[#5F5E5A] mt-0.5">
+          {patient ? `${patient.conditions[0] ?? 'General'} · Last visit: ${latestVisit?.date ?? '—'}` : 'Loading your health summary…'}
+        </p>
       </motion.div>
 
-      {/* Upcoming appointment */}
       <section aria-label="Upcoming appointment">
+        {upcomingAppt ? (
         <div className="card p-5 border-l-4 border-l-teal-500">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs text-teal-600 font-medium uppercase tracking-wide mb-1">Upcoming Appointment</p>
-              <p className="font-semibold text-[#2C2C2A]">Antenatal Check-up</p>
-              <p className="text-sm text-[#5F5E5A] mt-0.5">Dr. Ramesh Patil · PHC Beed</p>
-              <p className="text-sm font-medium text-teal-600 mt-1">Tomorrow, 10:30 AM · Queue #4</p>
+              <p className="font-semibold text-[#2C2C2A]">{upcomingAppt.type === 'teleconsult' ? 'Teleconsultation' : 'In-person visit'}</p>
+              <p className="text-sm text-[#5F5E5A] mt-0.5">Token {upcomingAppt.token}</p>
+              <p className="text-sm font-medium text-teal-600 mt-1">{upcomingAppt.date} · {upcomingAppt.time}</p>
             </div>
-            <button
-              onClick={() => navigate('/patient/teleconsult')}
-              className="btn-primary text-xs px-4 py-2 flex-shrink-0"
-              aria-label="Join teleconsultation for antenatal check-up"
-            >
-              <Video size={14} aria-hidden="true" />
-              Join call
+            <button onClick={() => navigate('/patient/teleconsult')} className="btn-primary text-xs px-4 py-2 flex-shrink-0">
+              <Video size={14} /> Join call
             </button>
           </div>
         </div>
+        ) : !loading && (
+          <div className="card p-4 text-sm text-[#5F5E5A] text-center">No upcoming appointments. <button onClick={() => navigate('/patient/appointments')} className="text-teal-600 underline">Book one now</button></div>
+        )}
       </section>
 
       {/* Quick actions */}

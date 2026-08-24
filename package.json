@@ -6,16 +6,20 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend": "cd backend && npm run dev",
+    "dev:all": "npx concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"teal,cyan\""
   },
   "dependencies": {
+    "axios": "^1.19.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.15.0",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
     "recharts": "^2.13.3",
-    "lucide-react": "^0.468.0",
-    "framer-motion": "^11.15.0",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
@@ -23,6 +27,7 @@
     "@types/react-dom": "^18.3.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.5",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.6.3",

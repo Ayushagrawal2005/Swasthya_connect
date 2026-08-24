@@ -1,12 +1,14 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Users, TrendingUp, AlertTriangle, Package, CheckCircle,
-  Activity, ArrowUp, ArrowDown, Clock, Map,
+  Activity, ArrowUp, ArrowDown, Clock, Loader2, Map,
 } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
+import { adminApi, type AdminOverview } from '../../services/api'
 
 const footfallData = [
   { day: 'Mon', patients: 142, referrals: 12 },
@@ -96,18 +98,18 @@ const followUpBoard = [
   { name: 'Ganesh Wagh', condition: 'Post-surgery follow-up', due: 'Overdue 5 days', status: 'overdue' as const, asha: 'Rekha K.' },
 ]
 
-const followUpColors = {
+const followUpColors: Record<string, string> = {
   overdue: 'bg-red-50 border-red-200 text-red-700',
   due: 'bg-amber-50 border-amber-200 text-amber-700',
   upcoming: 'bg-teal-50 border-teal-200 text-teal-700',
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white border border-[#D3D1C7] rounded-xl p-3 shadow-card text-xs">
       <p className="font-medium text-[#2C2C2A] mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }}>{p.name}: <strong>{p.value}</strong></p>
       ))}
     </div>
@@ -115,9 +117,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function AdminOverview() {
+  const [data, setData] = useState<AdminOverview | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    adminApi.overview()
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const footfallData = data?.footfallData || []
+  const referralFlow = data?.referralDistribution || []
+  const stockAlerts  = data?.stockAlerts || []
+  const followUpBoard = data?.followUpBoard || []
+
+  if (loading) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-teal-400" size={32} /></div>
+
   return (
     <div className="p-4 sm:p-6 space-y-6 animate-fade-in">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-[#2C2C2A]">Facility Overview</h1>

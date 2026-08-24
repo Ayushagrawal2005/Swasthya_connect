@@ -1,19 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Stethoscope, Settings2, Shield, ArrowRight,
-  Heart, Eye, EyeOff, Copy, CheckCheck, Users,
+  Heart, Eye, EyeOff, Users,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import type { Role } from '../context/AppContext'
+import { authApi } from '../services/api'
 
 // ── Demo credentials — one per role ──────────────────────────────
 const DEMO_ACCOUNTS: {
   id: Role
   label: string
   sublabel: string
-  email: string
+  username: string
   password: string
   name: string
   icon: React.ReactNode
@@ -24,8 +25,8 @@ const DEMO_ACCOUNTS: {
     id: 'asha',
     label: 'Frontline Worker',
     sublabel: 'ASHA / ANM — triage, referrals & follow-up',
-    email: 'asha@swasthya.in',
-    password: 'demo1234',
+    username: 'asha1',
+    password: 'password',
     name: 'Kavita Shinde',
     icon: <Users size={16} />,
     color: 'bg-green-50 text-green-600 border-green-200',
@@ -35,8 +36,8 @@ const DEMO_ACCOUNTS: {
     id: 'doctor',
     label: 'Doctor / Clinician',
     sublabel: 'Queue, consult, prescriptions',
-    email: 'doctor@swasthya.in',
-    password: 'demo1234',
+    username: 'doctor1',
+    password: 'password',
     name: 'Dr. Ramesh Patil',
     icon: <Stethoscope size={16} />,
     color: 'bg-indigo-50 text-indigo-600 border-indigo-200',
@@ -46,54 +47,79 @@ const DEMO_ACCOUNTS: {
     id: 'admin',
     label: 'Facility Admin',
     sublabel: 'KPIs, inventory, quality dashboard',
-    email: 'admin@swasthya.in',
-    password: 'demo1234',
+    username: 'admin1',
+    password: 'password',
     name: 'Anjali Kulkarni',
     icon: <Settings2 size={16} />,
     color: 'bg-coral-50 text-coral-600 border-coral-200',
     path: '/admin',
+  },
+  {
+    id: 'patient',
+    label: 'Patient',
+    sublabel: 'View records, book appointments',
+    username: 'patient1',
+    password: 'password',
+    name: 'Meena Jadhav',
+    icon: <Heart size={16} />,
+    color: 'bg-teal-50 text-teal-600 border-teal-200',
+    path: '/patient',
   },
 ]
 
 type CopyKey = string | null
 
 export function LoginPage() {
-  const { setRole } = useApp()
+  const { login, setRole } = useApp()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState<CopyKey>(null)
 
-  function handleQuickFill(acc: typeof DEMO_ACCOUNTS[0]) {
-    setEmail(acc.email)
+  // Clear role when on login page to hide sidebar
+  useEffect(() => {
+    setRole(null)
+  }, [setRole])
+
+  async function handleQuickFill(acc: typeof DEMO_ACCOUNTS[0]) {
+    setUsername(acc.username)
     setPassword(acc.password)
     setError('')
+    
+    // Auto-login after filling
+    setLoading(true)
+    try {
+      const res = await authApi.login(acc.username, acc.password)
+      localStorage.setItem('swasthya_token', res.token)
+      const path = res.user.role === 'patient' ? '/patient' : `/${res.user.role}`
+      login(res.token, res.user.role as Role, res.user.name, res.user.id, '', '')
+      navigate(path)
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Login failed. Please try again.')
+      setLoading(false)
+    }
   }
 
-  async function copyToClipboard(text: string, key: string) {
-    await navigator.clipboard.writeText(text)
-    setCopied(key)
-    setTimeout(() => setCopied(null), 1800)
-  }
-
-  function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    const match = DEMO_ACCOUNTS.find(
-      a => a.email === email.trim().toLowerCase() && a.password === password
-    )
-    if (!match) {
-      setError('Email or password is incorrect. Use one of the demo credentials below.')
-      return
-    }
     setLoading(true)
-    setTimeout(() => {
-      setRole(match.id)
-      navigate(match.path)
-    }, 900)
+    try {
+      const res = await authApi.login(username.trim(), password)
+      localStorage.setItem('swasthya_token', res.token)
+      // Backend returns: { token, user: { id, username, role, name } }
+      const path = res.user.role === 'patient' ? '/patient' : `/${res.user.role}`
+      login(res.token, res.user.role as Role, res.user.name, res.user.id, '', '')
+      navigate(path)
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Username or password is incorrect. Click a demo role card below to auto-fill.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -154,40 +180,25 @@ export function LoginPage() {
           {/* Demo credentials card */}
           <div className="mb-7 rounded-card border border-[#D3D1C7] bg-[#FAFAF7] p-4">
             <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide mb-3">
-              Demo accounts — click row to fill
+              Demo accounts — click to auto-login ⚡
             </p>
             <div className="space-y-2">
               {DEMO_ACCOUNTS.map(acc => (
-                <div key={acc.id!} className="flex items-center gap-3 p-2.5 rounded-xl border border-[#D3D1C7] bg-white hover:border-teal-200 transition-colors">
+                <div key={acc.id!} className="rounded-xl border border-[#D3D1C7] bg-white hover:border-teal-400 hover:shadow-md transition-all cursor-pointer">
                   <button
                     onClick={() => handleQuickFill(acc)}
-                    className="flex items-center gap-2 flex-1 text-left min-w-0"
-                    aria-label={`Fill credentials for ${acc.label}`}
+                    className="flex items-center gap-2 flex-1 text-left min-w-0 w-full p-2.5"
+                    aria-label={`Login as ${acc.label}`}
                   >
                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border ${acc.color}`} aria-hidden="true">
                       {acc.icon}
                     </span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-[#2C2C2A]">{acc.label}</p>
-                      <p className="text-[10px] text-[#5F5E5A] truncate">{acc.email}</p>
+                      <p className="text-[10px] text-[#5F5E5A] truncate">{acc.sublabel}</p>
                     </div>
+                    <ArrowRight size={14} className="text-teal-500 flex-shrink-0" />
                   </button>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => copyToClipboard(acc.email, `${acc.id}-email`)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5F5E5A] hover:text-teal-600 transition-colors"
-                      aria-label={`Copy ${acc.label} email`} title="Copy email"
-                    >
-                      {copied === `${acc.id}-email` ? <CheckCheck size={13} className="text-green-500" /> : <Copy size={13} />}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(acc.password, `${acc.id}-pw`)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5F5E5A] hover:text-teal-600 transition-colors"
-                      aria-label={`Copy ${acc.label} password`} title="Copy password"
-                    >
-                      {copied === `${acc.id}-pw` ? <CheckCheck size={13} className="text-green-500" /> : <Copy size={13} />}
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
@@ -202,10 +213,10 @@ export function LoginPage() {
 
           <form onSubmit={handleSignIn} noValidate className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#2C2C2A] mb-1.5">Email address</label>
-              <input id="email" type="email" autoComplete="email"
-                value={email} onChange={e => { setEmail(e.target.value); setError('') }}
-                placeholder="you@swasthya.in" className="input-field"
+              <label htmlFor="username" className="block text-sm font-medium text-[#2C2C2A] mb-1.5">Username</label>
+              <input id="username" type="text" autoComplete="username"
+                value={username} onChange={e => { setUsername(e.target.value); setError('') }}
+                placeholder="asha1, doctor1, admin1, or patient1" className="input-field"
                 aria-required="true" aria-invalid={!!error}
                 aria-describedby={error ? 'login-error' : undefined} />
             </div>
@@ -235,7 +246,7 @@ export function LoginPage() {
               )}
             </AnimatePresence>
 
-            <button type="submit" disabled={loading || !email || !password}
+            <button type="submit" disabled={loading || !username || !password}
               className="btn-primary w-full justify-center mt-2">
               {loading ? (
                 <>

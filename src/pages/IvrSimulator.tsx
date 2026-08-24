@@ -1,11 +1,10 @@
 /**
  * Add-on 4 — IVR Toll-Free Helpline Simulator
- * Shows the non-smartphone rural user pathway
- * Simulates 1800-XXX-XXXX IVR tree → symptom capture → case ID
  */
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Phone, Volume2, CheckCircle, Mic, ArrowRight, RotateCcw, PhoneOff } from 'lucide-react'
+import { ivrApi } from '../services/api'
 
 type IvrState = 'idle' | 'dialing' | 'welcome' | 'menu' | 'symptoms' | 'risk' | 'done'
 
@@ -41,7 +40,7 @@ export function IvrSimulatorPage() {
   const [state, setState] = useState<IvrState>('idle')
   const [symIdx, setSymIdx]   = useState(0)
   const [answers, setAnswers] = useState<string[]>([])
-  const [caseId] = useState('IVR-20260823-0047')
+  const [caseId, setCaseId]   = useState('IVR-20260823-0047')
 
   function press(key: string) {
     if (state === 'menu') {
@@ -51,7 +50,13 @@ export function IvrSimulatorPage() {
       const next = [...answers, key]
       setAnswers(next)
       if (symIdx < symptomQuestions.length - 1) setSymIdx(p => p + 1)
-      else setState('risk')
+      else {
+        setState('risk')
+        // Save case to backend
+        ivrApi.createCase({ phone: '+91 98765 43210', answers: next, riskScore: 42, lang: 'hi' })
+          .then(c => setCaseId(c.caseId))
+          .catch(() => {})
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import { FileText, FlaskConical, Pill, Stethoscope, Download, Search, ChevronDown, Shield } from 'lucide-react'
 import { patientsApi, type VisitRecord } from '../../services/api'
 import { useApp } from '../../context/AppContext'
@@ -17,7 +18,8 @@ const typeConfig: Record<string, { icon: React.ReactNode; color: string; label: 
 }
 
 export function HealthRecordsPage() {
-  const { patientId } = useApp()
+  const { patientId: ctxPatientId } = useApp()
+  const [searchParams] = useSearchParams()
   const [records, setRecords] = useState<VisitRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -25,12 +27,14 @@ export function HealthRecordsPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
-    const pid = patientId || 'P-PRIYA-002'
+    const pid = searchParams.get('id') || ctxPatientId
+    if (!pid) { setLoading(false); return }
+    setLoading(true)
     patientsApi.getRecords(pid, filter !== 'all' ? filter : undefined, query || undefined)
       .then(setRecords)
-      .catch(() => {})
+      .catch(() => setRecords([]))
       .finally(() => setLoading(false))
-  }, [patientId, filter, query])
+  }, [ctxPatientId, searchParams, filter, query])
 
   const filtered = records
 

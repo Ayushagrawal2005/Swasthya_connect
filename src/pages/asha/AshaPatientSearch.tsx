@@ -69,15 +69,31 @@ export function AshaPatientSearchPage() {
     patientsApi.search(q)
       .then(results => {
         if (results.length > 0) {
-          setPatient(results[0])
-          setVisits(results[0].visits || [])
+          const foundPatient = results[0]
+          setPatient(foundPatient)
           setFound(true)
+          // Fetch patient records after finding the patient
+          patientsApi.getRecords(foundPatient.id)
+            .then(records => {
+              setVisits(records)
+              if (records.length > 0) setExpanded(records[0].id)
+            })
+            .catch(err => {
+              console.error('Failed to load patient records:', err)
+              setVisits([])
+            })
         } else {
           setFound(false)
           setPatient(null)
+          setVisits([])
         }
       })
-      .catch(() => { setFound(false) })
+      .catch(err => {
+        console.error('Search failed:', err)
+        setFound(false)
+        setPatient(null)
+        setVisits([])
+      })
       .finally(() => setSearching(false))
   }
 
@@ -109,7 +125,7 @@ export function AshaPatientSearchPage() {
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div>
         <h1 className="text-xl font-semibold text-[#2C2C2A]">Patient search</h1>
-        <p className="text-sm text-[#5F5E5A] mt-0.5">Search by name or phone number to pull existing record</p>
+        <p className="text-sm text-[#5F5E5A] mt-0.5">Search by name, phone number, or Health ID</p>
       </div>
 
       {/* Search bar */}
@@ -118,8 +134,9 @@ export function AshaPatientSearchPage() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5F5E5A]" aria-hidden="true" />
           <input type="search" value={query} onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && doSearch()}
-            placeholder="Search by name, phone, or health ID…"
-            className="input-field pl-9 text-sm" aria-label="Search patient" />
+            placeholder="Name, mobile number, or 91-XXXX health ID…"
+            className="input-field pl-9 text-sm" aria-label="Search patient"
+            inputMode="text" />
         </div>
         <button onClick={doSearch} className="btn-primary text-sm py-2.5 px-4">Search</button>
         <button onClick={() => navigate('/asha/register')} className="btn-secondary text-sm py-2.5 px-4 flex items-center gap-1.5">
@@ -195,12 +212,18 @@ export function AshaPatientSearchPage() {
 
           {/* Log today's visit */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <h3 className="section-header mb-0">Visit history ({visits.length} total)</h3>
-              <button onClick={() => setShowLogForm(p => !p)}
-                className={showLogForm ? 'btn-secondary text-sm py-2 px-4' : 'btn-primary text-sm py-2 px-4'}>
-                {showLogForm ? 'Cancel' : '+ Log today\'s visit'}
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => navigate(`/asha/record?id=${patient.id}`)}
+                  className="btn-secondary text-sm py-2 px-4">
+                  View full record
+                </button>
+                <button onClick={() => setShowLogForm(p => !p)}
+                  className={showLogForm ? 'btn-secondary text-sm py-2 px-4' : 'btn-primary text-sm py-2 px-4'}>
+                  {showLogForm ? 'Cancel' : '+ Log today\'s visit'}
+                </button>
+              </div>
             </div>
 
             <AnimatePresence>
@@ -300,12 +323,47 @@ export function AshaPatientSearchPage() {
                       </div>
                       {isOpen && (
                         <div id={`visit-${v.id}`} className="mt-3 pt-3 border-t border-[#D3D1C7] space-y-2">
-                          <p className="text-sm text-[#5F5E5A] leading-relaxed">{v.detail}</p>
+                          {/* Summary / detail */}
+                          {(v as any).detail && (
+                            <p className="text-sm text-[#5F5E5A] leading-relaxed">{(v as any).detail}</p>
+                          )}
+                          {/* Vitals (for visit records) */}
                           {v.vitals && (
                             <div className="flex gap-3 flex-wrap text-xs">
                               {v.vitals.bp    && <span className="badge-teal">BP {v.vitals.bp}</span>}
                               {v.vitals.temp  && <span className="badge-teal">Temp {v.vitals.temp}°F</span>}
                               {v.vitals.pulse && <span className="badge-teal">Pulse {v.vitals.pulse}</span>}
+                            </div>
+                          )}
+                          {/* Medicines (for OCR records) */}
+                          {(v as any).medicines && (v as any).medicines.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1">Medicines</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(v as any).medicines.map((m: any, mi: number) => (
+                                  <div key={mi} className="bg-green-50 border border-green-200 rounded-lg px-2 py-1 text-xs">
+                                    <span className="font-semibold text-green-800">{m.name}</span>
+                                    {m.dosage && <span className="text-green-700"> · {m.dosage}</span>}
+                                    {m.frequency && <span className="text-green-600"> · {m.frequency}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {/* Test values (for OCR records) */}
+                          {(v as any).testValues && (v as any).testValues.length > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1">Lab results</p>
+                              <div className="space-y-1">
+                                {(v as any).testValues.map((t: any, ti: number) => (
+                                  <div key={ti} className={`flex items-center gap-2 px-2 py-1 rounded text-xs border
+                                    ${t.is_abnormal ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                                    <span className="font-semibold">{t.test_name}</span>
+                                    {t.value && <span>{t.value}{t.unit ? ` ${t.unit}` : ''}</span>}
+                                    {t.is_abnormal && <span className="ml-auto font-bold">⚠</span>}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -319,7 +377,7 @@ export function AshaPatientSearchPage() {
 
           {/* Action row */}
           <div className="flex gap-3 flex-wrap pt-2">
-            <button onClick={() => navigate('/asha/record')} className="btn-primary text-sm flex-1 justify-center">
+            <button onClick={() => navigate(`/asha/record?id=${patient.id}`)} className="btn-primary text-sm flex-1 justify-center">
               View full record →
             </button>
             <button onClick={() => navigate('/asha/triage')} className="btn-secondary text-sm px-5">

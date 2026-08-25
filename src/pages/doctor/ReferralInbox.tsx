@@ -1,7 +1,7 @@
 // Module 5 — Referral inbox (doctor view)
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, ArrowRight, CheckCircle, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react'
+import { MapPin, ArrowRight, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, RefreshCw } from 'lucide-react'
 import { referralsApi, type Referral } from '../../services/api'
 
 type Tab = 'incoming' | 'outgoing'
@@ -37,13 +37,24 @@ export function ReferralInboxPage() {
   const [incoming, setIncoming] = useState<Referral[]>([])
   const [outgoing, setOutgoing] = useState<Referral[]>([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  useEffect(() => {
-    Promise.all([referralsApi.incoming(), referralsApi.outgoing()])
-      .then(([inc, out]) => { setIncoming(inc); setOutgoing(out) })
+  const fetchAll = useCallback(() => {
+    return Promise.all([referralsApi.incoming(), referralsApi.outgoing()])
+      .then(([inc, out]) => {
+        setIncoming(inc)
+        setOutgoing(out)
+        setLastUpdated(new Date())
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    fetchAll()
+    const id = setInterval(fetchAll, 30_000)
+    return () => clearInterval(id)
+  }, [fetchAll])
 
   function accept(id: string) {
     referralsApi.accept(id).then(() => setIncoming(p => p.map(r => r.id === id ? { ...r, status: 'accepted' } : r)))
@@ -56,7 +67,20 @@ export function ReferralInboxPage() {
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <h1 className="text-xl font-semibold text-[#2C2C2A]">Referrals</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-[#2C2C2A]">Referrals</h1>
+          {lastUpdated && (
+            <p className="text-[10px] text-[#9E9C94] mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" /> Live · updated {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
+        </div>
+        <button onClick={() => { setLoading(true); fetchAll() }}
+          className="p-2 rounded-lg text-[#5F5E5A] hover:text-[#138808] hover:bg-green-50 transition-colors">
+          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+        </button>
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-[#D3D1C7]" role="tablist">
@@ -75,12 +99,16 @@ export function ReferralInboxPage() {
 
       {/* Cards */}
       <div className="space-y-3" role="list">
-        {list.map((ref, i) => {
+        {loading ? (
+          <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#138808]" /></div>
+        ) : list.length === 0 ? (
+          <p className="text-sm text-[#5F5E5A] text-center py-8">No {tab} referrals.</p>
+        ) : list.map((ref, i) => {
           return (
             <motion.article key={ref.id} role="listitem"
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07 }}
-              className={`card p-5 space-y-3 ${ref.urgency === 'emergency' ? 'border-l-4 border-l-coral-500' : ref.urgency === 'urgent' ? 'border-l-4 border-l-amber-400' : ''}`}>
+              className={`card p-5 space-y-3 ${ref.urgency === 'emergency' ? 'border-l-4 border-l-red-500' : ref.urgency === 'urgent' ? 'border-l-4 border-l-amber-400' : ''}`}>
 
               {/* Header */}
               <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -90,7 +118,7 @@ export function ReferralInboxPage() {
                     <span className="text-xs text-[#5F5E5A]">· #{ref.id.slice(0,8)}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-[#5F5E5A]">
-                    <MapPin size={11} className="text-teal-500" />
+                    <MapPin size={11} className="text-[#FF9933]" />
                     Sub-centre <ArrowRight size={11} /> {ref.toFacilityName}
                   </div>
                 </div>
@@ -102,15 +130,15 @@ export function ReferralInboxPage() {
 
               <p className="text-sm text-[#5F5E5A] leading-relaxed">{ref.reason}</p>
 
-              <div className="flex items-center justify-between text-[10px] text-[#5F5E5A]">
+              <div className="flex items-center text-[10px] text-[#5F5E5A]">
                 <span className="flex items-center gap-1"><Clock size={10} /> {new Date(ref.createdAt).toLocaleDateString('en-IN')}</span>
               </div>
 
               {tab === 'incoming' && ref.status === 'pending' && (
                 <div className="flex gap-2 pt-1">
                   <button onClick={() => accept(ref.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-btn bg-teal-500 text-white hover:bg-teal-600 transition-colors font-medium">
-                    <CheckCircle size={13} /> Accept
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-btn bg-[#138808] text-white hover:bg-green-700 transition-colors font-medium">
+                    <CheckCircle size={13} /> Accept — add to queue
                   </button>
                   <button onClick={() => redirect(ref.id)}
                     className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-btn border-2 border-[#D3D1C7] text-[#5F5E5A] hover:border-gray-300 transition-colors font-medium">
@@ -119,9 +147,15 @@ export function ReferralInboxPage() {
                 </div>
               )}
 
+              {ref.status === 'accepted' && (
+                <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                  <CheckCircle size={13} /> Accepted — patient added to your queue
+                </div>
+              )}
+
               {ref.urgency === 'emergency' && (
                 <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  <AlertTriangle size={13} /> Emergency escalation — priority routing active
+                  <AlertTriangle size={13} /> Emergency — priority routing active
                 </div>
               )}
             </motion.article>

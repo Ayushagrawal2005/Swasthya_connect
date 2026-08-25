@@ -1,9 +1,11 @@
 /**
  * Shared — Full Longitudinal Patient Record
  * Accessible to ASHA worker and Doctor
+ * Patient ID is read from ?id= URL param, or from AppContext for the patient role
  */
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import {
   User, Shield, Pill, AlertTriangle, Clock,
   ChevronDown, Stethoscope, FlaskConical,
@@ -15,6 +17,16 @@ import { useApp } from '../../context/AppContext'
 
 type Tab = 'overview' | 'history' | 'diseases' | 'medications' | 'reports'
 type RecordType = 'visit' | 'lab' | 'prescription' | 'diagnosis' | 'referral' | 'ocr-upload' | 'imaging'
+
+// Extend VisitRecord with OCR-specific fields returned by the backend
+interface FullRecord extends VisitRecord {
+  documentType?: string
+  summary?: string
+  medicines?: Array<{ name: string; dosage?: string; frequency?: string; confidence?: number }>
+  testValues?: Array<{ test_name: string; value?: string; unit?: string; reference_range?: string; is_abnormal?: boolean }>
+  datesFound?: string[]
+  rawText?: string
+}
 
 const typeIcon: Record<string, React.ReactNode> = {
   visit:        <Stethoscope size={14} className="text-teal-500" />,
@@ -41,43 +53,59 @@ const riskBadge: Record<string, string> = {
 }
 
 export function PatientFullRecord() {
-  const { role, patientId } = useApp()
-  const [patient, setPatient] = useState<PatientRecord | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<Tab>('overview')
+  const { role, patientId: ctxPatientId } = useApp()
+  const [searchParams] = useSearchParams()
+  const [patient, setPatient]   = useState<PatientRecord | null>(null)
+  const [records, setRecords]   = useState<FullRecord[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [tab, setTab]           = useState<Tab>('overview')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filterType, setFilterType] = useState<RecordType | 'all'>('all')
 
   useEffect(() => {
-    const pid = (role === 'patient' ? patientId : null) || 'P-MEENA-001'
-    patientsApi.get(pid)
-      .then(p => {
-        setPatient(p)
-        if (p.visits?.length) setExpanded(p.visits[0].id)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [role, patientId])
+    const pid = searchParams.get('id') || (role === 'patient' ? ctxPatientId : null) || null
+    if (!pid) { setLoading(false); return }
+    setLoading(true)
+    Promise.all([
+      patientsApi.get(pid).catch((err) => { console.error('Failed to get patient:', err); return null }),
+      patientsApi.getRecords(pid).catch((err) => { console.error('Failed to get records:', err); return [] }),
+    ]).then(([p, recs]) => {
+      setPatient(p)
+      setRecords((recs as FullRecord[]) || [])
+      if (recs && (recs as FullRecord[]).length) setExpanded((recs as FullRecord[])[0].id)
+    }).finally(() => setLoading(false))
+  }, [role, ctxPatientId, searchParams])
 
   if (loading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-teal-400" size={28} /></div>
   }
   if (!patient) {
-    return <p className="text-center text-sm text-[#5F5E5A] mt-12">Patient record not found.</p>
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-3 text-center px-6">
+        <FileText size={32} className="text-[#D3D1C7]" />
+        <p className="text-sm font-medium text-[#2C2C2A]">No patient selected</p>
+        <p className="text-xs text-[#5F5E5A]">Search for a patient first, then click "View full record"</p>
+      </div>
+    )
   }
 
   const filteredVisits = filterType === 'all'
-    ? (patient.visits || [])
-    : (patient.visits || []).filter(v => v.type === filterType)
+    ? records
+    : records.filter(v => v.type === filterType)
 
-  const reportsOnly = (patient.visits || []).filter(v => v.reportFile)
-  const initials = patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)
+  // OCR uploads: type === 'ocr-upload'. Also include any record with a reportFile.
+  const reportsOnly = records.filter(v => v.type === 'ocr-upload' || v.reportFile)
+
+  const initials = patient?.name
+    ? patient.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+    : '??'
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: 'overview',    label: 'Overview' },
-    { id: 'history',     label: 'Visit history',   count: patient.visits?.length },
-    { id: 'diseases',    label: 'Disease history', count: patient.diseaseHistory?.length },
-    { id: 'medications', label: 'Medications',     count: patient.medications?.length },
+    { id: 'history',     label: 'Visit history',     count: records.length },
+    { id: 'diseases',    label: 'Disease history',   count: patient?.diseaseHistory?.length || 0 },
+    { id: 'medications', label: 'Medications',       count: patient?.medications?.length || 0 },
+    // Always show Reports tab — count 0 still means the tab is clickable
     { id: 'reports',     label: 'Reports & uploads', count: reportsOnly.length },
   ]
 
@@ -112,7 +140,7 @@ export function PatientFullRecord() {
             </div>
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="text-xs text-[#5F5E5A]">{patient.visits?.length ?? 0} visits</p>
+            <p className="text-xs text-[#5F5E5A]">{records.length} records</p>
             {patient.noShowCount > 0 && (
               <p className="text-xs text-amber-600 mt-0.5">{patient.noShowCount} missed</p>
             )}
@@ -135,8 +163,11 @@ export function PatientFullRecord() {
             className={`flex-shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5
               ${tab === t.id ? 'border-teal-500 text-teal-600' : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'}`}>
             {t.label}
-            {t.count !== undefined && t.count > 0 && (
-              <span className="text-[10px] bg-gray-100 text-[#5F5E5A] px-1.5 py-0.5 rounded-full">{t.count}</span>
+            {t.count !== undefined && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full
+                ${tab === t.id ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-[#5F5E5A]'}`}>
+                {t.count}
+              </span>
             )}
           </button>
         ))}
@@ -159,11 +190,11 @@ export function PatientFullRecord() {
                 </div>
               )}
               {/* Latest vitals from most recent visit */}
-              {patient.visits?.[0]?.vitals && Object.keys(patient.visits[0].vitals).length > 0 && (
+              {records[0]?.vitals && Object.keys(records[0].vitals).length > 0 && (
                 <div className="card p-4">
-                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide mb-3">Latest vitals ({patient.visits[0].date})</p>
+                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide mb-3">Latest vitals ({records[0].date})</p>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    {Object.entries(patient.visits[0].vitals).map(([k, v]) => (
+                    {Object.entries(records[0].vitals).map(([k, v]) => (
                       <div key={k} className="bg-gray-50 rounded-xl p-2.5 text-center">
                         <p className="text-xs font-semibold text-[#2C2C2A] tabular-nums">{v}</p>
                         <p className="text-[10px] text-[#5F5E5A] uppercase mt-0.5">{k}</p>
@@ -173,16 +204,16 @@ export function PatientFullRecord() {
                 </div>
               )}
               {/* Risk score from latest triage */}
-              {patient.visits?.[0]?.riskScore !== undefined && (
+              {records[0]?.riskScore !== undefined && (
                 <div className="card p-4 flex items-center gap-3">
                   <div>
                     <p className="text-xs text-[#5F5E5A] uppercase tracking-wide">Latest triage score</p>
                     <p className="text-2xl font-bold tabular-nums text-[#2C2C2A]">
-                      {patient.visits[0].riskScore}<span className="text-sm font-normal">/100</span>
+                      {records[0].riskScore}<span className="text-sm font-normal">/100</span>
                     </p>
                   </div>
-                  <span className={`${riskBadge[patient.visits[0].riskLevel ?? 'low']} ml-auto`}>
-                    {patient.visits[0].riskLevel}
+                  <span className={`${riskBadge[records[0].riskLevel ?? 'low']} ml-auto`}>
+                    {records[0].riskLevel}
                   </span>
                 </div>
               )}
@@ -322,26 +353,94 @@ export function PatientFullRecord() {
 
           {/* REPORTS */}
           {tab === 'reports' && (
-            <div className="space-y-3">
-              {reportsOnly.length === 0 && (
-                <p className="text-sm text-center text-[#5F5E5A] py-8">No uploaded reports.</p>
+            <div className="space-y-4">
+              {reportsOnly.length === 0 ? (
+                <div className="text-center py-12 space-y-3">
+                  <FileText size={36} className="mx-auto text-[#D3D1C7]" />
+                  <p className="text-sm font-medium text-[#2C2C2A]">No uploaded reports yet</p>
+                  <p className="text-xs text-[#5F5E5A]">
+                    Upload prescriptions or lab reports from the OCR upload page — they'll appear here automatically.
+                  </p>
+                </div>
+              ) : (
+                reportsOnly.map((v, i) => (
+                  <motion.div key={v.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                    className="card p-4 space-y-3">
+
+                    {/* Header row */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+                        <FileText size={18} className="text-purple-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-[#2C2C2A]">{v.title}</p>
+                        <p className="text-xs text-[#5F5E5A]">
+                          {typeof v.date === 'string' ? v.date.replace('T', ' ').slice(0, 16) : String(v.date)}
+                          {v.facility ? ` · ${v.facility}` : ''}
+                          {v.worker ? ` · ${v.worker}` : ''}
+                        </p>
+                        {v.documentType && (
+                          <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full capitalize">
+                            {v.documentType.replace(/_/g, ' ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    {v.summary && (
+                      <div className="bg-gray-50 rounded-lg px-3 py-2">
+                        <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1">Summary</p>
+                        <p className="text-xs text-[#2C2C2A] leading-relaxed">{v.summary}</p>
+                      </div>
+                    )}
+
+                    {/* Medicines */}
+                    {v.medicines && v.medicines.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1.5">
+                          Medicines extracted ({v.medicines.length})
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {v.medicines.map((m, mi) => (
+                            <div key={mi} className="bg-green-50 border border-green-200 rounded-lg px-2.5 py-1.5 text-xs">
+                              <span className="font-semibold text-green-800">{m.name}</span>
+                              {m.dosage    && <span className="text-green-700"> · {m.dosage}</span>}
+                              {m.frequency && <span className="text-green-600"> · {m.frequency}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Test values */}
+                    {v.testValues && v.testValues.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1.5">
+                          Lab results ({v.testValues.length})
+                        </p>
+                        <div className="space-y-1">
+                          {v.testValues.map((t, ti) => (
+                            <div key={ti} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs
+                              ${t.is_abnormal ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'}`}>
+                              <span className="font-semibold text-[#2C2C2A]">{t.test_name}</span>
+                              {t.value && <span className="text-[#5F5E5A]">{t.value}{t.unit ? ` ${t.unit}` : ''}</span>}
+                              {t.is_abnormal && <span className="text-red-600 font-semibold ml-auto">⚠ Abnormal</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Download link for file-backed records */}
+                    {v.reportFile && (
+                      <button className="flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700">
+                        <Download size={12} /> Download {v.reportFile}
+                      </button>
+                    )}
+                  </motion.div>
+                ))
               )}
-              {reportsOnly.map((v, i) => (
-                <motion.div key={v.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                  className="card p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <FileText size={18} className="text-indigo-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-[#2C2C2A]">{v.title}</p>
-                    <p className="text-xs text-[#5F5E5A]">{v.date} · {v.facility}</p>
-                    <p className="text-[10px] text-[#5F5E5A] mt-0.5">{v.reportFile}</p>
-                  </div>
-                  <button className="text-teal-600 hover:text-teal-700 flex-shrink-0" aria-label="Download report">
-                    <Download size={18} />
-                  </button>
-                </motion.div>
-              ))}
             </div>
           )}
 

@@ -9,6 +9,7 @@ import { SyncStatusDrawer } from './components/ui/SyncStatusDrawer'
 import { LandingPage }      from './pages/Landing'
 import { LoginPage }        from './pages/Login'
 import { IvrSimulatorPage } from './pages/IvrSimulator'
+import { TestAllFeaturesPage } from './pages/TestAllFeatures'
 
 // Frontline Worker (ASHA / ANM)
 import { AshaDashboard }         from './pages/asha/AshaDashboard'
@@ -24,6 +25,7 @@ import { EmergencyEscalationPage as AshaEmergencyPage } from './pages/doctor/Eme
 
 // Doctor
 import { DoctorHome }              from './pages/doctor/DoctorHome'
+import { DoctorPatientSearch }     from './pages/doctor/DoctorPatientSearch'
 import { PatientDetailPage }       from './pages/doctor/PatientDetail'
 import { ReferralInboxPage }       from './pages/doctor/ReferralInbox'
 import { FollowUpBoardPage }       from './pages/doctor/FollowUpBoard'
@@ -63,6 +65,7 @@ function AppShell() {
             <Route path="/"      element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
+            <Route path="/test"  element={<TestAllFeaturesPage />} />
 
             {/* Frontline Worker (ASHA) */}
             <Route path="/asha"             element={<AshaDashboard />} />
@@ -80,6 +83,7 @@ function AppShell() {
 
             {/* Doctor */}
             <Route path="/doctor"           element={<DoctorHome />} />
+            <Route path="/doctor/patients"  element={<DoctorPatientSearch />} />
             <Route path="/doctor/patient"   element={<PatientDetailPage />} />
             <Route path="/doctor/record"    element={<PatientFullRecord />} />
             <Route path="/doctor/referrals" element={<ReferralInboxPage />} />

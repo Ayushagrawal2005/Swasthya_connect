@@ -4,9 +4,10 @@
  */
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, FileText, CheckCircle, Scan, Pill, User, X, Eye, Search, Loader, AlertCircle, Download, Zap } from 'lucide-react'
+import { Upload, FileText, CheckCircle, Scan, Pill, User, X, Eye, Search, Loader, AlertCircle, Download, Zap, ArrowRight } from 'lucide-react'
 import axios from 'axios'
 import jsPDF from 'jspdf'
+import { useNavigate } from 'react-router-dom'
 
 interface Patient {
   id: string
@@ -41,6 +42,7 @@ interface OCRResult {
 }
 
 export function AshaOcrUploadPage() {
+  const navigate = useNavigate()
   const [step, setStep] = useState<'search' | 'upload' | 'processing' | 'review' | 'done' | 'quick-scan'>('search')
   
   // Patient search
@@ -69,10 +71,13 @@ export function AshaOcrUploadPage() {
     const token = localStorage.getItem('swasthya_token')
     
     try {
-      const response = await axios.get(`http://localhost:4000/patients/search?q=${encodeURIComponent(searchQuery)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setSearchResults(response.data.patients || [])
+      const response = await axios.get(
+        `http://localhost:4000/patients/search?q=${encodeURIComponent(searchQuery)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      // Backend returns a plain array (not { patients: [] })
+      const results = Array.isArray(response.data) ? response.data : (response.data.patients || [])
+      setSearchResults(results)
     } catch (err) {
       console.error('Search failed:', err)
       setSearchResults([])
@@ -86,6 +91,7 @@ export function AshaOcrUploadPage() {
     setStep('upload')
   }
 
+  // OCR upload — calls backend which proxies to the OCR service on port 8000
   async function handleFileUpload(files: FileList | null) {
     if (!files || files.length === 0) return
     
@@ -97,30 +103,52 @@ export function AshaOcrUploadPage() {
     const token = localStorage.getItem('swasthya_token')
     const newResults: OCRResult[] = []
 
-    for (let file of fileArray) {
+    for (const file of fileArray) {
       try {
         const formData = new FormData()
         formData.append('file', file)
+        if (selectedPatient) formData.append('patientId', selectedPatient.id)
 
-        const response = await axios.post('http://localhost:4000/api/ocr/extract', formData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          },
-          timeout: 30000
-        })
+        // Try backend proxy first (port 4000 → port 8000)
+        let data: OCRResult | null = null
+        try {
+          const response = await axios.post('http://localhost:4000/api/ocr/extract', formData, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 40000
+          })
+          data = response.data
+        } catch {
+          // Backend proxy failed — try OCR service directly
+          const response = await axios.post('http://localhost:8000/ocr/extract', formData, {
+            timeout: 40000
+          })
+          // OCR service returns the correct OCRResult shape directly
+          data = response.data
+        }
 
-        newResults.push(response.data)
+        if (data) {
+          // Normalise: OCR service may return snake_case
+          newResults.push({
+            raw_text:      data.raw_text      || '',
+            document_type: data.document_type || 'unknown',
+            summary:       data.summary       || '',
+            medicines:     data.medicines     || [],
+            test_values:   data.test_values   || [],
+            dates_found:   data.dates_found   || [],
+            needs_review:  data.needs_review  ?? true,
+          })
+        }
       } catch (err) {
-        console.error('OCR extraction failed:', err)
+        console.error('OCR extraction failed for', file.name, err)
         newResults.push({
-          raw_text: 'OCR extraction failed - document will need manual review',
+          raw_text: 'OCR extraction failed — document needs manual review',
           document_type: 'unknown',
-          summary: 'Automatic processing was unsuccessful. Please review this document manually and enter relevant details.',
+          summary: 'Automatic processing was unsuccessful. Please review this document manually.',
           medicines: [],
           test_values: [],
           dates_found: [],
-          needs_review: true
+          needs_review: true,
+          fallback: true,
         })
       }
     }
@@ -137,20 +165,20 @@ export function AshaOcrUploadPage() {
     const token = localStorage.getItem('swasthya_token')
     let successCount = 0
 
-    for (let i = 0; i < ocrResults.length; i++) {
-      const result = ocrResults[i]
+    for (const result of ocrResults) {
       try {
-        await axios.post(`http://localhost:4000/api/patients/${selectedPatient.id}/records`, {
-          documentType: result.document_type,
-          rawText: result.raw_text,
-          summary: result.summary,
-          medicines: result.medicines,
-          testValues: result.test_values,
-          datesFound: result.dates_found,
-          imageUrl: null
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        await axios.post(
+          `http://localhost:4000/patients/${selectedPatient.id}/records`,
+          {
+            documentType: result.document_type,
+            rawText:      result.raw_text,
+            summary:      result.summary,
+            medicines:    result.medicines,
+            testValues:   result.test_values,
+            datesFound:   result.dates_found,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
         successCount++
       } catch (err) {
         console.error('Failed to save record:', err)
@@ -403,16 +431,17 @@ export function AshaOcrUploadPage() {
             <div className="card p-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2C2C2A] mb-2">
-                  Search for patient to add records to their profile
+                  Search patient by name, phone number, or Health ID
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Enter name or Health ID..."
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    placeholder="e.g. Meena Patil, 9876543210, 91-XXXX..."
                     className="input-field flex-1"
+                    inputMode="text"
                   />
                   <button
                     onClick={handleSearch}
@@ -422,6 +451,7 @@ export function AshaOcrUploadPage() {
                     {searching ? <Loader size={18} className="animate-spin" /> : <Search size={18} />}
                   </button>
                 </div>
+                <p className="text-xs text-[#9E9C94] mt-1.5">Search by full/partial name, 10-digit mobile number, or Health ID</p>
               </div>
 
               {/* Search Results */}
@@ -674,8 +704,17 @@ export function AshaOcrUploadPage() {
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <button onClick={reset} className="btn-primary justify-center px-6">
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+              {selectedPatient && (
+                <button
+                  onClick={() => navigate(`/asha/record?id=${selectedPatient.id}`)}
+                  className="btn-primary justify-center"
+                >
+                  <ArrowRight size={16} />
+                  View {selectedPatient.name}'s full record
+                </button>
+              )}
+              <button onClick={reset} className="btn-secondary justify-center">
                 Upload for another patient
               </button>
             </div>

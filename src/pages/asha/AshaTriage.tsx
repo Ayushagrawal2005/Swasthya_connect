@@ -1,6 +1,6 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Activity, Thermometer, Heart, Wind, Mic, Send, RotateCcw, AlertTriangle, Siren, Brain, CheckCircle2, Loader2, ChevronRight } from 'lucide-react'
+import { Activity, Thermometer, Heart, Wind, Mic, Send, RotateCcw, AlertTriangle, Siren, Brain, CheckCircle2, Loader2, ChevronRight, Video } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
 import { triageEngine } from '../../lib/triageEngine'
 import type { HybridTriageResult } from '../../lib/triageEngine'
@@ -27,10 +27,10 @@ const RISK_CFG: Record<RiskLevel, { label: string; textColor: string; bgColor: s
 }
 
 const NEXT_STEP: Record<RiskLevel, { advice: string; cta: string }> = {
-  low:       { advice: 'Provide home-care guidance. Schedule follow-up in 7 days.',               cta: 'Record & close' },
-  medium:    { advice: 'Book PHC appointment within 24 hours. Continue monitoring.',              cta: 'Book appointment' },
-  high:      { advice: 'Initiate teleconsultation with PHC doctor. Prepare urgent referral.',     cta: 'Start teleconsult' },
-  emergency: { advice: 'CRITICAL - Auto-escalation triggered. Arrange emergency transport.',      cta: 'Call 104' },
+  low:       { advice: 'Provide home-care guidance. Schedule follow-up in 7 days.',           cta: 'Record & close' },
+  medium:    { advice: 'Moderate risk — start teleconsult with a PHC doctor to assess further.', cta: 'Book appointment' },
+  high:      { advice: 'High risk — initiate teleconsultation immediately. Prepare referral.', cta: 'Create referral' },
+  emergency: { advice: 'CRITICAL — Auto-escalation triggered. Arrange emergency transport.',   cta: 'Call 104' },
 }
 
 function ProbBar({ label, pct, color }: { label: string; pct: number; color: string }) {
@@ -96,7 +96,7 @@ export function AshaTriage() {
         setMessages(p => [...p, {
           role: 'ai',
           text: res.autoEscalate
-            ? `EMERGENCY - Score ${res.score}/100. Auto-escalation triggered.`
+            ? `EMERGENCY — Score ${res.score}/100. Auto-escalation triggered.`
             : `Assessment complete. Score: ${res.score}/100.`
         }])
       } catch (_e) {
@@ -118,9 +118,13 @@ export function AshaTriage() {
   const STEPS: Step[] = ['vitals', 'symptoms', 'done']
   const stepLabels: Record<Step, string> = { vitals: 'Vitals', symptoms: 'Symptoms', done: 'Result' }
 
+  // Show teleconsult button when score is between 40 and 74 (medium/high, not emergency)
+  const showTeleconsult = result !== null && result.score >= 40 && result.score < 75
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-2xl mx-auto">
 
+      {/* Header */}
       <div className="px-4 sm:px-6 py-3 border-b border-[#D3D1C7] bg-white flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="font-semibold text-[#2C2C2A] text-sm">ASHA Patient Triage</h1>
@@ -140,6 +144,7 @@ export function AshaTriage() {
         </div>
       </div>
 
+      {/* Step tabs */}
       <div className="flex border-b border-[#D3D1C7] bg-gray-50 flex-shrink-0">
         {STEPS.map((s, i) => {
           const curIdx = STEPS.indexOf(step)
@@ -154,6 +159,7 @@ export function AshaTriage() {
 
       <div className="flex-1 overflow-y-auto">
 
+        {/* ── Vitals step ── */}
         {step === 'vitals' && (
           <div className="p-4 sm:p-5 space-y-4">
             <p className="text-xs text-[#5F5E5A]">Record available vitals. Leave blank if unavailable.</p>
@@ -182,9 +188,9 @@ export function AshaTriage() {
           </div>
         )}
 
+        {/* ── Symptoms + Result step ── */}
         {(step === 'symptoms' || step === 'done') && (
           <div className="flex flex-col">
-
             <div className="px-4 py-4 space-y-3" aria-live="polite">
               <AnimatePresence initial={false}>
                 {messages.map((m, i) => (
@@ -209,13 +215,18 @@ export function AshaTriage() {
                 </div>
               )}
 
+              {/* ── Result card ── */}
               {result && cfg && next && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
                   className={`rounded-2xl border p-5 space-y-4 ${cfg.bgColor} ${cfg.border}`} role="alert">
+
+                  {/* Score header */}
                   <div className="flex items-center justify-between">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${cfg.badgeBg}`}>{cfg.label}</span>
                     <span className={`text-2xl font-bold tabular-nums ${cfg.textColor}`}>{result.score}<span className="text-sm font-normal">/100</span></span>
                   </div>
+
+                  {/* Score bar */}
                   <div>
                     <div className="h-3 bg-white/70 rounded-full overflow-hidden border border-white/50">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${result.score}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} className={`h-full rounded-full ${cfg.barColor}`} />
@@ -224,6 +235,8 @@ export function AshaTriage() {
                       <span>0 Low</span><span>40 Med</span><span>60 High</span><span className="text-red-400 font-semibold">75+ Emergency</span>
                     </div>
                   </div>
+
+                  {/* Emergency banner */}
                   {result.autoEscalate && (
                     <div className="flex items-start gap-3 bg-red-600 text-white rounded-xl px-4 py-3" role="alert">
                       <Siren size={18} className="shrink-0 mt-0.5 animate-pulse" />
@@ -233,6 +246,19 @@ export function AshaTriage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Teleconsult recommendation banner — score 40–74 */}
+                  {showTeleconsult && (
+                    <div className="flex items-start gap-3 bg-green-700 text-white rounded-xl px-4 py-3">
+                      <Video size={16} className="shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm">Teleconsultation recommended</p>
+                        <p className="text-xs text-green-100 mt-0.5">Score {result.score}/100 — connect the patient with a PHC doctor now.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Risk flags */}
                   {result.triggeredFlags.length > 0 && (
                     <div className="space-y-1">
                       <p className={`text-xs font-semibold ${cfg.textColor}`}>Risk factors:</p>
@@ -243,6 +269,8 @@ export function AshaTriage() {
                       ))}
                     </div>
                   )}
+
+                  {/* ML probability breakdown */}
                   {result.probabilities && (
                     <div className="bg-white/60 rounded-xl p-3 space-y-1.5">
                       <p className={`text-[11px] font-semibold mb-2 ${cfg.textColor}`}>ML Probability Breakdown</p>
@@ -252,10 +280,12 @@ export function AshaTriage() {
                       <ProbBar label="Emergency" pct={result.probabilities.emergency} color="bg-red-600"     />
                     </div>
                   )}
+
+                  {/* Model info pills */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="inline-flex items-center gap-1 text-[10px] bg-white/70 border border-white/50 rounded-full px-2 py-0.5 text-[#5F5E5A]">
                       <Brain size={9} className="text-teal-500" />
-                      {result.mlUsed ? `XGBoost - ${result.confidence?.toFixed(1)}% confidence` : 'Rule-based fallback'}
+                      {result.mlUsed ? `XGBoost — ${result.confidence?.toFixed(1)}% confidence` : 'Rule-based fallback'}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[10px] bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 text-purple-700">
                       ✨ {qCount} Gemini questions
@@ -267,19 +297,46 @@ export function AshaTriage() {
                     )}
                     <AIPill />
                   </div>
+
                   <p className={`text-sm leading-relaxed ${cfg.textColor}`}>{next.advice}</p>
+
+                  {/* ── Action buttons ── */}
                   <div className="flex gap-2 flex-wrap pt-1">
                     {result.autoEscalate ? (
+                      /* score ≥ 75 — Emergency only */
                       <>
-                        <a href="tel:104" className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded-xl px-5 py-2.5 text-sm font-medium transition-colors">
+                        <a href="tel:104"
+                          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors">
                           <Siren size={14} /> Call 104
                         </a>
-                        <button onClick={() => navigate('/asha/referrals')} className="btn-secondary text-sm py-2.5 px-4">View escalation</button>
+                        <button onClick={() => navigate('/asha/referrals')}
+                          className="btn-secondary text-sm py-2.5 px-4">
+                          View escalation
+                        </button>
+                        <button onClick={reset} className="btn-secondary text-sm py-2.5 px-4">New triage</button>
+                      </>
+                    ) : showTeleconsult ? (
+                      /* score 40–74 — Teleconsult is the primary CTA */
+                      <>
+                        <button
+                          onClick={() => navigate('/asha/teleconsult')}
+                          className="flex items-center gap-2 bg-[#138808] hover:bg-green-800 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors shadow-sm"
+                        >
+                          <Video size={15} /> Start teleconsult
+                        </button>
+                        <button
+                          onClick={() => navigate(result.level === 'high' ? '/asha/referrals' : '/asha/followup')}
+                          className="btn-secondary text-sm py-2.5 px-4 flex items-center gap-1.5"
+                        >
+                          {next.cta} <ChevronRight size={14} />
+                        </button>
+                        <button onClick={reset} className="btn-secondary text-sm py-2.5 px-4">New triage</button>
                       </>
                     ) : (
+                      /* score < 40 — Low risk */
                       <>
-                        <button onClick={() => navigate(result.level === 'high' ? '/asha/referrals' : '/asha/followup')}
-                          className={`${result.level === 'high' ? 'btn-coral' : 'btn-primary'} text-sm py-2.5 px-5 flex items-center gap-1.5`}>
+                        <button onClick={() => navigate('/asha/followup')}
+                          className="btn-primary text-sm py-2.5 px-5 flex items-center gap-1.5">
                           {next.cta} <ChevronRight size={14} />
                         </button>
                         <button onClick={reset} className="btn-secondary text-sm py-2.5 px-4">New triage</button>
@@ -291,6 +348,7 @@ export function AshaTriage() {
               <div ref={bottomRef} />
             </div>
 
+            {/* Input bar */}
             {step === 'symptoms' && (
               <div className="px-4 pb-4 pt-3 border-t border-[#D3D1C7] bg-white flex-shrink-0">
                 <div className="flex gap-2">

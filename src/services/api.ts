@@ -194,7 +194,7 @@ export const ocrApi = {
     const form = new FormData()
     form.append('file', file)
     if (patientId) form.append('patientId', patientId)
-    return request<OcrResult>('POST', '/ocr/extract', form, true)
+    return request<OcrResult>('POST', '/api/ocr/extract', form, true)
   },
 }
 
@@ -273,7 +273,15 @@ export interface Escalation { id: string; patientId?: string; patientName: strin
 export interface KioskEntry { id: string; facilityId: string; patientId?: string; name: string; type: string; token: string; time: string; status: string; queuePosition: number; estimatedWait: number }
 export interface TriageResult { urgency_level: number; risk_level: string; risk_label: string; score: number; confidence: number; auto_escalate: boolean; flags: string[]; hospital_level: number; hospital_level_label: string; hospital_level_desc: string; probabilities: Record<string, number> }
 export interface TriageSession { id: string; patientId?: string; workerId?: string; vitals?: Record<string, string>; answers: string[]; score: number; level: string; triggeredFlags: string[]; autoEscalate: boolean; mlUsed: boolean; confidence?: number; hospitalLevel: number; hospitalLevelLabel: string; hospitalLevelDesc: string; createdAt: string }
-export interface OcrResult { raw: string; structured: { drug: string; dose: string; frequency: string; prescribedBy: string; prescribedAt: string; date: string; additionalMeds?: Array<{ drug: string; dose: string; frequency: string }> } }
+export interface OcrResult {
+  raw_text: string
+  document_type: string
+  summary: string
+  medicines: Array<{ name: string; dosage?: string; frequency?: string; confidence: number }>
+  test_values: Array<{ test_name: string; value?: string; unit?: string; reference_range?: string; is_abnormal?: boolean }>
+  dates_found: string[]
+  needs_review: boolean
+}
 export interface IvrCase { id: string; caseId: string; phone: string; answers: string[]; riskScore: number; riskLevel: string; actionAdvice: string; lang: string; createdAt: string }
 export interface AdminOverview { kpis: Array<{ label: string; value: string | number; change: string; icon: string; alert?: boolean }>; footfallData: Array<{ day: string; patients: number; referrals: number }>; referralDistribution: Array<{ name: string; value: number; color: string }>; stockAlerts: StockItem[]; followUpBoard: Array<{ name: string; condition: string; due: string; status: string; asha: string }> }
 export interface AshaDashboardData { activeCases: Array<{ id: string; name: string; age: number; village: string; condition: string; riskLevel: string; riskScore: number; lastSeen: string }>; todayStats: { visited: number; triages: number; referrals: number; overdueFollowUps: number } }

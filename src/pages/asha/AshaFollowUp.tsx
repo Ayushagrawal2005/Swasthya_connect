@@ -103,7 +103,7 @@ export function AshaFollowUpPage() {
       .catch(() => setDone(p => new Set([...p, id])))
   }
 
-  const grouped: Record<Status, Case[]> = {
+  const grouped: Record<Status, FollowUp[]> = {
     overdue:     cases.filter(c => !done.has(c.id) && c.status === 'overdue'),
     'due-today': cases.filter(c => !done.has(c.id) && c.status === 'due-today'),
     upcoming:    cases.filter(c => !done.has(c.id) && c.status === 'upcoming'),
@@ -194,7 +194,7 @@ export function AshaFollowUpPage() {
                         <div className="flex gap-2 flex-wrap">
                           <a href={`tel:${c.phone}`}
                             className="flex items-center gap-1.5 text-xs bg-white border border-[#D3D1C7] text-[#2C2C2A] px-3 py-2 rounded-full hover:border-teal-300 hover:text-teal-600 transition-colors font-medium"
-                            aria-label={`Call ${c.name}`}>
+                            aria-label={`Call ${c.patientName}`}>
                             <Phone size={12} /> Call patient
                           </a>
                           {c.risk !== 'low' && (

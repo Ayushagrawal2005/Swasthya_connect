@@ -308,7 +308,7 @@ export function ChronicCareTracker() {
                                 className="flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors font-medium">
                                 <Video size={11} /> Start teleconsult
                               </button>
-                              <button onClick={() => chronicApi.acknowledgeAlert(alert.id).then(() => setAcknowledged(p => new Set([...p, alert.id])))}
+                              <button onClick={() => chronicApi.acknowledge(selected!.id, alert.id).then(() => setAcknowledged(p => new Set([...p, alert.id])))}
                                 className="flex items-center gap-1.5 text-xs bg-gray-50 border border-[#D3D1C7] text-[#5F5E5A] px-3 py-1.5 rounded-full hover:border-gray-400 transition-colors font-medium ml-auto">
                                 <BellOff size={11} /> Acknowledge
                               </button>

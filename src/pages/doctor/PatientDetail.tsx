@@ -714,14 +714,14 @@ export function PatientDetailPage() {
             <div id="panel-diagnostics" role="tabpanel" aria-labelledby="tab-diagnostics" className="space-y-3 animate-fade-in">
               <p className="text-sm text-[#5F5E5A]">Track test orders and results tied to this patient's record.</p>
               {diagTests.map(d => (
-                <div key={d.name} className="card p-4 flex items-start gap-3">
+                <div key={d.id} className="card p-4 flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
                     <FlaskConical size={16} className="text-indigo-500" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="font-semibold text-sm text-[#2C2C2A]">{d.name}</p>
-                      {d.flag && <AlertTriangle size={13} className="text-amber-500" aria-label="Flagged result" />}
+                      <p className="font-semibold text-sm text-[#2C2C2A]">{d.test}</p>
+                      {d.flagged && <AlertTriangle size={13} className="text-amber-500" aria-label="Flagged result" />}
                     </div>
                     {d.result && <p className="text-xs text-amber-700 font-medium">{d.result}</p>}
                     {d.status === 'not-available' && (

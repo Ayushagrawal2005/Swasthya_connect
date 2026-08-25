@@ -35,13 +35,14 @@ const ashaNav: NavItem[] = [
 ]
 
 const doctorNav: NavItem[] = [
-  { label: 'Patient Queue',    icon: <Home size={18} />,          path: '/doctor' },
-  { label: 'Full Patient Record', icon: <FileText size={18} />,   path: '/doctor/record' },
-  { label: 'Consult View',     icon: <Stethoscope size={18} />,   path: '/doctor/patient' },
-  { label: 'Referral Inbox',   icon: <Inbox size={18} />,         path: '/doctor/referrals' },
-  { label: 'Follow-up Board',  icon: <AlertTriangle size={18} />, path: '/doctor/followup' },
-  { label: 'Chronic Care',     icon: <Activity size={18} />,     path: '/doctor/chronic' },
-  { label: 'Emergency',        icon: <Siren size={18} />,         path: '/doctor/emergency' },
+  { label: 'Patient Queue',      icon: <Home size={18} />,          path: '/doctor' },
+  { label: 'Find Patient',       icon: <Search size={18} />,        path: '/doctor/patients' },
+  { label: 'Full Patient Record',icon: <FileText size={18} />,      path: '/doctor/record' },
+  { label: 'Consult View',       icon: <Stethoscope size={18} />,   path: '/doctor/patient' },
+  { label: 'Referral Inbox',     icon: <Inbox size={18} />,         path: '/doctor/referrals' },
+  { label: 'Follow-up Board',    icon: <AlertTriangle size={18} />, path: '/doctor/followup' },
+  { label: 'Chronic Care',       icon: <Activity size={18} />,      path: '/doctor/chronic' },
+  { label: 'Emergency',          icon: <Siren size={18} />,         path: '/doctor/emergency' },
 ]
 
 const adminNav: NavItem[] = [
@@ -53,9 +54,10 @@ const adminNav: NavItem[] = [
 ]
 
 const accentMap: Record<string, string> = {
-  asha:    'bg-gradient-to-b from-green-500 to-teal-500',
-  doctor:  'bg-gradient-to-b from-indigo-500 to-indigo-600',
-  admin:   'bg-gradient-to-b from-teal-500 to-coral-500',
+  asha:    'bg-gradient-to-r from-[#FF9933] to-[#E67300]',
+  doctor:  'bg-gradient-to-r from-[#000080] to-[#0000CD]',
+  admin:   'bg-gradient-to-r from-[#138808] to-[#0F6B06]',
+  patient: 'bg-gradient-to-r from-[#FF9933] to-[#138808]',
 }
 
 export function Sidebar() {
@@ -71,23 +73,27 @@ export function Sidebar() {
 
   return (
     <aside
-      className="hidden lg:flex flex-col w-60 bg-white border-r border-[#D3D1C7] min-h-[calc(100vh-4rem)] flex-shrink-0"
+      className="hidden lg:flex flex-col w-60 bg-white border-r border-[#D4D4D4] min-h-[calc(100vh-4rem)] flex-shrink-0"
       role="complementary"
       aria-label="Side navigation"
     >
+      {/* Government Accent Strip */}
       <div className={cn('h-1 w-full', accentMap[role] || '')} aria-hidden="true" />
 
-      <div className="px-5 py-4 border-b border-[#D3D1C7]">
-        <div className="flex items-center gap-2">
-          <Heart size={16} className="text-teal-500" aria-hidden="true" />
-          <span className="text-sm font-semibold text-[#2C2C2A]">SwasthyaConnect</span>
+      {/* Portal Header - Government Style */}
+      <div className="px-5 py-4 border-b border-[#D4D4D4] bg-gradient-to-br from-[#FFF5EB] to-white">
+        <div className="flex items-center gap-2 mb-1">
+          <Heart size={16} className="text-[#FF9933]" aria-hidden="true" />
+          <span className="text-sm font-bold text-[#1A1A1A]">SwasthyaConnect</span>
         </div>
-        <p className="text-xs text-[#5F5E5A] mt-1 capitalize">
-          {role === 'asha' ? 'Frontline Worker Portal' : `${role} portal`}
+        <p className="text-xs text-[#6B6B6B] font-medium capitalize">
+          {role === 'asha' ? 'Frontline Worker Portal' : `${role} Portal`}
         </p>
+        <p className="text-[10px] text-[#6B6B6B] mt-0.5">Government of India</p>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label={`${role} navigation`}>
+      {/* Navigation Menu */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label={`${role} navigation`}>
         {navItems.map(item => (
           <button
             key={item.path}
@@ -101,10 +107,11 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-3 py-4 border-t border-[#D3D1C7]">
+      {/* Logout Button - Government Style */}
+      <div className="px-3 py-4 border-t border-[#D4D4D4] bg-[#F8F9FA]">
         <button
           onClick={() => { setRole(null); navigate('/') }}
-          className="nav-item w-full text-red-500 hover:bg-red-50 hover:text-red-600"
+          className="nav-item w-full text-[#DC2626] hover:bg-red-50 hover:text-red-700 border-l-[#DC2626]"
           aria-label="Sign out"
         >
           <LogOut size={18} aria-hidden="true" />

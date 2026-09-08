@@ -87,13 +87,61 @@ export function AshaFollowUpPage() {
   const navigate = useNavigate()
   const [cases, setCases] = useState<FollowUp[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [done, setDone] = useState<Set<string>>(new Set())
 
+  // Normalize a follow-up record from the backend into the shape the UI expects
+  function normalise(f: any): FollowUp {
+    const today = new Date().toISOString().split('T')[0]
+    const due   = f.dueDate || f.due_date || ''
+
+    // Derive display status from stored status + dueDate
+    let status: Status = 'upcoming'
+    const stored = (f.status || '').toLowerCase()
+    if (stored === 'completed' || stored === 'done') {
+      status = 'done'
+    } else if (stored === 'overdue' || (due && due < today)) {
+      status = 'overdue'
+    } else if (stored === 'due-today' || due === today) {
+      status = 'due-today'
+    } else {
+      status = 'upcoming'
+    }
+
+    // Normalise risk: "moderate" → "medium"
+    const rawRisk = (f.risk || f.riskLevel || 'low').toLowerCase()
+    const risk = rawRisk === 'moderate' ? 'medium' : rawRisk
+
+    return {
+      id:          f.id,
+      patientId:   f.patientId   || '',
+      patientName: f.patientName || f.name || 'Unknown',
+      age:         f.age         || 0,
+      condition:   f.condition   || '',
+      risk,
+      dueDate:     due,
+      status,
+      phone:       f.phone       || '',
+      notes:       f.notes       || '',
+      lastVisit:   f.lastVisit   || f.last_visit || '—',
+      nextStep:    f.nextStep    || f.next_step  || '',
+      assignedTo:  f.assignedTo  || '',
+    }
+  }
+
   useEffect(() => {
+    setLoading(true)
     followupsApi.list()
-      .then(data => { setCases(data); if (data.length > 0) setExpanded(data[0].id) })
-      .catch(() => {/* empty */})
+      .then(data => {
+        const normalised = (data as any[]).map(normalise)
+        setCases(normalised)
+        if (normalised.length > 0) setExpanded(normalised[0].id)
+      })
+      .catch(err => {
+        console.error('Follow-ups load error:', err)
+        setError('Could not load follow-ups. Please check your connection.')
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -127,6 +175,21 @@ export function AshaFollowUpPage() {
       </div>
 
       {loading && <div className="flex justify-center py-8"><Loader2 className="animate-spin text-teal-400" /></div>}
+
+      {!loading && error && (
+        <div className="card p-4 flex items-center gap-3 border-l-4 border-l-red-400 bg-red-50">
+          <AlertTriangle size={16} className="text-red-500 flex-shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && cases.length === 0 && (
+        <div className="text-center py-16 space-y-2">
+          <CheckCircle size={36} className="mx-auto text-teal-300" />
+          <p className="text-sm font-medium text-[#2C2C2A]">All caught up!</p>
+          <p className="text-xs text-[#5F5E5A]">No follow-up cases assigned to you right now.</p>
+        </div>
+      )}
 
       {/* Overdue */}
       {!loading && (['overdue', 'due-today', 'upcoming', 'done'] as Status[]).map(status => {

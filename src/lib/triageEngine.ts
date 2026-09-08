@@ -18,9 +18,11 @@ export interface HybridTriageResult {
   triggeredFlags: string[]
   confidence?: number
   mlUsed: boolean
-  hospitalLevel: number       // 1–4 (India public health system)
-  hospitalLevelLabel: string  // e.g. "PHC / CHC"
-  hospitalLevelDesc: string   // short description
+  hospitalLevel: number
+  hospitalLevelLabel: string
+  hospitalLevelDesc: string
+  specialist: string        // e.g. "Cardiologist"
+  specialistDesc: string    // e.g. "Cardiac symptoms detected — refer to district hospital cardiology"
   probabilities?: {
     low: number
     medium: number
@@ -39,6 +41,14 @@ class TriageEngine {
     medium:    { level: 2, label: 'PHC / CHC',                 desc: 'Primary Health Centre or Community Health Centre' },
     high:      { level: 3, label: 'District Hospital',          desc: 'District or Rural Hospital' },
     emergency: { level: 4, label: 'Tertiary / Medical College', desc: 'Tertiary care — Medical College or Super-Speciality Hospital' },
+  }
+
+  // Fallback specialist mapping when ML backend is unavailable
+  private readonly SPECIALIST_FALLBACK: Record<RiskLevel, { specialist: string; specialistDesc: string }> = {
+    low:       { specialist: 'ASHA / ANM',                          specialistDesc: 'Home management with ASHA guidance and follow-up in 7 days' },
+    medium:    { specialist: 'Medical Officer (PHC)',                specialistDesc: 'Primary assessment needed — PHC doctor consultation or teleconsult' },
+    high:      { specialist: 'General Physician / Internal Medicine',specialistDesc: 'Multi-system assessment needed — refer to district hospital internal medicine' },
+    emergency: { specialist: 'Emergency Physician',                  specialistDesc: 'Emergency medical care required — contact nearest emergency department' },
   }
 
   constructor() {
@@ -110,23 +120,25 @@ class TriageEngine {
         if (response.data && !response.error) {
           const mlResult = response.data
           const hosp = this.HOSPITAL_LEVELS[mlResult.risk_level]
+          const spec = this.SPECIALIST_FALLBACK[mlResult.risk_level]
 
-          // Convert ML result to hybrid format
           return {
             score: mlResult.score,
             level: mlResult.risk_level,
             autoEscalate: mlResult.auto_escalate,
             breakdown: {
-              vitalsScore: Math.round(mlResult.score * 0.4), // approximate
+              vitalsScore: Math.round(mlResult.score * 0.4),
               symptomsScore: Math.round(mlResult.score * 0.35),
               severityScore: Math.round(mlResult.score * 0.25),
             },
             triggeredFlags: mlResult.flags,
             confidence: mlResult.confidence,
             mlUsed: true,
-            hospitalLevel: mlResult.hospital_level ?? hosp.level,
+            hospitalLevel:      mlResult.hospital_level       ?? hosp.level,
             hospitalLevelLabel: mlResult.hospital_level_label ?? hosp.label,
-            hospitalLevelDesc: mlResult.hospital_level_desc ?? hosp.desc,
+            hospitalLevelDesc:  mlResult.hospital_level_desc  ?? hosp.desc,
+            specialist:     (mlResult as any).specialist      ?? spec.specialist,
+            specialistDesc: (mlResult as any).specialist_desc ?? spec.specialistDesc,
             probabilities: mlResult.probabilities,
           }
         }
@@ -143,12 +155,15 @@ class TriageEngine {
     })
 
     const hosp = this.HOSPITAL_LEVELS[ruleResult.level]
+    const spec = this.SPECIALIST_FALLBACK[ruleResult.level]
     return {
       ...ruleResult,
       mlUsed: false,
-      hospitalLevel: hosp.level,
+      hospitalLevel:      hosp.level,
       hospitalLevelLabel: hosp.label,
-      hospitalLevelDesc: hosp.desc,
+      hospitalLevelDesc:  hosp.desc,
+      specialist:     spec.specialist,
+      specialistDesc: spec.specialistDesc,
     }
   }
 

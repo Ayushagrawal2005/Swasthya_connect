@@ -39,6 +39,7 @@ const doctorNav: NavItem[] = [
   { label: 'Find Patient',       icon: <Search size={18} />,        path: '/doctor/patients' },
   { label: 'Full Patient Record',icon: <FileText size={18} />,      path: '/doctor/record' },
   { label: 'Consult View',       icon: <Stethoscope size={18} />,   path: '/doctor/patient' },
+  { label: 'Video Consultation', icon: <Video size={18} />,         path: '/doctor/teleconsult' },
   { label: 'Referral Inbox',     icon: <Inbox size={18} />,         path: '/doctor/referrals' },
   { label: 'Follow-up Board',    icon: <AlertTriangle size={18} />, path: '/doctor/followup' },
   { label: 'Chronic Care',       icon: <Activity size={18} />,      path: '/doctor/chronic' },

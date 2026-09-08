@@ -191,6 +191,128 @@ app.get('/patients/:id/records', authenticateToken, async (req, res) => {
   }
 })
 
+// ═══════════════════════════════════════════════════════════════
+// CONSULTATION ROUTES
+// ═══════════════════════════════════════════════════════════════
+
+// POST /patients/:id/consultations — doctor saves a consultation record
+app.post('/patients/:id/consultations', authenticateToken, async (req: any, res) => {
+  try {
+    const { chiefComplaint, diagnosis, notes, prescription, medicines, followUpDate } = req.body
+    const consultation = await db.consultations.create({
+      patientId:       req.params.id,
+      chiefComplaint:  chiefComplaint  || '',
+      diagnosis:       diagnosis       || '',
+      notes:           notes           || '',
+      prescription:    prescription    || '',
+      medicines:       medicines       || [],   // [{ name, dosage, frequency, duration }]
+      followUpDate:    followUpDate    || null,
+      doctorId:        req.user.id,
+      doctorName:      req.user.name   || req.user.username,
+      date:            new Date().toISOString(),
+    })
+
+    // Also write a VisitRecord so it appears in the patient timeline
+    await db.patients.addVisit(req.params.id, {
+      type:    'diagnosis',
+      title:   diagnosis || chiefComplaint || 'Consultation',
+      detail:  notes || '',
+      facility: 'PHC / Doctor Portal',
+      tier:    'phc',
+      worker:  req.user.name || req.user.username,
+      consultationId: consultation.id,
+      prescription,
+      medicines: medicines || [],
+    })
+
+    res.json(consultation)
+  } catch (error) {
+    console.error('Save consultation error:', error)
+    res.status(500).json({ error: 'Failed to save consultation' })
+  }
+})
+
+// GET /patients/:id/consultations — list all consultations for a patient
+app.get('/patients/:id/consultations', authenticateToken, async (req, res) => {
+  try {
+    const consultations = await db.consultations.getByPatient(req.params.id)
+    res.json(consultations)
+  } catch (error) {
+    console.error('Get consultations error:', error)
+    res.status(500).json({ error: 'Failed to get consultations' })
+  }
+})
+
+// GET /api/patients/:id/summary — unified summary for doctor view
+// Merges OCR records + consultations + visits into one response
+app.get('/api/patients/:id/summary', authenticateToken, async (req, res) => {
+  try {
+    const [medRecords, consultations, visits] = await Promise.all([
+      db.medicalRecords.getByPatient(req.params.id).catch(() => []),
+      db.consultations.getByPatient(req.params.id).catch(() => []),
+      db.patients.getVisits(req.params.id).catch(() => []),
+    ])
+
+    // Collect all medicines from OCR records
+    const allMedicines: any[] = []
+    ;(medRecords as any[]).forEach((r: any) => {
+      if (r.medicines && Array.isArray(r.medicines)) {
+        r.medicines.forEach((m: any) => allMedicines.push({ ...m, source: 'ocr', recordId: r.id }))
+      }
+    })
+    ;(consultations as any[]).forEach((c: any) => {
+      if (c.medicines && Array.isArray(c.medicines)) {
+        c.medicines.forEach((m: any) => allMedicines.push({ ...m, source: 'doctor', consultationId: c.id }))
+      }
+    })
+
+    // Recent test values from OCR
+    const recentTests: any[] = []
+    ;(medRecords as any[]).forEach((r: any) => {
+      if (r.testValues && Array.isArray(r.testValues)) {
+        recentTests.push(...r.testValues.map((t: any) => ({ ...t, recordId: r.id })))
+      }
+    })
+
+    // Build unified timeline
+    const timeline: any[] = [
+      ...(medRecords as any[]).map((r: any) => ({
+        type: 'record',
+        date: r.createdAt?._seconds ? new Date(r.createdAt._seconds * 1000).toISOString() : r.createdAt || new Date().toISOString(),
+        data: r,
+      })),
+      ...(consultations as any[]).map((c: any) => ({
+        type: 'consultation',
+        date: c.date || (c.createdAt?._seconds ? new Date(c.createdAt._seconds * 1000).toISOString() : new Date().toISOString()),
+        data: c,
+      })),
+      ...(visits as any[]).map((v: any) => ({
+        type: 'visit',
+        date: typeof v.date === 'string' ? v.date : v.date?._seconds ? new Date(v.date._seconds * 1000).toISOString() : new Date().toISOString(),
+        data: v,
+      })),
+    ].sort((a, b) => (a.date > b.date ? -1 : 1))
+
+    res.json({
+      records:       medRecords,
+      consultations,
+      visits,
+      summary: {
+        totalRecords:       (medRecords as any[]).length,
+        totalConsultations: (consultations as any[]).length,
+        totalVisits:        (visits as any[]).length,
+        totalPrescriptions: (consultations as any[]).length,
+        activeMedicines:    allMedicines,
+        recentTests,
+      },
+      timeline,
+    })
+  } catch (error) {
+    console.error('Patient summary error:', error)
+    res.status(500).json({ error: 'Failed to get patient summary' })
+  }
+})
+
 // POST /patients/:id/records — save OCR-extracted medical record to patient
 app.post('/patients/:id/records', authenticateToken, async (req: any, res) => {
   try {

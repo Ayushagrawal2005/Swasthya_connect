@@ -1,8 +1,10 @@
 // ASHA — Create & track referrals (Module 5)
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, CheckCircle, Clock, AlertTriangle, MapPin, Plus, Sparkles, Loader2 } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, AlertTriangle, MapPin, Plus, Sparkles, Loader2, Brain } from 'lucide-react'
 import { referralsApi, appointmentsApi, type Referral, type FacilityWithDoctors } from '../../services/api'
+import { generateReferralExplanation, type ReferralExplanation } from '../../lib/referralExplainer'
+import { ReferralExplanationPanel } from '../../components/ui/ReferralExplanationPanel'
 
 type UrgencyLevel = 'routine' | 'urgent' | 'emergency'
 
@@ -54,6 +56,8 @@ export function AshaReferralsPage() {
   const [urgency, setUrgency]   = useState<UrgencyLevel>('routine')
   const [selectedFacility, setSelectedFacility] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [showExplanation, setShowExplanation] = useState(false)
+  const [currentExplanation, setCurrentExplanation] = useState<ReferralExplanation | null>(null)
 
   useEffect(() => {
     Promise.all([referralsApi.outgoing(), appointmentsApi.facilities()])
@@ -80,6 +84,35 @@ export function AshaReferralsPage() {
         setTimeout(() => { setSubmitted(false); setView('list'); setPatient(''); setReason(''); setUrgency('routine'); setSelectedFacility('') }, 2000)
       })
       .catch(() => {/* silent */})
+  }
+
+  function showAIExplanation(referral: Referral) {
+    // Generate explanation based on referral data
+    const explanation = generateReferralExplanation(
+      {
+        name: referral.patientName,
+        age: 52, // Would come from patient record in real system
+        gender: 'F',
+        vitals: {
+          bp: '168/104', // Mock data - would come from patient record
+          temp: '98.6°F',
+          pulse: '88 bpm',
+          spo2: '96%',
+          weight: '64 kg'
+        },
+        conditions: ['Hypertension', 'Iron-deficiency Anaemia'],
+        riskScore: referral.urgency === 'emergency' ? 85 : referral.urgency === 'urgent' ? 65 : 45
+      },
+      {
+        reason: referral.reason,
+        urgency: referral.urgency as 'routine' | 'urgent' | 'emergency',
+        toFacility: referral.toFacilityName,
+        fromFacility: 'Sub-centre Mandav'
+      }
+    )
+    
+    setCurrentExplanation(explanation)
+    setShowExplanation(true)
   }
 
   return (
@@ -227,6 +260,17 @@ export function AshaReferralsPage() {
                     </div>
                   </div>
                   <p className="text-sm text-[#5F5E5A] leading-relaxed">{ref.reason}</p>
+                  
+                  {/* AI Explanation Button */}
+                  <button
+                    onClick={() => showAIExplanation(ref)}
+                    className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg px-3 py-2 transition-colors font-medium"
+                  >
+                    <Brain size={14} />
+                    <span>Why was this referral created?</span>
+                    <Sparkles size={12} className="text-indigo-500" />
+                  </button>
+                  
                   <div className="flex items-center gap-0">
                     {stepFlow.map((s, si) => {
                       const done = si <= stepIdx; const active = si === stepIdx
@@ -253,6 +297,16 @@ export function AshaReferralsPage() {
               )
             })}
           </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Explainable AI Panel */}
+      <AnimatePresence>
+        {showExplanation && currentExplanation && (
+          <ReferralExplanationPanel
+            explanation={currentExplanation}
+            onClose={() => setShowExplanation(false)}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -131,10 +131,13 @@ export function DoctorHome() {
         ) : queue.length === 0 ? (
           <p className="text-sm text-[#5F5E5A] text-center py-8 card">No patients in queue today.</p>
         ) : (
-          <div className="space-y-2">
+        <div className="space-y-2">
             {queue.map((item, i) => (
               <motion.div key={item.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                onClick={() => navigate('/doctor/patient')}
+                onClick={() => {
+                  const pid = (item as any).patientId || null
+                  navigate('/doctor/patient', { state: { patientId: pid, patientName: item.patientName } })
+                }}
                 className={`card-hover p-4 flex items-center gap-4 cursor-pointer ${item._type === 'referral' ? urgencyBorder[(item as any).urgency] || '' : ''}`}>
 
                 {/* Avatar */}
@@ -163,6 +166,14 @@ export function DoctorHome() {
                   ) : (
                     <p className="text-xs text-[#5F5E5A]">{item.time} · Token {item.token} · Wait ~{item.estimatedWait}m</p>
                   )}
+                  {/* Patient ID — click opens search */}
+                  {(item as any).patientId && (
+                    <button
+                      onClick={e => { e.stopPropagation(); navigate('/doctor/patients') }}
+                      className="text-[10px] font-mono text-teal-600 hover:underline mt-0.5 block">
+                      ID: {(item as any).patientId.slice(0, 12)}… · Search records →
+                    </button>
+                  )}
                 </div>
                 <ChevronRight size={16} className="text-[#5F5E5A]" />
               </motion.div>
@@ -172,6 +183,7 @@ export function DoctorHome() {
       </section>
 
       <div className="flex gap-3 flex-wrap">
+        <button onClick={() => navigate('/doctor/patients')}  className="btn-primary text-sm py-2.5 px-4">Find patient</button>
         <button onClick={() => navigate('/doctor/referrals')} className="btn-secondary text-sm py-2.5 px-4">Referral inbox</button>
         <button onClick={() => navigate('/doctor/followup')}  className="btn-secondary text-sm py-2.5 px-4">Follow-up board</button>
         <button onClick={() => navigate('/doctor/emergency')} className="btn-coral text-sm py-2.5 px-4">Emergency escalation</button>

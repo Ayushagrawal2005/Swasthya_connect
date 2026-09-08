@@ -284,6 +284,40 @@ export const followupsDb = {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// CONSULTATIONS
+// ═══════════════════════════════════════════════════════════════
+
+export const consultationsDb = {
+  async create(data: any) {
+    const ref = await db.collection('consultations').add({
+      ...data,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return { id: ref.id, ...data }
+  },
+  async getByPatient(patientId: string) {
+    const snap = await db.collection('consultations')
+      .where('patientId', '==', patientId)
+      .get()
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    return sortByCreatedAt(docs, 'desc')
+  },
+  async findById(id: string) {
+    const doc = await db.collection('consultations').doc(id).get()
+    return doc.exists ? { id: doc.id, ...doc.data() } : null
+  },
+  async update(id: string, data: any) {
+    await db.collection('consultations').doc(id).update({
+      ...data,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    const doc = await db.collection('consultations').doc(id).get()
+    return { id: doc.id, ...doc.data() }
+  },
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MEDICAL RECORDS
 // ═══════════════════════════════════════════════════════════════
 
@@ -439,6 +473,7 @@ export default {
   triage:         triageDb,
   referrals:      referralsDb,
   followups:      followupsDb,
+  consultations:  consultationsDb,
   medicalRecords: medicalRecordsDb,
   inventory:      inventoryDb,
   chronic:        chronicDb,

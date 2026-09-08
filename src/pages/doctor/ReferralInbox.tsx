@@ -1,8 +1,10 @@
 // Module 5 — Referral inbox (doctor view)
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { MapPin, ArrowRight, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin, ArrowRight, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, RefreshCw, Brain, Sparkles } from 'lucide-react'
 import { referralsApi, type Referral } from '../../services/api'
+import { generateReferralExplanation, type ReferralExplanation } from '../../lib/referralExplainer'
+import { ReferralExplanationPanel } from '../../components/ui/ReferralExplanationPanel'
 
 type Tab = 'incoming' | 'outgoing'
 
@@ -38,6 +40,8 @@ export function ReferralInboxPage() {
   const [outgoing, setOutgoing] = useState<Referral[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [showExplanation, setShowExplanation] = useState(false)
+  const [currentExplanation, setCurrentExplanation] = useState<ReferralExplanation | null>(null)
 
   const fetchAll = useCallback(() => {
     return Promise.all([referralsApi.incoming(), referralsApi.outgoing()])
@@ -61,6 +65,34 @@ export function ReferralInboxPage() {
   }
   function redirect(id: string) {
     referralsApi.redirect(id).then(() => setIncoming(p => p.map(r => r.id === id ? { ...r, status: 'redirected' } : r)))
+  }
+
+  function showAIExplanation(referral: Referral) {
+    const explanation = generateReferralExplanation(
+      {
+        name: referral.patientName,
+        age: 52,
+        gender: 'F',
+        vitals: {
+          bp: '168/104',
+          temp: '98.6°F',
+          pulse: '88 bpm',
+          spo2: '96%',
+          weight: '64 kg'
+        },
+        conditions: ['Hypertension', 'Iron-deficiency Anaemia'],
+        riskScore: referral.urgency === 'emergency' ? 85 : referral.urgency === 'urgent' ? 65 : 45
+      },
+      {
+        reason: referral.reason,
+        urgency: referral.urgency as 'routine' | 'urgent' | 'emergency',
+        toFacility: referral.toFacilityName,
+        fromFacility: 'Sub-centre Mandav'
+      }
+    )
+    
+    setCurrentExplanation(explanation)
+    setShowExplanation(true)
   }
 
   const list = tab === 'incoming' ? incoming : outgoing
@@ -130,6 +162,16 @@ export function ReferralInboxPage() {
 
               <p className="text-sm text-[#5F5E5A] leading-relaxed">{ref.reason}</p>
 
+              {/* AI Explanation Button */}
+              <button
+                onClick={() => showAIExplanation(ref)}
+                className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg px-3 py-2 transition-colors font-medium w-full sm:w-auto"
+              >
+                <Brain size={14} />
+                <span>View AI Explanation</span>
+                <Sparkles size={12} className="text-indigo-500" />
+              </button>
+
               <div className="flex items-center text-[10px] text-[#5F5E5A]">
                 <span className="flex items-center gap-1"><Clock size={10} /> {new Date(ref.createdAt).toLocaleDateString('en-IN')}</span>
               </div>
@@ -162,6 +204,16 @@ export function ReferralInboxPage() {
           )
         })}
       </div>
+      
+      {/* Explainable AI Panel */}
+      <AnimatePresence>
+        {showExplanation && currentExplanation && (
+          <ReferralExplanationPanel
+            explanation={currentExplanation}
+            onClose={() => setShowExplanation(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

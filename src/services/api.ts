@@ -66,6 +66,16 @@ export const patientsApi = {
   },
   getMedicines: (id: string) => get<MedicationEntry[]>(`/patients/${id}/medicines`),
   getReferrals: (id: string) => get<Referral[]>(`/patients/${id}/referrals`),
+  getConsultations: (id: string) => get<Consultation[]>(`/patients/${id}/consultations`),
+  saveConsultation: (id: string, data: {
+    chiefComplaint: string
+    diagnosis: string
+    notes: string
+    prescription: string
+    medicines: Array<{ name: string; dosage: string; frequency: string; duration: string }>
+    followUpDate?: string
+  }) => post<Consultation>(`/patients/${id}/consultations`, data),
+  getSummary: (id: string) => get<PatientSummary>(`/api/patients/${id}/summary`),
 }
 
 // ─── Triage ───────────────────────────────────────────────────────────────────
@@ -273,6 +283,33 @@ export interface Escalation { id: string; patientId?: string; patientName: strin
 export interface KioskEntry { id: string; facilityId: string; patientId?: string; name: string; type: string; token: string; time: string; status: string; queuePosition: number; estimatedWait: number }
 export interface TriageResult { urgency_level: number; risk_level: string; risk_label: string; score: number; confidence: number; auto_escalate: boolean; flags: string[]; hospital_level: number; hospital_level_label: string; hospital_level_desc: string; probabilities: Record<string, number> }
 export interface TriageSession { id: string; patientId?: string; workerId?: string; vitals?: Record<string, string>; answers: string[]; score: number; level: string; triggeredFlags: string[]; autoEscalate: boolean; mlUsed: boolean; confidence?: number; hospitalLevel: number; hospitalLevelLabel: string; hospitalLevelDesc: string; createdAt: string }
+export interface Consultation {
+  id: string
+  patientId: string
+  chiefComplaint: string
+  diagnosis: string
+  notes: string
+  prescription: string
+  medicines: Array<{ name: string; dosage: string; frequency: string; duration: string }>
+  followUpDate?: string
+  doctorId: string
+  doctorName: string
+  date: string
+}
+export interface PatientSummary {
+  records: any[]
+  consultations: Consultation[]
+  visits: any[]
+  summary: {
+    totalRecords: number
+    totalConsultations: number
+    totalVisits: number
+    totalPrescriptions: number
+    activeMedicines: Array<{ name: string; dosage?: string; frequency?: string; source: string }>
+    recentTests: any[]
+  }
+  timeline: Array<{ type: string; date: string; data: any }>
+}
 export interface OcrResult {
   raw_text: string
   document_type: string

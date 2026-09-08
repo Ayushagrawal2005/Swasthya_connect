@@ -1,9 +1,51 @@
+# Dependencies
 node_modules
+package-lock.json
+
+# Build outputs
 dist
 dist-ssr
 *.local
+
+# Environment variables
 .env
 .env.*
 !.env.example
+
+# Build cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist-python
+build
+venv
+env
+*.log
+
+# ML models (too large for git)
+# ml-backend/models/*.pkl (keep these for now, but add Git LFS if pushing)
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

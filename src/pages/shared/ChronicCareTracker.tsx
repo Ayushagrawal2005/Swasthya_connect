@@ -102,7 +102,7 @@ function PatientCard({ patient, onSelect, isSelected }: { patient: ChronicPatien
 }
 
 function ProgressionChart({ patient }: { patient: ChronicPatient }) {
-  const data = patient.readings.map((r, i) => ({
+  const data = (patient.readings || []).map((r, i) => ({
     name: `V${i + 1}`,
     value: r.numeric,
     date: r.date,
@@ -124,22 +124,29 @@ function ProgressionChart({ patient }: { patient: ChronicPatient }) {
           <AIPill />
         </div>
       </div>
-      <div style={{ height: 120 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#5F5E5A" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#5F5E5A" }} axisLine={false} tickLine={false} />
-            <Tooltip
-              contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #D3D1C7" }}
-              formatter={(v: number) => [String(v), patient.conditionLabel]}
-              
-            />
-            <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 4, fill: color }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {data.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[120px] text-center space-y-1">
+          <Activity size={24} className="text-[#D3D1C7]" />
+          <p className="text-xs text-[#5F5E5A]">No readings recorded yet</p>
+          <p className="text-[10px] text-[#9E9C94]">Add the first reading to start tracking progression</p>
+        </div>
+      ) : (
+        <div style={{ height: 120 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#5F5E5A" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: "#5F5E5A" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #D3D1C7" }}
+                formatter={(v: number) => [String(v), patient.conditionLabel]}
+              />
+              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 4, fill: color }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
       <p className="text-[10px] text-[#5F5E5A] mt-1 text-center">
-        {conditionMetric[patient.condition]} over {patient.readings.length} readings
+        {conditionMetric[patient.condition]} over {data.length} reading{data.length !== 1 ? 's' : ''}
       </p>
     </div>
   )
@@ -156,12 +163,28 @@ export function ChronicCareTracker() {
   const [expandedCheckup, setExpandedCheckup] = useState<string | null>(null)
 
   useEffect(() => {
+    setLoading(true)
     chronicApi.list(filter !== 'all' ? { alertLevel: filter } : undefined)
       .then(data => {
-        setPatients(data)
-        if (!selected && data.length > 0) setSelected(data[0])
+        // Normalise: ensure arrays are never undefined
+        const safe = (data as any[]).map(p => ({
+          ...p,
+          readings:  p.readings  || [],
+          checkups:  p.checkups  || [],
+          alerts:    p.alerts    || [],
+          medications: p.medications || [],
+        }))
+        setPatients(safe)
+        if (!selected && safe.length > 0) setSelected(safe[0])
+        if (selected) {
+          // Refresh selected if it changed
+          const updated = safe.find((p: any) => p.id === selected.id)
+          if (updated) setSelected(updated)
+        }
       })
-      .catch(() => {})
+      .catch(err => {
+        console.error('Chronic care load error:', err)
+      })
       .finally(() => setLoading(false))
   }, [filter])
 
@@ -329,6 +352,13 @@ export function ChronicCareTracker() {
                 {/* Reading history */}
                 <section aria-labelledby="readings-heading">
                   <h3 id="readings-heading" className="section-header">Reading history</h3>
+                  {(!selected.readings || selected.readings.length === 0) ? (
+                    <div className="card p-6 text-center space-y-2">
+                      <Activity size={28} className="mx-auto text-[#D3D1C7]" />
+                      <p className="text-sm text-[#5F5E5A]">No readings recorded yet</p>
+                      <p className="text-[10px] text-[#9E9C94]">Readings will appear here after the first check-up</p>
+                    </div>
+                  ) : (
                   <div className="card overflow-hidden">
                     <table className="w-full text-xs" aria-label="Vital readings history">
                       <thead>
@@ -357,13 +387,14 @@ export function ChronicCareTracker() {
                                 </div>
                               </td>
                               <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.recordedBy}</td>
-                              <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.note || "�"}</td>
+                              <td className="py-2.5 px-4 text-[#5F5E5A] hidden sm:table-cell">{r.note || "—"}</td>
                             </tr>
                           )
                         })}
                       </tbody>
                     </table>
                   </div>
+                  )}
                 </section>
 
                 {/* Checkup schedule */}
@@ -372,6 +403,16 @@ export function ChronicCareTracker() {
                     <Calendar size={15} className="text-teal-500" aria-hidden="true" /> Checkup schedule
                     <span className="text-xs font-normal text-[#5F5E5A]">every {checkupIntervalDays[selected.condition]} days</span>
                   </h3>
+                  {(!selected.checkups || selected.checkups.length === 0) ? (
+                    <div className="card p-6 text-center space-y-2">
+                      <Calendar size={28} className="mx-auto text-[#D3D1C7]" />
+                      <p className="text-sm text-[#5F5E5A]">No checkups scheduled</p>
+                      <button onClick={() => navigate('/asha/appointments')}
+                        className="btn-primary text-xs py-2 px-4 mx-auto">
+                        Book first checkup
+                      </button>
+                    </div>
+                  ) : (
                   <div className="space-y-2">
                     {selected.checkups.map(c => {
                       const isOpen = expandedCheckup === c.id
@@ -426,6 +467,7 @@ export function ChronicCareTracker() {
                       )
                     })}
                   </div>
+                  )}
                 </section>
 
                 {/* Medications */}
@@ -433,11 +475,15 @@ export function ChronicCareTracker() {
                   <h3 id="meds-heading" className="section-header flex items-center gap-2">
                     <Pill size={15} className="text-teal-500" aria-hidden="true" /> Current medications
                   </h3>
+                  {(!selected.medications || selected.medications.length === 0) ? (
+                    <p className="text-sm text-[#5F5E5A] py-2">No medications on record.</p>
+                  ) : (
                   <div className="flex flex-wrap gap-2">
                     {selected.medications.map(m => (
                       <span key={m} className="badge-teal text-xs px-3 py-1.5">{m}</span>
                     ))}
                   </div>
+                  )}
                 </section>
 
                 {/* Compliance stat */}

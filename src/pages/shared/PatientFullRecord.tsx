@@ -66,13 +66,29 @@ export function PatientFullRecord() {
     const pid = searchParams.get('id') || (role === 'patient' ? ctxPatientId : null) || null
     if (!pid) { setLoading(false); return }
     setLoading(true)
+
+    // Helper to convert any date value (Firestore Timestamp object, ISO string, etc.) to a display string
+    function toDateStr(val: any): string {
+      if (!val) return '—'
+      if (typeof val === 'string') return val.replace('T', ' ').slice(0, 16)
+      // Firestore Timestamp object: { _seconds, _nanoseconds }
+      if (val._seconds !== undefined) return new Date(val._seconds * 1000).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+      if (typeof val.toDate === 'function') return val.toDate().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+      return String(val)
+    }
+
     Promise.all([
       patientsApi.get(pid).catch((err) => { console.error('Failed to get patient:', err); return null }),
       patientsApi.getRecords(pid).catch((err) => { console.error('Failed to get records:', err); return [] }),
     ]).then(([p, recs]) => {
       setPatient(p)
-      setRecords((recs as FullRecord[]) || [])
-      if (recs && (recs as FullRecord[]).length) setExpanded((recs as FullRecord[])[0].id)
+      // Normalise dates on every record so the UI always gets a readable string
+      const normalised = (recs as FullRecord[]).map(r => ({
+        ...r,
+        date: toDateStr(r.date),
+      }))
+      setRecords(normalised || [])
+      if (normalised.length) setExpanded(normalised[0].id)
     }).finally(() => setLoading(false))
   }, [role, ctxPatientId, searchParams])
 
@@ -225,11 +241,11 @@ export function PatientFullRecord() {
             <div className="space-y-4">
               {/* Type filter */}
               <div className="flex gap-2 flex-wrap">
-                {(['all', 'visit', 'lab', 'prescription', 'diagnosis'] as const).map(f => (
-                  <button key={f} onClick={() => setFilterType(f)} aria-pressed={filterType === f}
+                {(['all', 'visit', 'ocr-upload', 'lab', 'prescription', 'diagnosis'] as const).map(f => (
+                  <button key={f} onClick={() => setFilterType(f as any)} aria-pressed={filterType === f}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize
                       ${filterType === f ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-teal-300'}`}>
-                    {f === 'all' ? 'All' : f}
+                    {f === 'all' ? 'All' : f === 'ocr-upload' ? 'Uploads' : f}
                   </button>
                 ))}
               </div>
@@ -268,12 +284,34 @@ export function PatientFullRecord() {
                         </div>
                         {isOpen && (
                           <div className="mt-3 pt-3 border-t border-[#D3D1C7]/50 space-y-2">
-                            <p className="text-sm text-[#5F5E5A] leading-relaxed">{v.detail}</p>
+                            {v.detail && <p className="text-sm text-[#5F5E5A] leading-relaxed">{v.detail}</p>}
                             {v.vitals && Object.keys(v.vitals).length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {Object.entries(v.vitals).map(([k, val]) => (
                                   <span key={k} className="text-xs bg-gray-50 border border-[#D3D1C7] rounded-full px-2.5 py-1 font-mono">
                                     {k}: {val}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {/* OCR-specific: medicines */}
+                            {v.medicines && v.medicines.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                {v.medicines.map((m, mi) => (
+                                  <span key={mi} className="text-xs bg-green-50 border border-green-200 text-green-800 rounded-full px-2.5 py-1">
+                                    {m.name}{m.dosage ? ` · ${m.dosage}` : ''}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {/* OCR-specific: test values */}
+                            {v.testValues && v.testValues.length > 0 && (
+                              <div className="space-y-1 mt-1">
+                                {v.testValues.map((t, ti) => (
+                                  <span key={ti} className={`inline-flex items-center gap-1.5 text-xs rounded-full px-2.5 py-1 border
+                                    ${t.is_abnormal ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                                    {t.test_name}{t.value ? `: ${t.value}${t.unit ? ' ' + t.unit : ''}` : ''}
+                                    {t.is_abnormal && ' ⚠'}
                                   </span>
                                 ))}
                               </div>

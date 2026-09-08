@@ -30,6 +30,7 @@ import { PatientDetailPage }       from './pages/doctor/PatientDetail'
 import { ReferralInboxPage }       from './pages/doctor/ReferralInbox'
 import { FollowUpBoardPage }       from './pages/doctor/FollowUpBoard'
 import { EmergencyEscalationPage } from './pages/doctor/EmergencyEscalation'
+import { DoctorTeleconsultPage }   from './pages/doctor/DoctorTeleconsult'
 
 // Admin
 import { AdminOverview }              from './pages/admin/AdminOverview'
@@ -86,6 +87,7 @@ function AppShell() {
             <Route path="/doctor/patients"  element={<DoctorPatientSearch />} />
             <Route path="/doctor/patient"   element={<PatientDetailPage />} />
             <Route path="/doctor/record"    element={<PatientFullRecord />} />
+            <Route path="/doctor/teleconsult" element={<DoctorTeleconsultPage />} />
             <Route path="/doctor/referrals" element={<ReferralInboxPage />} />
             <Route path="/doctor/followup"  element={<FollowUpBoardPage />} />
             <Route path="/doctor/chronic"   element={<ChronicCareTracker />} />

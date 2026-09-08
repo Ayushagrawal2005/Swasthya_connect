@@ -150,6 +150,53 @@ def predict_triage():
             2: {'hospital_level': 3, 'hospital_level_label': 'District Hospital',         'hospital_level_desc': 'District or Rural Hospital'},
             3: {'hospital_level': 4, 'hospital_level_label': 'Tertiary / Medical College','hospital_level_desc': 'Tertiary care — Medical College or Super-Speciality Hospital'},
         }
+
+        # Derive recommended specialist from symptom flags and urgency
+        def get_specialist(urgency, flags_list, text_answers):
+            t = text_answers.lower()
+            # Emergency always needs emergency medicine
+            if urgency == 3:
+                if any(k in t for k in ['chest', 'heart', 'cardiac']):
+                    return {'specialist': 'Cardiologist', 'specialist_desc': 'Cardiac emergency — immediate cardiology consultation required'}
+                if any(k in t for k in ['convuls', 'seizure', 'fitting', 'fits', 'headache', 'head pain']):
+                    return {'specialist': 'Neurologist', 'specialist_desc': 'Neurological emergency — immediate neurology consultation required'}
+                if any(k in t for k in ['bleed', 'bleeding', 'haemorrhage', 'blood']):
+                    return {'specialist': 'Emergency Surgeon', 'specialist_desc': 'Surgical emergency — immediate surgical evaluation required'}
+                if any(k in t for k in ['breathe', 'breathing', 'breathless', 'shortness', 'dyspnoea']):
+                    return {'specialist': 'Pulmonologist / Emergency', 'specialist_desc': 'Respiratory emergency — immediate pulmonology or emergency care required'}
+                return {'specialist': 'Emergency Physician', 'specialist_desc': 'Emergency medical care required — contact nearest emergency department'}
+
+            # High risk — district hospital specialist
+            if urgency == 2:
+                if any(k in t for k in ['chest pain', 'chest tightness', 'heart', 'palpitation']):
+                    return {'specialist': 'Cardiologist', 'specialist_desc': 'Cardiac symptoms detected — refer to district hospital cardiology'}
+                if any(k in t for k in ['breathe', 'breathing', 'breathless', 'shortness', 'asthma', 'copd']):
+                    return {'specialist': 'Pulmonologist', 'specialist_desc': 'Respiratory symptoms — refer to district hospital pulmonology'}
+                if any(k in t for k in ['convuls', 'seizure', 'headache', 'head pain', 'dizziness', 'numbness']):
+                    return {'specialist': 'Neurologist', 'specialist_desc': 'Neurological symptoms — refer to district hospital neurology'}
+                if any(k in t for k in ['sugar', 'diabetes', 'glucose', 'thirst', 'urine frequency']):
+                    return {'specialist': 'Diabetologist / Endocrinologist', 'specialist_desc': 'Metabolic condition — refer to endocrinology at district hospital'}
+                if any(k in t for k in ['pregnant', 'pregnancy', 'antenatal', 'maternal', 'obstetric']):
+                    return {'specialist': 'Obstetrician / Gynaecologist', 'specialist_desc': 'High-risk pregnancy — refer to obstetrics at district hospital'}
+                if any(k in t for k in ['bleed', 'bleeding', 'wound', 'injury', 'fracture', 'trauma']):
+                    return {'specialist': 'General Surgeon / Orthopaedician', 'specialist_desc': 'Surgical/orthopaedic concern — refer to district hospital surgical team'}
+                return {'specialist': 'General Physician / Internal Medicine', 'specialist_desc': 'Multi-system assessment needed — refer to district hospital internal medicine'}
+
+            # Medium risk — PHC doctor / telemedicine
+            if urgency == 1:
+                if any(k in t for k in ['pregnant', 'pregnancy', 'antenatal']):
+                    return {'specialist': 'Medical Officer (Obstetrics)', 'specialist_desc': 'Antenatal care — PHC Medical Officer or teleconsult with gynaecologist'}
+                if any(k in t for k in ['sugar', 'diabetes', 'hypertension', 'bp high', 'blood pressure']):
+                    return {'specialist': 'Medical Officer (Chronic Care)', 'specialist_desc': 'Chronic disease management — PHC doctor or NCD teleconsult'}
+                if any(k in t for k in ['fever', 'malaria', 'dengue', 'typhoid', 'tb', 'tuberculosis']):
+                    return {'specialist': 'Medical Officer (Infectious Disease)', 'specialist_desc': 'Infectious condition — PHC Medical Officer assessment'}
+                return {'specialist': 'Medical Officer (PHC)', 'specialist_desc': 'Primary assessment needed — PHC doctor consultation or teleconsult'}
+
+            # Low risk — ASHA / ANM
+            return {'specialist': 'ASHA / ANM', 'specialist_desc': 'Home management with ASHA guidance and follow-up in 7 days'}
+
+        text_all = ' '.join(data.get('answers', []))
+        specialist_info = get_specialist(int(urgency_level), flags, text_all)
         
         risk  = risk_mapping[urgency_level]
         hosp  = hospital_level_mapping[urgency_level]
@@ -182,6 +229,8 @@ def predict_triage():
             'hospital_level':       hosp['hospital_level'],
             'hospital_level_label': hosp['hospital_level_label'],
             'hospital_level_desc':  hosp['hospital_level_desc'],
+            'specialist':           specialist_info['specialist'],
+            'specialist_desc':      specialist_info['specialist_desc'],
             'probabilities': {
                 'low':       round(float(probabilities[0]) * 100, 1),
                 'medium':    round(float(probabilities[1]) * 100, 1),

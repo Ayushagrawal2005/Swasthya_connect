@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Activity, Thermometer, Heart, Wind, Mic, Send, RotateCcw, AlertTriangle, Siren, Brain, CheckCircle2, Loader2, ChevronRight, Video } from 'lucide-react'
+import { Activity, Thermometer, Heart, Wind, Mic, Send, RotateCcw, AlertTriangle, Siren, Brain, CheckCircle2, Loader2, ChevronRight, Video, ArrowRight, User, CheckCircle } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
 import { triageEngine } from '../../lib/triageEngine'
 import type { HybridTriageResult } from '../../lib/triageEngine'
@@ -8,6 +8,8 @@ import { getNextQuestion, getAnalysingMessage, FIRST_QUESTION } from '../../serv
 import type { Turn } from '../../services/geminiTriage'
 import { useNavigate } from 'react-router-dom'
 import type { RiskLevel } from '../../lib/riskScoring'
+import { referralsApi, patientsApi, type PatientRecord } from '../../services/api'
+import { useApp } from '../../context/AppContext'
 
 type Step = 'vitals' | 'symptoms' | 'done'
 interface Msg { role: 'ai' | 'user'; text: string; hint?: string }
@@ -48,6 +50,7 @@ function ProbBar({ label, pct, color }: { label: string; pct: number; color: str
 
 export function AshaTriage() {
   const navigate = useNavigate()
+  const { userName } = useApp()
   const bottomRef = useRef<HTMLDivElement>(null)
   const [vitals, setVitals]       = useState<Record<string, string>>({})
   const [step, setStep]           = useState<Step>('vitals')
@@ -60,7 +63,65 @@ export function AshaTriage() {
   const [result, setResult]       = useState<HybridTriageResult | null>(null)
   const [qCount, setQCount]       = useState(1)
 
+  // Patient selection (for auto-referral)
+  const [patientQuery, setPatientQuery] = useState('')
+  const [patientSearching, setPatientSearching] = useState(false)
+  const [patientResults, setPatientResults] = useState<PatientRecord[]>([])
+  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null)
+
+  // Auto-referral state
+  const [autoReferralId, setAutoReferralId] = useState<string | null>(null)
+  const [autoReferralDone, setAutoReferralDone] = useState(false)
+  const [autoReferralError, setAutoReferralError] = useState('')
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+
+  async function searchPatient(q: string) {
+    if (!q.trim()) return
+    setPatientSearching(true)
+    try {
+      const results = await patientsApi.search(q)
+      setPatientResults(results.slice(0, 5))
+    } catch { setPatientResults([]) }
+    finally { setPatientSearching(false) }
+  }
+
+  // Auto-creates a referral when score >= 60
+  async function autoCreateReferral(res: HybridTriageResult, pat: PatientRecord | null) {
+    if (res.score < 60) return
+    setAutoReferralDone(false)
+    setAutoReferralError('')
+
+    const urgency = res.score >= 75 ? 'emergency' : 'urgent'
+    const facilityName = res.hospitalLevelLabel   // e.g. "District Hospital" or "Tertiary / Medical College"
+
+    // Build a rich reason string with triage report + flags
+    const flagsText = res.triggeredFlags.length > 0
+      ? `\nRisk flags: ${res.triggeredFlags.join(', ')}`
+      : ''
+    const reason =
+      `Auto-referral — Triage score ${res.score}/100 (${res.level.toUpperCase()}).\n` +
+      `Recommended specialist: ${res.specialist}.\n` +
+      `${res.specialistDesc}.` +
+      flagsText +
+      `\nML confidence: ${res.confidence?.toFixed(1) ?? '—'}%` +
+      (pat ? `\nPrevious conditions: ${pat.conditions?.join(', ') || 'none recorded'}.` : '')
+
+    try {
+      const referral = await referralsApi.create({
+        patientId:      pat?.id,
+        patientName:    pat?.name ?? 'Unknown patient',
+        toFacilityName: facilityName,
+        reason,
+        urgency,
+      })
+      setAutoReferralId(referral.id)
+      setAutoReferralDone(true)
+    } catch (e: any) {
+      console.error('Auto-referral failed:', e)
+      setAutoReferralError(e?.message || 'Auto-referral creation failed')
+    }
+  }
 
   async function handleSend() {
     const text = input.trim()
@@ -99,6 +160,10 @@ export function AshaTriage() {
             ? `EMERGENCY — Score ${res.score}/100. Auto-escalation triggered.`
             : `Assessment complete. Score: ${res.score}/100.`
         }])
+        // Auto-create referral when score >= 60
+        if (res.score >= 60) {
+          autoCreateReferral(res, selectedPatient)
+        }
       } catch (_e) {
         setMessages(p => [...p, { role: 'ai', text: 'Assessment failed. Please retry.' }])
       } finally {
@@ -111,6 +176,8 @@ export function AshaTriage() {
     setVitals({}); setStep('vitals')
     setMessages([{ role: 'ai', text: FIRST_QUESTION.text, hint: FIRST_QUESTION.hint }])
     setInput(''); setHistory([]); setAnswers([]); setFirstAnswer(''); setResult(null); setLoading(false); setQCount(1)
+    setAutoReferralId(null); setAutoReferralDone(false); setAutoReferralError('')
+    setPatientQuery(''); setPatientResults([]); setSelectedPatient(null)
   }
 
   const cfg  = result ? RISK_CFG[result.level]  : null
@@ -182,6 +249,57 @@ export function AshaTriage() {
                 )
               })}
             </div>
+            {/* Optional: link triage to a patient for auto-referral */}
+            <div className="border-t border-[#D3D1C7] pt-3">
+              <p className="text-xs font-medium text-[#2C2C2A] mb-2 flex items-center gap-1.5">
+                <User size={13} className="text-teal-500" />
+                Link to patient <span className="text-[#9E9C94] font-normal">(optional — needed for auto-referral)</span>
+              </p>
+              {selectedPatient ? (
+                <div className="flex items-center gap-3 p-2.5 bg-teal-50 border border-teal-200 rounded-lg">
+                  <div className="w-8 h-8 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                    {selectedPatient.name.split(' ').map(n => n[0]).join('').slice(0,2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#2C2C2A]">{selectedPatient.name}</p>
+                    <p className="text-[10px] text-[#5F5E5A]">{selectedPatient.age}y · {selectedPatient.village} · {selectedPatient.healthId}</p>
+                  </div>
+                  <button onClick={() => { setSelectedPatient(null); setPatientQuery('') }}
+                    className="text-[10px] text-teal-700 hover:text-red-600 font-medium">Change</button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex gap-2">
+                    <input type="text" value={patientQuery}
+                      onChange={e => setPatientQuery(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && searchPatient(patientQuery)}
+                      placeholder="Search by name, phone or Health ID…"
+                      className="input-field text-xs flex-1" />
+                    <button onClick={() => searchPatient(patientQuery)} disabled={patientSearching}
+                      className="btn-secondary text-xs px-3 py-2">
+                      {patientSearching ? <Loader2 size={12} className="animate-spin" /> : 'Search'}
+                    </button>
+                  </div>
+                  {patientResults.length > 0 && (
+                    <div className="space-y-1 max-h-36 overflow-y-auto">
+                      {patientResults.map(p => (
+                        <button key={p.id} onClick={() => { setSelectedPatient(p); setPatientResults([]) }}
+                          className="w-full text-left p-2 border border-[#D3D1C7] rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-all text-xs flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-semibold flex-shrink-0">
+                            {p.name.split(' ').map(n => n[0]).join('').slice(0,2)}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-semibold text-[#2C2C2A]">{p.name}</span>
+                            <span className="text-[#5F5E5A] ml-1">{p.age}y · {p.village}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button onClick={() => setStep('symptoms')} className="btn-primary w-full py-3 justify-center text-sm flex items-center gap-1.5">
               Continue to symptom check <ChevronRight size={14} />
             </button>
@@ -270,6 +388,42 @@ export function AshaTriage() {
                     </div>
                   )}
 
+                  {/* Hospital level + Specialist recommendation */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Hospital level */}
+                    <div className="bg-white/70 rounded-xl p-3 border border-white/60">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full
+                          ${result.hospitalLevel === 4 ? 'bg-red-100 text-red-700' :
+                            result.hospitalLevel === 3 ? 'bg-orange-100 text-orange-700' :
+                            result.hospitalLevel === 2 ? 'bg-amber-100 text-amber-700' :
+                            'bg-green-100 text-green-700'}`}>
+                          Level {result.hospitalLevel}
+                        </span>
+                        <p className="text-xs font-semibold text-[#2C2C2A]">Refer to</p>
+                      </div>
+                      <p className={`text-sm font-bold
+                        ${result.hospitalLevel === 4 ? 'text-red-700' :
+                          result.hospitalLevel === 3 ? 'text-orange-700' :
+                          result.hospitalLevel === 2 ? 'text-amber-700' :
+                          'text-green-700'}`}>
+                        {result.hospitalLevelLabel}
+                      </p>
+                      <p className="text-[10px] text-[#5F5E5A] mt-0.5 leading-relaxed">{result.hospitalLevelDesc}</p>
+                    </div>
+
+                    {/* Specialist */}
+                    <div className="bg-white/70 rounded-xl p-3 border border-white/60">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                          Specialist
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold text-indigo-700">{result.specialist}</p>
+                      <p className="text-[10px] text-[#5F5E5A] mt-0.5 leading-relaxed">{result.specialistDesc}</p>
+                    </div>
+                  </div>
+
                   {/* ML probability breakdown */}
                   {result.probabilities && (
                     <div className="bg-white/60 rounded-xl p-3 space-y-1.5">
@@ -299,6 +453,54 @@ export function AshaTriage() {
                   </div>
 
                   <p className={`text-sm leading-relaxed ${cfg.textColor}`}>{next.advice}</p>
+
+                  {/* ── Auto-referral status card (score >= 60) ── */}
+                  {result.score >= 60 && (
+                    <div className={`rounded-xl border p-3 space-y-1.5 ${
+                      autoReferralDone  ? 'bg-green-50 border-green-300' :
+                      autoReferralError ? 'bg-red-50 border-red-300' :
+                                          'bg-white/60 border-white/50 animate-pulse'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {autoReferralDone ? (
+                          <CheckCircle size={14} className="text-green-600 flex-shrink-0" />
+                        ) : autoReferralError ? (
+                          <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />
+                        ) : (
+                          <Loader2 size={14} className="animate-spin text-teal-500 flex-shrink-0" />
+                        )}
+                        <p className="text-xs font-semibold text-[#2C2C2A]">
+                          {autoReferralDone  ? 'Auto-referral created' :
+                           autoReferralError ? 'Auto-referral failed' :
+                                               'Creating auto-referral…'}
+                        </p>
+                        {autoReferralDone && (
+                          <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold
+                            ${result.score >= 75 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {result.score >= 75 ? 'Emergency' : 'Urgent'}
+                          </span>
+                        )}
+                      </div>
+                      {autoReferralDone && (
+                        <>
+                          <p className="text-[11px] text-[#5F5E5A]">
+                            Patient: <span className="font-medium text-[#2C2C2A]">{selectedPatient?.name ?? 'Unknown'}</span>
+                            &nbsp;→ <span className="font-medium text-[#2C2C2A]">{result.hospitalLevelLabel}</span>
+                          </p>
+                          <p className="text-[11px] text-[#5F5E5A]">
+                            Specialist: <span className="font-medium text-indigo-700">{result.specialist}</span>
+                          </p>
+                          <button onClick={() => navigate('/asha/referrals')}
+                            className="flex items-center gap-1 text-[11px] text-teal-700 font-semibold hover:underline mt-0.5">
+                            View in referrals <ArrowRight size={11} />
+                          </button>
+                        </>
+                      )}
+                      {autoReferralError && (
+                        <p className="text-[11px] text-red-600">{autoReferralError} — create manually from Referrals.</p>
+                      )}
+                    </div>
+                  )}
 
                   {/* ── Action buttons ── */}
                   <div className="flex gap-2 flex-wrap pt-1">

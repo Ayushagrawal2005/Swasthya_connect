@@ -1,17 +1,28 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Video, Clock, ChevronRight, User, Activity, Loader2, ArrowRight, RefreshCw, GitMerge } from 'lucide-react'
+import { Video, Clock, ChevronRight, User, Activity, Loader2, ArrowRight, RefreshCw, GitMerge, Phone, Bell } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
 import { appointmentsApi, referralsApi, type Appointment, type Referral } from '../../services/api'
 import { useApp, useT } from '../../context/AppContext'
+import { webrtcService } from '../../services/webrtc'
+
+interface TeleconsultRequest {
+  sessionId: string
+  ashaId: string
+  ashaName: string
+  patientId: string
+  patientName: string
+  triageData?: any
+  timestamp: number
+}
 
 const urgencyBorder: Record<string, string> = { routine: '', urgent: 'border-l-4 border-l-amber-400', emergency: 'border-l-4 border-l-red-500' }
 const urgencyBadge:  Record<string, string> = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
 
 export function DoctorHome() {
   const navigate = useNavigate()
-  const { userName } = useApp()
+  const { userName, userId, token } = useApp()
   const t = useT()
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -20,7 +31,74 @@ export function DoctorHome() {
   const [loading, setLoading]   = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
+  // Teleconsult queue
+  const [teleconsultRequests, setTeleconsultRequests] = useState<TeleconsultRequest[]>([])
+  const [isConnected, setIsConnected] = useState(false)
+
   const today = new Date().toISOString().split('T')[0]
+
+  // Connect to signaling server for teleconsult notifications
+  useEffect(() => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const WS_URL = API_BASE.replace('http', 'ws') + '/ws'
+
+    async function connectToSignaling() {
+      try {
+        await webrtcService.connect(WS_URL, token || '', userId || 'doctor-unknown')
+        setIsConnected(true)
+        
+        // Register as doctor to receive notifications
+        webrtcService.emit('register-doctor', { doctorId: userId })
+        
+        // Listen for new teleconsult requests
+        webrtcService.on('new-teleconsult-request', (request: TeleconsultRequest) => {
+          console.log('📞 New teleconsult request:', request)
+          setTeleconsultRequests(prev => [...prev, request])
+          
+          // Show browser notification if permitted
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('New Teleconsult Request', {
+              body: `Patient: ${request.patientName}`,
+              icon: '/favicon.svg'
+            })
+          }
+        })
+
+        // Listen for current queue
+        webrtcService.on('teleconsult-queue', (queue: TeleconsultRequest[]) => {
+          console.log('📋 Current teleconsult queue:', queue)
+          setTeleconsultRequests(queue)
+        })
+
+        // Listen for accepted/cancelled requests
+        webrtcService.on('teleconsult-accepted', (data: { sessionId: string }) => {
+          setTeleconsultRequests(prev => prev.filter(r => r.sessionId !== data.sessionId))
+        })
+
+        webrtcService.on('teleconsult-cancelled', (data: { sessionId: string }) => {
+          setTeleconsultRequests(prev => prev.filter(r => r.sessionId !== data.sessionId))
+        })
+      } catch (error) {
+        console.error('Failed to connect to signaling server:', error)
+        setIsConnected(false)
+      }
+    }
+
+    connectToSignaling()
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+
+    return () => {
+      // Cleanup on unmount
+      webrtcService.off('new-teleconsult-request')
+      webrtcService.off('teleconsult-queue')
+      webrtcService.off('teleconsult-accepted')
+      webrtcService.off('teleconsult-cancelled')
+    }
+  }, [token, userId])
 
   const fetchAll = useCallback(() => {
     return Promise.all([
@@ -62,6 +140,28 @@ export function DoctorHome() {
     { labelKey: 'teleconsults',  value: appointments.filter(a => a.type === 'teleconsult').length,   icon: <Video size={16} />,    subKey: 'today',     subVal: null },
     { labelKey: 'referralsIn',   value: pendingReferrals.length + acceptedReferrals.length,          icon: <GitMerge size={16} />, subKey: 'pending',   subVal: pendingReferrals.length, alert: pendingReferrals.length > 0 },
   ]
+
+  // Accept teleconsult request
+  function acceptTeleconsult(request: TeleconsultRequest) {
+    console.log('✅ Accepting teleconsult:', request.sessionId)
+    
+    // Emit accept event
+    webrtcService.emit('accept-teleconsult', {
+      sessionId: request.sessionId,
+      doctorId: userId,
+      doctorName: userName
+    })
+
+    // Navigate to teleconsult page with session ID
+    navigate('/doctor/teleconsult', {
+      state: {
+        sessionId: request.sessionId,
+        patientId: request.patientId,
+        patientName: request.patientName,
+        triageData: request.triageData
+      }
+    })
+  }
 
   return (
     <div className="p-4 sm:p-6 space-y-6 animate-fade-in">
@@ -111,6 +211,47 @@ export function DoctorHome() {
           ))}
         </dl>
       </section>
+
+      {/* Teleconsult Requests Alert */}
+      {teleconsultRequests.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-300 rounded-xl px-4 py-3 shadow-lg"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-green-500 rounded-lg">
+              <Phone className="text-white animate-pulse" size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-green-900 flex items-center gap-2">
+                <Bell size={16} className="animate-bounce" />
+                {teleconsultRequests.length} Incoming Teleconsult Request{teleconsultRequests.length > 1 ? 's' : ''}
+              </h3>
+              <div className="mt-3 space-y-2">
+                {teleconsultRequests.map((request) => (
+                  <div key={request.sessionId} className="bg-white rounded-lg p-3 flex items-center justify-between border border-green-200">
+                    <div>
+                      <p className="font-medium text-gray-900">{request.patientName}</p>
+                      <p className="text-xs text-gray-600">ASHA: {request.ashaName}</p>
+                      <p className="text-xs text-gray-500">
+                        Waiting {Math.floor((Date.now() - request.timestamp) / 1000 / 60)}m
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => acceptTeleconsult(request)}
+                      className="btn-primary px-4 py-2 text-sm"
+                    >
+                      <Video size={16} />
+                      Accept Call
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Pending referrals alert */}
       {!loading && pendingReferrals.length > 0 && (

@@ -313,7 +313,7 @@ export function AshaDirectTeleconsultPage() {
         patientId={selectedPatient.id}
         onConsultationStart={() => {
           // ASHA portal: navigate to the existing assisted teleconsult page
-          navigate('/asha/teleconsult-live')
+          navigate('/asha/teleconsult')
         }}
       />
     )

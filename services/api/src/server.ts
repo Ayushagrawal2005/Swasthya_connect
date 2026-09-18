@@ -7,7 +7,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { createServer } from 'http'
-import { WebSocketServer } from 'ws'
+// import { WebSocketServer } from 'ws'  // Commented out - using Socket.IO for signaling instead
 import jwt from 'jsonwebtoken'
 import multer from 'multer'
 import axios from 'axios'
@@ -16,7 +16,7 @@ import db from './services/db'
 
 const app = express()
 const server = createServer(app)
-const wss = new WebSocketServer({ server })
+// const wss = new WebSocketServer({ server })  // Commented out - using Socket.IO for signaling instead
 
 // Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() })
@@ -1106,9 +1106,10 @@ app.get('/admin/dashboard', authenticateToken, async (req, res) => {
 })
 
 // ═══════════════════════════════════════════════════════════════
-// WEBSOCKET SERVER
+// WEBSOCKET SERVER (Commented out - using Socket.IO for signaling instead)
 // ═══════════════════════════════════════════════════════════════
 
+/*
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected')
   
@@ -1129,6 +1130,7 @@ wss.on('connection', (ws) => {
     console.log('WebSocket client disconnected')
   })
 })
+*/
 
 // ═══════════════════════════════════════════════════════════════
 // START SERVER
@@ -1168,12 +1170,17 @@ app.use('/longitudinal', longitudinalRoutes)
 // START SERVER + BACKGROUND SERVICES
 // ═══════════════════════════════════════════════════════════════
 import { startFollowUpUpdater } from './services/followupUpdater.js'
+import { setupSignalingServer } from './signaling.js'
 
 const PORT = process.env.PORT || 4000
+
+// Initialize WebRTC Signaling Server
+setupSignalingServer(server)
 
 server.listen(PORT, () => {
   console.log('🚀 Healthcare Backend running on port', PORT)
   console.log('📡 WebSocket server ready')
+  console.log('🎥 WebRTC Signaling server ready')
   console.log('🔥 Connected to Firebase Firestore')
   console.log('⏰ Follow-up status updater started')
   startFollowUpUpdater()

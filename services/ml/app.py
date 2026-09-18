@@ -124,8 +124,27 @@ def predict_triage():
     try:
         data = request.get_json()
         
+        # Debug logging
+        print(f"\n📥 Received triage prediction request:")
+        print(f"   Data keys: {list(data.keys())}")
+        print(f"   Vitals: {data.get('vitals', {})}")
+        print(f"   Answers type: {type(data.get('answers'))}")
+        print(f"   Answers: {data.get('answers', [])}")
+        print(f"   Severity: {data.get('severity')}")
+        print(f"   Duration: {data.get('duration_days')}")
+        
+        # Validate input
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid input: expected JSON object'}), 400
+        
+        # Ensure answers is a list
+        if 'answers' in data and not isinstance(data['answers'], list):
+            return jsonify({'error': f'Invalid input: answers must be an array, got {type(data["answers"]).__name__}'}), 400
+        
         # Extract features
         features = extract_features(data)
+        print(f"   Extracted features shape: {features.shape}")
+        print(f"   Features: {features}")
         
         # Scale features
         features_scaled = scaler.transform(features)
@@ -134,6 +153,8 @@ def predict_triage():
         urgency_level = model.predict(features_scaled)[0]
         probabilities = model.predict_proba(features_scaled)[0]
         confidence = float(max(probabilities))
+        
+        print(f"✅ Prediction: urgency={urgency_level}, confidence={confidence:.2f}\n")
         
         # Map urgency level to risk category
         risk_mapping = {

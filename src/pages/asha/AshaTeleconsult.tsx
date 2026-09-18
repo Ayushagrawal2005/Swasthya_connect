@@ -3,17 +3,20 @@
  * ASHA worker facilitates video call between patient and doctor
  */
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Video, Mic, MicOff, VideoOff, Phone, MessageSquare,
   CheckCircle, Wifi, WifiOff, Volume2, User, FileText,
-  Pill, Activity, AlertCircle, X, Download, Play
+  Pill, Activity, AlertCircle, X, Download, Play, Loader2,
+  Clock, TrendingUp, Heart
 } from 'lucide-react'
 import { teleconsultApi, type Doctor } from '../../services/api'
 import { AIPill } from '../../components/ui/AIPill'
 import { useApp } from '../../context/AppContext'
 import { meena } from '../../data/meenaPatient'
 import { webrtcService, type ConnectionQuality } from '../../services/webrtc'
+import { getPatientSummaryForTeleconsult, type PatientSummary } from '../../services/patientDataApi'
 
 type CallState = 'setup' | 'waiting' | 'connecting' | 'live' | 'ended'
 
@@ -48,8 +51,13 @@ const preChecks = [
 
 export function AshaTeleconsultPage() {
   const { isOnline, userName, token, userId } = useApp()
+  const location = useLocation()
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  // Get triage data from navigation state
+  const { triageData, patientId: routePatientId } = (location.state || {}) as any
+  const patientId = routePatientId || meena.id
 
   const [availableDoctors, setAvailableDoctors] = useState<(Doctor & { facility: string })[]>([])
   const [selectedDoctor, setSelectedDoctor] = useState<(Doctor & { facility: string }) | null>(null)
@@ -58,7 +66,7 @@ export function AshaTeleconsultPage() {
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
-  const [patientPanelOpen, setPatientPanelOpen] = useState(false)
+  const [patientPanelOpen, setPatientPanelOpen] = useState(true) // Open by default
   const [chatMsg, setChatMsg] = useState('')
   const [messages, setMessages] = useState([
     { from: 'doctor', text: "Good morning. I can see the patient's record. Let me review the vitals and history before we start." },
@@ -71,6 +79,10 @@ export function AshaTeleconsultPage() {
   const [postNotes, setPostNotes] = useState('')
   const [postRx, setPostRx] = useState('')
   const [notesSaved, setNotesSaved] = useState(false)
+
+  // Patient data from API
+  const [patientSummary, setPatientSummary] = useState<PatientSummary | null>(null)
+  const [loadingPatient, setLoadingPatient] = useState(true)
 
   // Prescription data
   const prescription: PrescriptionData = {
@@ -94,8 +106,35 @@ export function AshaTeleconsultPage() {
     date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
   }
 
-  // Patient information for panel
-  const patientInfo = {
+  // Patient information for panel - use API data or fallback to mock
+  const patientInfo = patientSummary ? {
+    patient: {
+      name: patientSummary.demographics.name,
+      age: patientSummary.demographics.age,
+      gender: patientSummary.demographics.gender,
+      id: patientSummary.demographics.id,
+      bloodGroup: patientSummary.demographics.bloodGroup || 'Unknown',
+      allergies: patientSummary.medicalHistory.allergies,
+      conditions: patientSummary.medicalHistory.chronicConditions
+    },
+    vitals: patientSummary.vitalsTrend[0] || {
+      bp: 'N/A',
+      temp: 'N/A',
+      pulse: 'N/A',
+      spo2: 'N/A',
+      weight: 'N/A'
+    },
+    currentMedications: patientSummary.currentMedications,
+    previousRecords: patientSummary.recentVisits.slice(0, 3).map(visit => ({
+      date: new Date(visit.recordDate).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      }),
+      diagnosis: visit.diagnosis || visit.title || 'Visit',
+      doctor: visit.provider || 'Unknown',
+      medicines: visit.medications || []
+    }))
+  } : {
+    // Fallback to Meena data if no patient summary loaded
     patient: {
       name: meena.name,
       age: meena.age,
@@ -125,6 +164,30 @@ export function AshaTeleconsultPage() {
       medicines: ['Amlodipine 5mg', 'Metformin 500mg']
     }))
   }
+
+  // Fetch patient summary from database
+  useEffect(() => {
+    async function loadPatientData() {
+      if (!patientId) {
+        console.warn('⚠️ No patient ID provided, skipping patient data fetch')
+        setLoadingPatient(false)
+        return
+      }
+      
+      setLoadingPatient(true)
+      try {
+        const summary = await getPatientSummaryForTeleconsult(patientId)
+        setPatientSummary(summary)
+        console.log('✅ Patient summary loaded:', summary)
+      } catch (error) {
+        console.error('❌ Failed to load patient data:', error)
+        setPatientSummary(null)
+      } finally {
+        setLoadingPatient(false)
+      }
+    }
+    loadPatientData()
+  }, [patientId])
 
   // Load available doctors (using mock data for demo)
   useEffect(() => {
@@ -216,9 +279,9 @@ export function AshaTeleconsultPage() {
       setError(null)
       setCallState('waiting')
 
-      // Initiate teleconsult session via API
-      const response = await teleconsultApi.initiate('', selectedDoctor?.id || '')
-      setSessionId(response.sessionId)
+      // Use existing sessionId or create new one
+      const currentSessionId = sessionId || `asha-session-${Date.now()}`
+      setSessionId(currentSessionId)
 
       // Get local camera stream
       const stream = await webrtcService.getLocalStream()
@@ -231,8 +294,24 @@ export function AshaTeleconsultPage() {
 
       setCallState('connecting')
 
+      // Emit teleconsult request to notify doctors
+      webrtcService.emit('request-teleconsult', {
+        sessionId: currentSessionId,
+        ashaId: userId || 'asha-unknown',
+        ashaName: userName || 'ASHA Worker',
+        patientId: patientId || 'unknown',
+        patientName: patientSummary?.demographics.name || triageData?.patientName || 'Patient',
+        triageData: triageData
+      })
+
+      // Listen for doctor acceptance
+      webrtcService.on('doctor-accepted', (data: any) => {
+        console.log('✅ Doctor accepted:', data)
+        // Doctor will join the same room, connection will establish automatically
+      })
+
       // Join the room (ASHA can be initiator or responder based on who joins first)
-      await webrtcService.joinRoom(sessionId, false)
+      await webrtcService.joinRoom(currentSessionId, false)
 
     } catch (err: any) {
       console.error('Failed to start call:', err)

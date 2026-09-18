@@ -6,7 +6,7 @@ import {
   CheckCircle, Wifi, WifiOff, Monitor, Volume2, AlertCircle,
 } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
-import { webrtcService, WebRTCService, type ConnectionQuality } from '../../services/webrtc'
+import { webrtcService, type ConnectionQuality } from '../../services/webrtc'
 import { useApp } from '../../context/AppContext'
 
 type CallState = 'setup' | 'waiting' | 'connecting' | 'live' | 'ended'
@@ -44,7 +44,8 @@ export function TeleconsultPage() {
 
   // Check WebRTC support on mount
   useEffect(() => {
-    if (!WebRTCService.isSupported()) {
+    // Check if browser supports WebRTC
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setError('Your browser does not support video calling. Please use Chrome, Firefox, or Edge.')
     }
   }, [])
@@ -52,9 +53,10 @@ export function TeleconsultPage() {
   // Check permissions
   useEffect(() => {
     if (callState === 'setup') {
-      WebRTCService.checkPermissions().then(perms => {
-        setPermissionsGranted(perms.camera && perms.microphone)
-      })
+      // Check permissions when on setup page
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(() => setPermissionsGranted(true))
+        .catch(() => setPermissionsGranted(false))
     }
   }, [callState])
 
@@ -259,7 +261,7 @@ export function TeleconsultPage() {
                 Real-time WebRTC video calling with adaptive quality based on your network connection.
               </p>
 
-              <button onClick={startCall} className="btn-primary w-full justify-center text-base py-3.5" disabled={!WebRTCService.isSupported()}>
+              <button onClick={startCall} className="btn-primary w-full justify-center text-base py-3.5" disabled={!navigator.mediaDevices}>
                 <Video size={18} aria-hidden="true" /> Join call
               </button>
             </>

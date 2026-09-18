@@ -77,8 +77,8 @@ export function TriagePage() {
 
     setLoading(true)
 
-    // Ask Gemini for next question
-    const nextQ = await getNextQuestion(newHistory, fa)
+    // Ask Groq for next question with selected language
+    const nextQ = await getNextQuestion(newHistory, fa, language)
 
     if (nextQ) {
       setQuestionCount(c => c + 1)

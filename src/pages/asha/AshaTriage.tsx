@@ -179,7 +179,7 @@ export function AshaTriage() {
     setHistory(newHistory)
 
     setLoading(true)
-    const nextQ = await getNextQuestion(newHistory, fa)
+    const nextQ = await getNextQuestion(newHistory, fa, language)
 
     if (nextQ) {
       setQCount(c => c + 1)
@@ -617,7 +617,20 @@ export function AshaTriage() {
                       /* score 40–74 — Teleconsult is the primary CTA */
                       <>
                         <button
-                          onClick={() => navigate('/asha/teleconsult')}
+                          onClick={() => navigate('/asha/teleconsult', {
+                            state: {
+                              patientId: selectedPatient?.id,
+                              triageData: {
+                                chiefComplaint: firstAnswer,
+                                answers: answers,
+                                history: history,
+                                riskScore: result.score,
+                                riskLevel: result.level,
+                                flags: result.triggeredFlags,
+                                sessionId: `triage-${Date.now()}`
+                              }
+                            }
+                          })}
                           className="flex items-center gap-2 bg-[#138808] hover:bg-green-800 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors shadow-sm"
                         >
                           <Video size={15} /> Start teleconsult

@@ -1,0 +1,72 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+dist
+dist-ssr
+*.local
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist-python
+build
+venv
+env
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Firebase credentials (NEVER commit these!)
+serviceAccountKey.json
+**/serviceAccountKey*.json
+
+# Documentation (internal dev notes)
+*_IMPLEMENTATION_*.md
+*_FIX_*.md
+*_COMPLETE.md
+*_PROGRESS.md
+*_SUMMARY.md
+*_GUIDE.md
+BRAIN.md
+debug-*.html
+test-*.html
+
+# Test scripts
+test-*.js
+check-*.js
+seed-*.js
+fix-*.js
+list-*.js
+clear-*.js
+find-*.js

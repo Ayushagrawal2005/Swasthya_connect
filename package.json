@@ -1,0 +1,45 @@
+{
+  "name": "healthcare-platform",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "backend": "cd backend && npm run dev",
+    "dev:all": "npx concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"teal,cyan\""
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "firebase": "^12.18.0",
+    "framer-motion": "^11.15.0",
+    "i18next": "^26.4.2",
+    "idb": "^8.0.3",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.14",
+    "react-router-dom": "^6.28.0",
+    "recharts": "^2.13.3",
+    "simple-peer": "^9.11.1",
+    "tailwind-merge": "^2.5.5",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.14",
+    "@types/react-dom": "^18.3.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.5",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

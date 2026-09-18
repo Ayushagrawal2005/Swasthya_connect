@@ -1,0 +1,82 @@
+{
+  "model": "XGBoost",
+  "accuracy": 0.9638,
+  "cv_mean": 0.968,
+  "total_samples": 27606,
+  "real_samples": 1856,
+  "rural_samples": 25750,
+  "features": [
+    "bp_sys",
+    "bp_dia",
+    "temp",
+    "spo2",
+    "pulse",
+    "severity",
+    "duration_days",
+    "chest_pain",
+    "breathing",
+    "headache",
+    "bleeding",
+    "seizure"
+  ],
+  "datasets": {
+    "UCI Heart Cleveland": {
+      "rows": 297,
+      "source": "Cleveland Clinic, USA"
+    },
+    "Statlog Heart": {
+      "rows": 271,
+      "source": "South Africa"
+    },
+    "Pima Diabetes": {
+      "rows": 768,
+      "source": "NIDDK, USA"
+    },
+    "Sylhet Diabetes Symptoms": {
+      "rows": 520,
+      "source": "Sylhet Hospital, Bangladesh"
+    },
+    "Rural India (ICMR/WHO)": {
+      "rows": 25750,
+      "source": "Grounded in ICMR burden stats + WHO India disease profiles"
+    }
+  },
+  "class_report": {
+    "Low": {
+      "precision": 0.9669,
+      "recall": 0.9567,
+      "f1-score": 0.9618,
+      "support": 1433.0
+    },
+    "Medium": {
+      "precision": 0.9035,
+      "recall": 0.9333,
+      "f1-score": 0.9182,
+      "support": 1184.0
+    },
+    "High": {
+      "precision": 0.9793,
+      "recall": 0.9648,
+      "f1-score": 0.972,
+      "support": 1619.0
+    },
+    "Emergency": {
+      "precision": 0.9984,
+      "recall": 0.9984,
+      "f1-score": 0.9984,
+      "support": 1286.0
+    },
+    "macro avg": {
+      "precision": 0.962,
+      "recall": 0.9633,
+      "f1-score": 0.9626,
+      "support": 5522.0
+    },
+    "weighted avg": {
+      "precision": 0.9643,
+      "recall": 0.9638,
+      "f1-score": 0.964,
+      "support": 5522.0
+    }
+  }
+}

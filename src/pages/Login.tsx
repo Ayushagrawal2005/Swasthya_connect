@@ -55,7 +55,7 @@ const DEMO_ACCOUNTS: {
     path: '/admin',
   },
   {
-    id: 'patient',
+    id: 'patient_female',
     label: 'Female Patient (with children)',
     sublabel: 'Priya — menstrual tracker, family, vaccinations',
     username: 'priya@demo.com',
@@ -66,7 +66,7 @@ const DEMO_ACCOUNTS: {
     path: '/patient',
   },
   {
-    id: 'patient',
+    id: 'patient_male',
     label: 'Male Patient',
     sublabel: 'Raj — view records, book appointments',
     username: 'raj@demo.com',
@@ -87,15 +87,15 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [clearedOnce, setClearedOnce] = useState(false)
 
-  // If already logged in, clear it - user wants to login again
+  // Clear localStorage ONCE when component mounts
   useEffect(() => {
-    const currentRole = localStorage.getItem('swasthya_role')
-    if (currentRole) {
-      // User navigated to login while logged in - clear session
+    if (!clearedOnce) {
       localStorage.clear()
+      setClearedOnce(true)
     }
-  }, [])
+  }, [clearedOnce])
 
   async function handleQuickFill(acc: typeof DEMO_ACCOUNTS[0]) {
     setUsername(acc.username)

@@ -3,23 +3,22 @@
  * eSanjeevani-style workflow: Triage → Summary → Queue → Consultation
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
-  ClipboardList, Activity, User, Heart, FileText, Upload,
-  CheckCircle, AlertCircle, Loader2, ArrowRight, ArrowLeft,
-  Video, Clock, Calendar
+  ClipboardList, Activity, AlertCircle, ArrowRight, ArrowLeft,
+  Video, Clock
 } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { TriageFormWizard } from '../../components/triage/TriageFormWizard'
 import { QueueStatusCard } from '../../components/teleconsult/QueueStatusCard'
 
-type WorkflowStep = 'intro' | 'triage' | 'queue' | 'consultation'
+type WorkflowStep = 'intro' | 'form-triage' | 'queue' | 'consultation'
 
 export function DirectTeleconsultPage() {
   const navigate = useNavigate()
-  const { token, userId, patientId } = useApp()
+  const { patientId } = useApp()
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('intro')
   const [triageSessionId, setTriageSessionId] = useState<string | null>(null)
   const [queueEntryId, setQueueEntryId] = useState<string | null>(null)
@@ -43,7 +42,7 @@ export function DirectTeleconsultPage() {
                 Direct Teleconsultation
               </h1>
               <p className="text-[#5F5E5A] text-sm max-w-md mx-auto">
-                Connect with a doctor online after completing a quick health assessment
+                Connect with a doctor online after completing a quick health assessment with voice and text support
               </p>
             </div>
 
@@ -53,7 +52,7 @@ export function DirectTeleconsultPage() {
                 icon={<ClipboardList size={20} />}
                 number={1}
                 title="Health Assessment"
-                description="Answer 5-7 questions about your symptoms and health history"
+                description="Answer 5-7 questions with voice or text input - questions will be spoken aloud"
                 duration="~5 min"
               />
               <ProcessStep
@@ -103,7 +102,7 @@ export function DirectTeleconsultPage() {
                 Cancel
               </button>
               <button
-                onClick={() => setCurrentStep('triage')}
+                onClick={() => setCurrentStep('form-triage')}
                 className="btn-primary flex-1 justify-center"
               >
                 Start Assessment
@@ -116,8 +115,8 @@ export function DirectTeleconsultPage() {
     )
   }
 
-  // Triage Form
-  if (currentStep === 'triage') {
+  // Form Triage
+  if (currentStep === 'form-triage') {
     return (
       <TriageFormWizard
         patientId={patientId || ''}

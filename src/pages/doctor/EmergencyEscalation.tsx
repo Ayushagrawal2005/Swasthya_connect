@@ -1,7 +1,8 @@
 // Module 9 — Emergency Escalation
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, CheckCircle, Phone, ArrowRight, Clock, Siren } from 'lucide-react'
+import { AlertTriangle, CheckCircle, Phone, ArrowRight, Clock, Siren, MapPin } from 'lucide-react'
 import { escalationsApi, appointmentsApi, type Escalation } from '../../services/api'
 
 type EscalationStatus = 'idle' | 'sending' | 'sent' | 'acknowledged' | 'arrived'
@@ -13,6 +14,7 @@ const statusSteps = [
 ]
 
 export function EmergencyEscalationPage() {
+  const navigate = useNavigate()
   const [status, setStatus] = useState<EscalationStatus>('idle')
   const [patientName, setPatientName] = useState('')
   const [reason, setReason] = useState('')
@@ -43,6 +45,32 @@ export function EmergencyEscalationPage() {
 
   return (
     <div className="p-4 sm:p-6 max-w-xl mx-auto space-y-6 animate-fade-in">
+      {/* Bachao Bachao Feature Button */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-2xl p-6 shadow-2xl border-2 border-red-400"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center animate-pulse">
+              <MapPin size={32} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-1">बचाओ बचाओ (Bachao Bachao)</h2>
+              <p className="text-red-100 text-sm">Live GPS tracking + Nearest facility + Auto bed reservation</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/asha/emergency/bachao-bachao')}
+            className="px-6 py-4 bg-white text-red-600 hover:bg-red-50 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all flex items-center gap-2"
+          >
+            Launch
+            <ArrowRight size={20} />
+          </button>
+        </div>
+      </motion.div>
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">

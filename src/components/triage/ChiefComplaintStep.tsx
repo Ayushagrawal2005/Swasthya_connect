@@ -65,6 +65,25 @@ export function ChiefComplaintStep({
   const [keywords, setKeywords] = useState<string[]>([])
   const [loadingKeywords, setLoadingKeywords] = useState(false)
   const [autoDetected, setAutoDetected] = useState<string[]>([])
+  const [hasSpoken, setHasSpoken] = useState(false)
+
+  // Speak the main question when component mounts
+  useEffect(() => {
+    if (!hasSpoken && 'speechSynthesis' in window) {
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance('What brings you here today? Please describe your main symptoms.')
+        utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US'
+        utterance.rate = 0.9
+        window.speechSynthesis.speak(utterance)
+        setHasSpoken(true)
+      }, 800)
+    }
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [language])
 
   // Auto-detect conditions from complaint text
   useEffect(() => {

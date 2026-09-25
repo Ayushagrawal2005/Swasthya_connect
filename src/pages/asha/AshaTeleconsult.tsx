@@ -18,7 +18,8 @@ import { meena } from '../../data/meenaPatient'
 import { webrtcService, type ConnectionQuality } from '../../services/webrtc'
 import { getPatientSummaryForTeleconsult, type PatientSummary } from '../../services/patientDataApi'
 
-type CallState = 'setup' | 'waiting' | 'connecting' | 'live' | 'ended'
+type CallState = 'assessment' | 'setup' | 'waiting' | 'connecting' | 'live' | 'ended'
+type AssessmentStep = 1 | 2 | 3 | 4 | 5
 
 interface Medicine {
   name: string
@@ -62,7 +63,21 @@ export function AshaTeleconsultPage() {
   const [availableDoctors, setAvailableDoctors] = useState<(Doctor & { facility: string })[]>([])
   const [selectedDoctor, setSelectedDoctor] = useState<(Doctor & { facility: string }) | null>(null)
   const [sessionId, setSessionId] = useState(`asha-session-${Date.now()}`)
-  const [callState, setCallState] = useState<CallState>('setup')
+  const [callState, setCallState] = useState<CallState>('assessment') // Start with health assessment
+  const [assessmentStep, setAssessmentStep] = useState<AssessmentStep>(1)
+  
+  // Health Assessment Data
+  const [chiefComplaint, setChiefComplaint] = useState('')
+  const [symptoms, setSymptoms] = useState('')
+  const [medicalHistory, setMedicalHistory] = useState('')
+  const [allergies, setAllergies] = useState('')
+  const [currentMedications, setCurrentMedications] = useState('')
+  const [assessmentLanguage, setAssessmentLanguage] = useState('en-IN') // Default to English (India)
+  
+  // Voice state for assessment
+  const [isListening, setIsListening] = useState(false)
+  const [currentField, setCurrentField] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
@@ -273,6 +288,75 @@ export function AshaTeleconsultPage() {
     }
   }, [callState])
 
+  // Web Speech API setup for health assessment
+  useEffect(() => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = assessmentLanguage // Use selected language
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      
+      // Set the value based on current field
+      if (currentField === 'chiefComplaint') setChiefComplaint(prev => prev + (prev ? ' ' : '') + transcript)
+      else if (currentField === 'symptoms') setSymptoms(prev => prev + (prev ? ' ' : '') + transcript)
+      else if (currentField === 'medicalHistory') setMedicalHistory(prev => prev + (prev ? ' ' : '') + transcript)
+      else if (currentField === 'allergies') setAllergies(prev => prev + (prev ? ' ' : '') + transcript)
+      else if (currentField === 'currentMedications') setCurrentMedications(prev => prev + (prev ? ' ' : '') + transcript)
+      
+      setIsListening(false)
+    }
+
+    recognition.onerror = () => setIsListening(false)
+    recognition.onend = () => setIsListening(false)
+
+    recognitionRef.current = recognition
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [currentField, assessmentLanguage]) // Re-initialize when language changes
+
+  // Voice helper functions
+  function startListening(fieldName: string) {
+    if (recognitionRef.current && !isListening) {
+      setCurrentField(fieldName)
+      recognitionRef.current.start()
+      setIsListening(true)
+    }
+  }
+
+  function stopListening() {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+      setCurrentField(null)
+    }
+  }
+
+  function nextAssessmentStep() {
+    if (assessmentStep < 5) {
+      setAssessmentStep((assessmentStep + 1) as AssessmentStep)
+    } else {
+      // Assessment complete, move to setup
+      setCallState('setup')
+    }
+  }
+
+  function prevAssessmentStep() {
+    if (assessmentStep > 1) {
+      setAssessmentStep((assessmentStep - 1) as AssessmentStep)
+    }
+  }
+
   // Start call
   async function startCall() {
     try {
@@ -282,6 +366,16 @@ export function AshaTeleconsultPage() {
       // Use existing sessionId or create new one
       const currentSessionId = sessionId || `asha-session-${Date.now()}`
       setSessionId(currentSessionId)
+
+      // Prepare health assessment data
+      const healthAssessment = {
+        chiefComplaint: chiefComplaint.trim() || 'Not provided',
+        symptoms: symptoms.trim() || 'Not provided',
+        medicalHistory: medicalHistory.trim() || 'Not provided',
+        allergies: allergies.trim() || 'None reported',
+        currentMedications: currentMedications.trim() || 'None reported',
+        completedAt: new Date().toISOString()
+      }
 
       // Get local camera stream
       const stream = await webrtcService.getLocalStream()
@@ -294,14 +388,15 @@ export function AshaTeleconsultPage() {
 
       setCallState('connecting')
 
-      // Emit teleconsult request to notify doctors
+      // Emit teleconsult request to notify doctors with health assessment
       webrtcService.emit('request-teleconsult', {
         sessionId: currentSessionId,
         ashaId: userId || 'asha-unknown',
         ashaName: userName || 'ASHA Worker',
         patientId: patientId || 'unknown',
         patientName: patientSummary?.demographics.name || triageData?.patientName || 'Patient',
-        triageData: triageData
+        triageData: triageData,
+        healthAssessment: healthAssessment // Include the 5-step assessment
       })
 
       // Listen for doctor acceptance
@@ -438,6 +533,221 @@ ASHA Worker: ${userName}
           </div>
         )}
 
+        {/* ── Health Assessment (5 Steps) ── */}
+        {callState === 'assessment' && (
+          <motion.div key="assessment" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col p-6 max-w-2xl mx-auto w-full">
+            
+            {/* Language selector */}
+            <div className="mb-4">
+              <label className="text-xs text-[#5F5E5A] mb-1 block">Voice Input Language</label>
+              <select
+                value={assessmentLanguage}
+                onChange={(e) => setAssessmentLanguage(e.target.value)}
+                className="input-field text-sm py-2 w-full"
+              >
+                <option value="en-IN">English (India)</option>
+                <option value="hi-IN">हिन्दी (Hindi)</option>
+                <option value="mr-IN">मराठी (Marathi)</option>
+                <option value="ta-IN">தமிழ் (Tamil)</option>
+                <option value="te-IN">తెలుగు (Telugu)</option>
+                <option value="bn-IN">বাংলা (Bengali)</option>
+                <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+                <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+                <option value="ml-IN">മലയാളം (Malayalam)</option>
+                <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi)</option>
+              </select>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map(step => (
+                  <div key={step} className={`w-8 h-1 rounded-full transition-colors ${step <= assessmentStep ? 'bg-teal-500' : 'bg-gray-200'}`} />
+                ))}
+              </div>
+              <span className="text-xs text-[#5F5E5A]">Step {assessmentStep}/5</span>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center">
+              {/* Step 1: Chief Complaint */}
+              {assessmentStep === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">What is the main health concern?</h2>
+                    <p className="text-sm text-[#5F5E5A]">Describe the primary reason for this consultation</p>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      value={chiefComplaint}
+                      onChange={(e) => setChiefComplaint(e.target.value)}
+                      placeholder="e.g., Persistent fever for 3 days, chest pain..."
+                      rows={4}
+                      className="input-field w-full resize-none"
+                    />
+                    <button
+                      onClick={() => isListening && currentField === 'chiefComplaint' ? stopListening() : startListening('chiefComplaint')}
+                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                        isListening && currentField === 'chiefComplaint'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                      }`}
+                    >
+                      <Mic size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Symptoms */}
+              {assessmentStep === 2 && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">What symptoms are present?</h2>
+                    <p className="text-sm text-[#5F5E5A]">List all current symptoms the patient is experiencing</p>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      value={symptoms}
+                      onChange={(e) => setSymptoms(e.target.value)}
+                      placeholder="e.g., High fever, body ache, headache, fatigue, cough..."
+                      rows={4}
+                      className="input-field w-full resize-none"
+                    />
+                    <button
+                      onClick={() => isListening && currentField === 'symptoms' ? stopListening() : startListening('symptoms')}
+                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                        isListening && currentField === 'symptoms'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                      }`}
+                    >
+                      <Mic size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Medical History */}
+              {assessmentStep === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Any relevant medical history?</h2>
+                    <p className="text-sm text-[#5F5E5A]">Previous conditions, surgeries, or chronic illnesses</p>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      value={medicalHistory}
+                      onChange={(e) => setMedicalHistory(e.target.value)}
+                      placeholder="e.g., Diabetes for 5 years, hypertension, previous surgery..."
+                      rows={4}
+                      className="input-field w-full resize-none"
+                    />
+                    <button
+                      onClick={() => isListening && currentField === 'medicalHistory' ? stopListening() : startListening('medicalHistory')}
+                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                        isListening && currentField === 'medicalHistory'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                      }`}
+                    >
+                      <Mic size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Allergies */}
+              {assessmentStep === 4 && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Any known allergies?</h2>
+                    <p className="text-sm text-[#5F5E5A]">Drug allergies, food allergies, or other sensitivities</p>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      value={allergies}
+                      onChange={(e) => setAllergies(e.target.value)}
+                      placeholder="e.g., Penicillin allergy, peanut allergy... (or 'None known')"
+                      rows={4}
+                      className="input-field w-full resize-none"
+                    />
+                    <button
+                      onClick={() => isListening && currentField === 'allergies' ? stopListening() : startListening('allergies')}
+                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                        isListening && currentField === 'allergies'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                      }`}
+                    >
+                      <Mic size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 5: Current Medications */}
+              {assessmentStep === 5 && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Currently taking any medications?</h2>
+                    <p className="text-sm text-[#5F5E5A]">List all medicines, supplements, or treatments</p>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      value={currentMedications}
+                      onChange={(e) => setCurrentMedications(e.target.value)}
+                      placeholder="e.g., Metformin 500mg twice daily, Aspirin 75mg... (or 'None')"
+                      rows={4}
+                      className="input-field w-full resize-none"
+                    />
+                    <button
+                      onClick={() => isListening && currentField === 'currentMedications' ? stopListening() : startListening('currentMedications')}
+                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                        isListening && currentField === 'currentMedications'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                      }`}
+                    >
+                      <Mic size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex gap-3 mt-6">
+              {assessmentStep > 1 && (
+                <button
+                  onClick={prevAssessmentStep}
+                  className="btn-secondary flex-1 justify-center py-3"
+                >
+                  Previous
+                </button>
+              )}
+              <button
+                onClick={nextAssessmentStep}
+                className="btn-primary flex-1 justify-center py-3"
+                disabled={
+                  (assessmentStep === 1 && !chiefComplaint.trim()) ||
+                  (assessmentStep === 2 && !symptoms.trim())
+                }
+              >
+                {assessmentStep === 5 ? 'Complete Assessment' : 'Next'}
+              </button>
+            </div>
+
+            {/* Skip button */}
+            <button
+              onClick={() => setCallState('setup')}
+              className="text-sm text-center text-[#5F5E5A] hover:text-teal-600 mt-3"
+            >
+              Skip assessment
+            </button>
+          </motion.div>
+        )}
+
         {/* ── Setup ── */}
         {callState === 'setup' && (
           <motion.div key="setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -456,6 +766,53 @@ ASHA Worker: ${userName}
               </div>
               <span className="ml-auto badge-amber text-[10px]">Risk: 52/100</span>
             </div>
+
+            {/* Health Assessment Summary - Show if completed */}
+            {(chiefComplaint || symptoms || medicalHistory || allergies || currentMedications) && (
+              <div className="card p-4 w-full space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide">Health Assessment</p>
+                  <button
+                    onClick={() => setCallState('assessment')}
+                    className="text-xs text-teal-600 hover:text-teal-700"
+                  >
+                    Edit
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {chiefComplaint && (
+                    <div>
+                      <p className="text-xs text-[#5F5E5A] font-medium">Chief Complaint:</p>
+                      <p className="text-[#2C2C2A]">{chiefComplaint}</p>
+                    </div>
+                  )}
+                  {symptoms && (
+                    <div>
+                      <p className="text-xs text-[#5F5E5A] font-medium">Symptoms:</p>
+                      <p className="text-[#2C2C2A]">{symptoms}</p>
+                    </div>
+                  )}
+                  {medicalHistory && (
+                    <div>
+                      <p className="text-xs text-[#5F5E5A] font-medium">Medical History:</p>
+                      <p className="text-[#2C2C2A]">{medicalHistory}</p>
+                    </div>
+                  )}
+                  {allergies && (
+                    <div>
+                      <p className="text-xs text-[#5F5E5A] font-medium">Allergies:</p>
+                      <p className="text-[#2C2C2A]">{allergies}</p>
+                    </div>
+                  )}
+                  {currentMedications && (
+                    <div>
+                      <p className="text-xs text-[#5F5E5A] font-medium">Current Medications:</p>
+                      <p className="text-[#2C2C2A]">{currentMedications}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Doctor available */}
             <div className="card p-4 w-full flex items-center gap-3">

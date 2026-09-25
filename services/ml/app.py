@@ -4,8 +4,12 @@ import joblib
 import numpy as np
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 import json
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -68,10 +72,11 @@ def _parse_duration(answers):
 def extract_features(data):
     """
     Extract 12 features in the exact order matching train_final.py
+    Uses Groq LLM for semantic symptom extraction - works in ANY language
     """
     vitals  = data.get('vitals', {})
     answers = data.get('answers', [])
-    text    = ' '.join(answers).lower()
+    text = ' '.join(answers)
 
     bp_sys, bp_dia = _parse_bp(vitals.get('bp', '120/80'))
     temp   = _safe_float(vitals.get('temp',  '98.6'), 98.6)
@@ -81,11 +86,88 @@ def extract_features(data):
     severity     = data.get('severity') or _parse_severity(answers)
     duration     = data.get('duration_days') or _parse_duration(answers)
 
-    chest_pain   = 1 if any(k in text for k in ['chest pain', 'chest tightness', 'chest pressure']) else 0
-    breathing    = 1 if any(k in text for k in ['breathe', 'breathing', 'breathless', 'shortness', 'dyspnoea']) else 0
-    headache     = 1 if any(k in text for k in ['headache', 'head pain', 'head ache']) else 0
-    bleeding     = 1 if any(k in text for k in ['bleed', 'bleeding', 'haemorrhage']) else 0
-    seizure      = 1 if any(k in text for k in ['convuls', 'seizure', 'fitting', 'fits']) else 0
+    # Use Groq for semantic symptom extraction (language-agnostic)
+    from groq_conversation_engine import GroqClient
+    
+    try:
+        groq_client = GroqClient()
+        
+        # Ask Groq to extract symptoms from conversation
+        prompt = f"""Analyze this patient conversation and detect if ANY of these symptoms are present.
+Respond ONLY with a JSON object with these exact boolean fields:
+
+Conversation: {text}
+
+Detect these symptoms (respond true/false for each):
+{{
+  "chest_pain": true/false (any chest discomfort, tightness, pressure, pain),
+  "breathing": true/false (shortness of breath, breathing difficulty, breathlessness),
+  "headache": true/false (head pain, headache, migraine),
+  "bleeding": true/false (any bleeding, blood loss, hemorrhage),
+  "seizure": true/false (convulsions, seizures, fits, epilepsy)
+}}
+
+Respond ONLY with the JSON, nothing else."""
+
+        response = groq_client.chat_completion(
+            [{"role": "user", "content": prompt}],
+            temperature=0.1
+        )
+        
+        if response:
+            import json
+            import re
+            # Extract JSON from response
+            json_match = re.search(r'\{[^}]+\}', response)
+            if json_match:
+                symptoms = json.loads(json_match.group())
+                chest_pain = 1 if symptoms.get('chest_pain', False) else 0
+                breathing  = 1 if symptoms.get('breathing', False) else 0
+                headache   = 1 if symptoms.get('headache', False) else 0
+                bleeding   = 1 if symptoms.get('bleeding', False) else 0
+                seizure    = 1 if symptoms.get('seizure', False) else 0
+                
+                print(f"✅ Groq symptom extraction: chest_pain={chest_pain}, breathing={breathing}, headache={headache}")
+            else:
+                raise ValueError("No JSON in response")
+        else:
+            raise ValueError("Groq returned None")
+            
+    except Exception as e:
+        print(f"⚠️ Groq symptom extraction failed ({e}), falling back to multilingual keywords")
+        # Fallback to multilingual keyword matching
+        chest_pain_keywords = [
+            'chest pain', 'chest tightness', 'chest pressure', 'angina',
+            'सीने में दर्द', 'छाती में दर्द', 'सीने', 'छाती',  # Hindi
+            'छातीत दुखणे', 'छातीत वेदना', 'छातीत'  # Marathi
+        ]
+        breathing_keywords = [
+            'breathe', 'breathing', 'breathless', 'shortness', 'dyspnoea', 'breath',
+            'सांस', 'सांस लेने', 'सांस की तकलीफ', 'दम',  # Hindi
+            'श्वास', 'श्वास घेणे', 'धाप', 'दम'  # Marathi
+        ]
+        headache_keywords = [
+            'headache', 'head pain', 'head ache', 'migraine',
+            'सिर दर्द', 'सिरदर्द', 'सिर में दर्द', 'माथा',  # Hindi
+            'डोकेदुखी', 'डोके दुखणे', 'डोक्यात दुखणे'  # Marathi
+        ]
+        bleeding_keywords = [
+            'bleed', 'bleeding', 'haemorrhage', 'blood',
+            'खून', 'खून बहना', 'रक्तस्राव', 'ब्लीडिंग',  # Hindi
+            'रक्तस्त्राव', 'रक्त येणे', 'रक्त'  # Marathi
+        ]
+        seizure_keywords = [
+            'convuls', 'seizure', 'fitting', 'fits', 'epilepsy',
+            'दौरा', 'मिर्गी', 'फिट', 'ऐंठन',  # Hindi
+            'अपस्मार', 'फिट', 'झटके'  # Marathi
+        ]
+        
+        text_lower = text.lower()
+        chest_pain = 1 if any(k in text_lower for k in chest_pain_keywords) else 0
+        breathing  = 1 if any(k in text_lower for k in breathing_keywords) else 0
+        headache   = 1 if any(k in text_lower for k in headache_keywords) else 0
+        bleeding   = 1 if any(k in text_lower for k in bleeding_keywords) else 0
+        seizure    = 1 if any(k in text_lower for k in seizure_keywords) else 0
 
     features = [bp_sys, bp_dia, temp, spo2, pulse,
                 severity, duration,
@@ -216,14 +298,7 @@ def predict_triage():
             # Low risk — ASHA / ANM
             return {'specialist': 'ASHA / ANM', 'specialist_desc': 'Home management with ASHA guidance and follow-up in 7 days'}
 
-        text_all = ' '.join(data.get('answers', []))
-        specialist_info = get_specialist(int(urgency_level), flags, text_all)
-        
-        risk  = risk_mapping[urgency_level]
-        hosp  = hospital_level_mapping[urgency_level]
-        score = int(25 * urgency_level + 12.5 + confidence * 12.5)  # Convert to 0-100 scale
-        
-        # Generate flags  (indices match FEATURE_COLS order)
+        # Generate flags FIRST (indices match FEATURE_COLS order)
         # FEATURE_COLS: bp_sys[0],bp_dia[1],temp[2],spo2[3],pulse[4],severity[5],
         #               duration_days[6],chest_pain[7],breathing[8],headache[9],bleeding[10],seizure[11]
         flags = []
@@ -238,6 +313,13 @@ def predict_triage():
         if f[9] == 1:                  flags.append('Severe headache')
         if f[10] == 1:                 flags.append('Bleeding reported')
         if f[11] == 1:                 flags.append('Seizure / convulsion')
+
+        text_all = ' '.join(data.get('answers', []))
+        specialist_info = get_specialist(int(urgency_level), flags, text_all)
+        
+        risk  = risk_mapping[urgency_level]
+        hosp  = hospital_level_mapping[urgency_level]
+        score = int(25 * urgency_level + 12.5 + confidence * 12.5)  # Convert to 0-100 scale
         
         response = {
             'urgency_level': int(urgency_level),
@@ -301,6 +383,13 @@ def batch_predict():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+# Register voice triage routes
+try:
+    from voice_triage_api import register_voice_triage_routes
+    register_voice_triage_routes(app)
+except Exception as e:
+    print(f"⚠️  Voice triage API not registered: {e}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

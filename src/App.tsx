@@ -23,6 +23,7 @@ import { AshaTeleconsultPage }   from './pages/asha/AshaTeleconsult'
 import { AshaDirectTeleconsultPage } from './pages/asha/AshaDirectTeleconsult'
 import { AshaOcrUploadPage }     from './pages/asha/AshaOcrUpload'
 import { EmergencyEscalationPage as AshaEmergencyPage } from './pages/doctor/EmergencyEscalation'
+import BachaoBachaoEmergency from './pages/emergency/BachaoBachaoEmergency'
 
 // Doctor
 import { DoctorHome }              from './pages/doctor/DoctorHome'
@@ -58,6 +59,15 @@ import VaccinationTrackerPage   from './pages/patient/VaccinationTracker'
 import { TeleconsultPage }      from './pages/patient/Teleconsult'
 import { DirectTeleconsultPage } from './pages/patient/DirectTeleconsult'
 
+// Facility Portal
+import { FacilityPortal }                from './pages/facility/FacilityPortal'
+import { FacilityAdminDashboard }        from './pages/facility/FacilityAdminDashboard'
+import { QueueDeskDashboard }            from './pages/facility/QueueDeskDashboard'
+import { PharmacyDashboard }             from './pages/facility/PharmacyDashboard'
+import { LabTechnicianDashboard }        from './pages/facility/LabTechnicianDashboard'
+import { AmbulanceCoordinatorDashboard } from './pages/facility/AmbulanceCoordinatorDashboard'
+import { DistrictOfficerDashboard }      from './pages/facility/DistrictOfficerDashboard'
+
 function AppShell() {
   const { role, isOnline } = useApp()
 
@@ -89,6 +99,7 @@ function AppShell() {
             <Route path="/asha/ocr"         element={<AshaOcrUploadPage />} />
             <Route path="/asha/chronic"     element={<ChronicCareTracker />} />
             <Route path="/asha/emergency"   element={<AshaEmergencyPage />} />
+            <Route path="/asha/emergency/bachao-bachao" element={<BachaoBachaoEmergency />} />
 
             {/* Doctor */}
             <Route path="/doctor"           element={<DoctorHome />} />
@@ -123,6 +134,15 @@ function AppShell() {
             <Route path="/patient/teleconsult"  element={<TeleconsultPage />} />
             <Route path="/patient/direct-teleconsult" element={<DirectTeleconsultPage />} />
             <Route path="/patient/chronic"      element={<ChronicCareTracker />} />
+
+            {/* Facility Portal */}
+            <Route path="/facility"            element={<FacilityPortal />} />
+            <Route path="/facility/admin"      element={<FacilityAdminDashboard />} />
+            <Route path="/facility/queue"      element={<QueueDeskDashboard />} />
+            <Route path="/facility/pharmacy"   element={<PharmacyDashboard />} />
+            <Route path="/facility/lab"        element={<LabTechnicianDashboard />} />
+            <Route path="/facility/ambulance"  element={<AmbulanceCoordinatorDashboard />} />
+            <Route path="/facility/district"   element={<DistrictOfficerDashboard />} />
           </Routes>
         </main>
       </div>

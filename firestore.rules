@@ -1,0 +1,228 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ====== Helper Functions ======
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isFacilityRole(role) {
+      return role in ['facility_admin', 'queue_desk', 'lab_technician', 'pharmacist', 'ambulance_coordinator', 'district_officer'];
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function hasAnyRole(roles) {
+      return isAuthenticated() && request.auth.token.role in roles;
+    }
+    
+    function belongsToFacility(facilityId) {
+      return isAuthenticated() && request.auth.token.facilityId == facilityId;
+    }
+    
+    function belongsToDistrict(districtId) {
+      return isAuthenticated() && request.auth.token.districtId == districtId;
+    }
+    
+    function isDistrictOfficer() {
+      return hasRole('district_officer');
+    }
+    
+    function isFacilityAdmin(facilityId) {
+      return hasRole('facility_admin') && belongsToFacility(facilityId);
+    }
+    
+    // ====== Facilities ======
+    
+    match /facilities/{facilityId} {
+      // Read: anyone authenticated (for facility selection, referrals)
+      allow read: if isAuthenticated();
+      
+      // Write: only facility admins of that facility
+      allow write: if isFacilityAdmin(facilityId);
+      
+      // Staff sub-collection
+      match /staff/{staffId} {
+        // Read: anyone in the facility
+        allow read: if belongsToFacility(facilityId) || isDistrictOfficer();
+        
+        // Write: only facility admins
+        allow write: if isFacilityAdmin(facilityId);
+      }
+      
+      // Queue sub-collection
+      match /queue/{tokenId} {
+        // Read: queue_desk, facility_admin, doctors
+        allow read: if hasAnyRole(['facility_admin', 'queue_desk', 'doctor']) && belongsToFacility(facilityId);
+        
+        // Write: queue_desk, facility_admin
+        allow write: if hasAnyRole(['facility_admin', 'queue_desk']) && belongsToFacility(facilityId);
+      }
+      
+      // Diagnostic Orders sub-collection
+      match /diagnosticOrders/{orderId} {
+        // Read: lab_technician, facility_admin, doctors
+        allow read: if hasAnyRole(['facility_admin', 'lab_technician', 'doctor']) && belongsToFacility(facilityId);
+        
+        // Write: lab_technician, facility_admin, doctors
+        allow write: if hasAnyRole(['facility_admin', 'lab_technician', 'doctor']) && belongsToFacility(facilityId);
+      }
+      
+      // Diagnostics sub-collection (alternate naming)
+      match /diagnostics/{testId} {
+        // Read: lab_technician, facility_admin, doctors
+        allow read: if hasAnyRole(['facility_admin', 'lab_technician', 'doctor']) && belongsToFacility(facilityId);
+        
+        // Write: lab_technician, facility_admin, doctors
+        allow write: if hasAnyRole(['facility_admin', 'lab_technician', 'doctor']) && belongsToFacility(facilityId);
+      }
+      
+      // Medicine Inventory sub-collection
+      match /inventory/{medicineId} {
+        // Read: pharmacist, facility_admin, doctors (for prescriptions)
+        allow read: if hasAnyRole(['facility_admin', 'pharmacist', 'doctor']) && belongsToFacility(facilityId);
+        
+        // Write: pharmacist, facility_admin
+        allow write: if hasAnyRole(['facility_admin', 'pharmacist']) && belongsToFacility(facilityId);
+      }
+      
+      // Stock Events sub-collection
+      match /stockEvents/{eventId} {
+        // Read: pharmacist, facility_admin
+        allow read: if hasAnyRole(['facility_admin', 'pharmacist']) && belongsToFacility(facilityId);
+        
+        // Write: pharmacist, facility_admin (append-only in practice)
+        allow create: if hasAnyRole(['facility_admin', 'pharmacist']) && belongsToFacility(facilityId);
+        allow update, delete: if false; // Stock events are immutable
+      }
+      
+      // Ambulances sub-collection
+      match /ambulances/{vehicleId} {
+        // Read: ambulance_coordinator, facility_admin
+        allow read: if hasAnyRole(['facility_admin', 'ambulance_coordinator']) && belongsToFacility(facilityId);
+        
+        // Write: ambulance_coordinator, facility_admin
+        allow write: if hasAnyRole(['facility_admin', 'ambulance_coordinator']) && belongsToFacility(facilityId);
+      }
+    }
+    
+    // ====== Emergencies (Top-Level) ======
+    
+    match /emergencies/{emergencyId} {
+      // Read: ambulance_coordinator, facility_admin, ASHAs, patients (their own)
+      allow read: if isAuthenticated() && (
+        hasAnyRole(['facility_admin', 'ambulance_coordinator', 'asha', 'doctor']) ||
+        (hasRole('patient') && resource.data.patientId == request.auth.uid)
+      );
+      
+      // Create: ASHAs, patients, IVR system, facility staff
+      allow create: if isAuthenticated();
+      
+      // Update: ambulance_coordinator, facility_admin
+      allow update: if hasAnyRole(['facility_admin', 'ambulance_coordinator']);
+      
+      // Delete: never
+      allow delete: if false;
+    }
+    
+    // ====== Referrals (Top-Level, Extend Existing) ======
+    
+    match /referrals/{referralId} {
+      // Read: staff at from/to facilities, doctors, ASHAs, patient (their own)
+      allow read: if isAuthenticated() && (
+        belongsToFacility(resource.data.fromFacilityId) ||
+        belongsToFacility(resource.data.toFacilityId) ||
+        hasRole('doctor') ||
+        hasRole('asha') ||
+        (hasRole('patient') && resource.data.patientId == request.auth.uid)
+      );
+      
+      // Create: doctors, ASHAs, facility admins
+      allow create: if hasAnyRole(['doctor', 'asha', 'facility_admin']);
+      
+      // Update: facility_admin, ambulance_coordinator, queue_desk (for patient arrival)
+      allow update: if hasAnyRole(['facility_admin', 'ambulance_coordinator', 'queue_desk', 'doctor']) && (
+        belongsToFacility(resource.data.fromFacilityId) ||
+        belongsToFacility(resource.data.toFacilityId)
+      );
+      
+      // Delete: never
+      allow delete: if false;
+    }
+    
+    // ====== SLA Rules ======
+    
+    match /slaRules/{facilityId} {
+      // Read: anyone in the facility
+      allow read: if belongsToFacility(facilityId) || isDistrictOfficer();
+      
+      // Write: only facility admins
+      allow write: if isFacilityAdmin(facilityId);
+    }
+    
+    // ====== SLA Breaches ======
+    
+    match /slaBreaches/{breachId} {
+      // Read: facility staff, district officers
+      allow read: if belongsToFacility(resource.data.facilityId) || isDistrictOfficer();
+      
+      // Create: system (backend) - frontend cannot create directly
+      allow create: if false;
+      
+      // Update: facility_admin (for resolution)
+      allow update: if isFacilityAdmin(resource.data.facilityId);
+      
+      // Delete: never
+      allow delete: if false;
+    }
+    
+    // ====== Audit Logs ======
+    
+    match /auditLogs/{logId} {
+      // Read: facility_admin, district_officer
+      allow read: if hasRole('facility_admin') && belongsToFacility(resource.data.facilityId) || isDistrictOfficer();
+      
+      // Create: anyone authenticated (audit logs are created by the system)
+      allow create: if isAuthenticated();
+      
+      // Update/Delete: never (immutable)
+      allow update, delete: if false;
+    }
+    
+    // ====== Patients (Existing, Add Facility Access) ======
+    
+    match /patients/{patientId} {
+      // Read: doctors, ASHAs, facility staff, patient themselves
+      allow read: if isAuthenticated() && (
+        hasAnyRole(['doctor', 'asha', 'facility_admin', 'queue_desk', 'lab_technician', 'pharmacist']) ||
+        (hasRole('patient') && request.auth.uid == patientId)
+      );
+      
+      // Write: doctors, ASHAs (existing rules)
+      allow write: if hasAnyRole(['doctor', 'asha']);
+    }
+    
+    // ====== Appointments (Existing, Add Facility Access) ======
+    
+    match /appointments/{appointmentId} {
+      // Read: patient, doctors, ASHAs, queue_desk
+      allow read: if isAuthenticated() && (
+        hasAnyRole(['doctor', 'asha', 'queue_desk', 'facility_admin']) ||
+        (hasRole('patient') && resource.data.patientId == request.auth.uid)
+      );
+      
+      // Write: patients, ASHAs, doctors, queue_desk
+      allow write: if hasAnyRole(['patient', 'asha', 'doctor', 'queue_desk', 'facility_admin']);
+    }
+    
+    // ====== Default: Deny All ======
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

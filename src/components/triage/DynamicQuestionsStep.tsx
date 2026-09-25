@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { Loader2, AlertCircle, Sparkles, CheckCircle, RefreshCw } from 'lucide-react'
+import { Loader2, AlertCircle, Sparkles, CheckCircle, RefreshCw, Volume2, VolumeX } from 'lucide-react'
 import { generateQuestionsFromGemini, type GeminiQuestion } from '../../services/geminiService'
 import type { TriageQuestionResponse } from '../../types/teleconsult'
 
@@ -29,7 +29,9 @@ export function DynamicQuestionsStep({
   const [questions, setQuestions] = useState<GeminiQuestion[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
+  const [voiceEnabled, setVoiceEnabled] = useState(true)
   const lastFetched = useRef({ condition: '', chiefComplaint: '', language: '' })
+  const spokenQuestions = useRef(new Set<string>())
 
   useEffect(() => {
     if (
@@ -39,6 +41,36 @@ export function DynamicQuestionsStep({
     ) return
     fetchQuestions()
   }, [condition, chiefComplaint, language])
+
+  // Speak unanswered questions
+  useEffect(() => {
+    if (!voiceEnabled || questions.length === 0 || !('speechSynthesis' in window)) return
+
+    const unanswered = questions.find(q => {
+      const answer = getAnswer(q.id)
+      const isAnswered = answer !== undefined && answer !== null && answer !== ''
+      return !isAnswered && !spokenQuestions.current.has(q.id)
+    })
+
+    if (unanswered) {
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(unanswered.question)
+        utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US'
+        utterance.rate = 0.9
+        window.speechSynthesis.speak(utterance)
+        spokenQuestions.current.add(unanswered.id)
+      }, 500)
+    }
+  }, [questions, responses, voiceEnabled, language])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
 
   async function fetchQuestions() {
     setLoading(true)
@@ -132,10 +164,27 @@ export function DynamicQuestionsStep({
             <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-purple-100 text-purple-700">
               <Sparkles size={11} /> AI Generated
             </span>
-            <button onClick={fetchQuestions}
-              className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700">
-              <RefreshCw size={11} /> Regenerate
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setVoiceEnabled(!voiceEnabled)
+                  if (voiceEnabled && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel()
+                  }
+                }}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full transition-colors
+                  ${voiceEnabled 
+                    ? 'bg-teal-100 text-teal-700 hover:bg-teal-200' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+              >
+                {voiceEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
+              </button>
+              <button onClick={fetchQuestions}
+                className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700">
+                <RefreshCw size={11} /> Regenerate
+              </button>
+            </div>
           </div>
         </div>
         {/* Progress */}
@@ -170,10 +219,26 @@ export function DynamicQuestionsStep({
                 {isAnswered ? <CheckCircle size={14} /> : idx + 1}
               </div>
               <div className="flex-1">
-                <p className="font-medium text-[#2C2C2A] leading-relaxed">
-                  {q.question}
-                  {q.required && <span className="text-red-500 ml-1">*</span>}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium text-[#2C2C2A] leading-relaxed">
+                    {q.question}
+                    {q.required && <span className="text-red-500 ml-1">*</span>}
+                  </p>
+                  {voiceEnabled && 'speechSynthesis' in window && (
+                    <button
+                      onClick={() => {
+                        const utterance = new SpeechSynthesisUtterance(q.question)
+                        utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US'
+                        utterance.rate = 0.9
+                        window.speechSynthesis.speak(utterance)
+                      }}
+                      className="flex-shrink-0 p-1.5 rounded-full hover:bg-teal-50 text-teal-600 transition-colors"
+                      title="Speak question"
+                    >
+                      <Volume2 size={14} />
+                    </button>
+                  )}
+                </div>
                 {q.redFlag && (
                   <p className="text-xs text-red-600 mt-0.5 flex items-center gap-1">
                     <AlertCircle size={11} /> Important safety question

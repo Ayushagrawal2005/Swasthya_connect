@@ -3,6 +3,7 @@ import { Globe, Menu, X, Heart, ChevronDown, Bell } from 'lucide-react'
 import { useApp, useT } from '../../context/AppContext'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../ui/NotificationBell'
+import { ReferralNotificationBell } from '../ui/ReferralNotificationBell'
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -22,6 +23,12 @@ export function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
 
   const isLanding = location.pathname === '/'
+  const isFacilityPath = location.pathname.startsWith('/facility')
+
+  // Hide navbar on facility portal pages (they have their own header)
+  if (isFacilityPath) {
+    return null
+  }
 
   return (
     <>
@@ -74,7 +81,12 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             {/* Notifications - shown when logged in */}
-            {role && !isLanding && <NotificationBell />}
+            {role && !isLanding && (
+              <>
+                <NotificationBell />
+                <ReferralNotificationBell />
+              </>
+            )}
             
             {/* Language Picker - Government Portal Standard */}
             <div className="relative">

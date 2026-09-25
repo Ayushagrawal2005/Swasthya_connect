@@ -1,42 +1,11 @@
 /**
- * Frontend Groq Service
- * Calls Groq REST API directly from the browser.
- * Fast, reliable AI for medical triage.
+ * Frontend Service for Backend AI APIs
+ * Calls backend endpoints for Groq AI features
  */
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || ''
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
+import axios from 'axios'
 
-async function callGroq(prompt: string): Promise<string> {
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'openai/gpt-oss-120b',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a medical triage assistant. Respond with valid JSON only.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 1500
-    }),
-  })
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Groq API error ${res.status}: ${err}`)
-  }
-  const data = await res.json()
-  return data.choices?.[0]?.message?.content ?? ''
-}
+const API_URL = 'http://localhost:4000'
 
 // ─── Question Generation ──────────────────────────────────────────────────────
 
@@ -58,64 +27,21 @@ export async function generateQuestionsFromGemini(
   maxQuestions = 7,
   language: 'en' | 'hi' | 'mr' = 'en'
 ): Promise<GeminiQuestion[]> {
-  const languageInstructions = {
-    en: 'Generate questions in English only.',
-    hi: 'Generate questions in Hindi (Devanagari script). Keep medical terms simple and understandable.',
-    mr: 'Generate questions in Marathi (Devanagari script). Keep medical terms simple and understandable.'
+  try {
+    console.log('🔄 Calling backend for dynamic questions...')
+    const response = await axios.post(`${API_URL}/triage/generate-dynamic-questions`, {
+      chiefComplaint,
+      condition,
+      maxQuestions,
+      language
+    })
+    
+    console.log('✅ Dynamic questions received:', response.data.questions?.length || 0)
+    return response.data.questions || []
+  } catch (error: any) {
+    console.error('Error generating questions:', error.message)
+    return []
   }
-
-  const prompt = `You are a medical triage assistant for a rural healthcare platform in India.
-
-A patient reports: "${chiefComplaint}"
-Suspected condition: ${condition}
-Language: ${language === 'en' ? 'English' : language === 'hi' ? 'Hindi' : 'Marathi'}
-
-${languageInstructions[language]}
-
-Generate exactly ${maxQuestions} concise medical assessment questions tailored to this specific complaint.
-
-Rules:
-- Questions must be directly relevant to "${chiefComplaint}"
-- Include 1–2 red flag questions (life-threatening symptoms)
-- Mix question types: yes-no, single choice, scale, number, text
-- Keep language simple (patient-facing)
-- Each question must have a unique id like "q1", "q2", etc.
-${language !== 'en' ? '- Options should also be in ' + (language === 'hi' ? 'Hindi' : 'Marathi') : ''}
-
-Return ONLY valid JSON array, no explanation:
-[
-  {
-    "id": "q1",
-    "question": "...",
-    "type": "yes-no",
-    "required": true,
-    "redFlag": false
-  },
-  {
-    "id": "q2",
-    "question": "...",
-    "type": "single",
-    "options": ["option1", "option2", "option3"],
-    "required": true,
-    "redFlag": false
-  },
-  {
-    "id": "q3",
-    "question": "Rate your pain level",
-    "type": "scale",
-    "required": true,
-    "redFlag": false
-  }
-]`
-
-  const text = await callGroq(prompt)
-
-  // Extract JSON array from response (handle markdown code blocks)
-  const match = text.match(/\[[\s\S]*\]/)
-  if (!match) throw new Error('Groq returned no JSON array')
-
-  const questions: GeminiQuestion[] = JSON.parse(match[0])
-  return questions.slice(0, maxQuestions)
 }
 
 // ─── Keyword Suggestions ─────────────────────────────────────────────────────
@@ -125,18 +51,13 @@ export async function generateKeywordsFromGemini(
   condition: string,
   language: 'en' | 'hi' | 'mr' = 'en'
 ): Promise<string[]> {
-  const languageInstructions = {
-    en: 'in English',
-    hi: 'in Hindi (Devanagari script)',
-    mr: 'in Marathi (Devanagari script)'
+  try {
+    // For now, return empty array as this functionality needs backend endpoint
+    // TODO: Create /triage/generate-keywords endpoint in backend
+    console.log('Keyword generation not yet implemented via backend')
+    return []
+  } catch (error) {
+    console.error('Error generating keywords:', error)
+    return []
   }
-
-  const prompt = `Patient complaint: "${chiefComplaint}", condition: ${condition}.
-List 10 short symptom keywords ${languageInstructions[language]} that a patient might add to describe this better.
-Return ONLY a JSON array of strings, e.g. ["keyword1","keyword2",...]. No explanation.`
-
-  const text = await callGroq(prompt)
-  const match = text.match(/\[[\s\S]*?\]/)
-  if (!match) return []
-  return JSON.parse(match[0])
 }

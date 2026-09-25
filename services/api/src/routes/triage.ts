@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { db, TriageSession } from '../store/index.js'
 import { requireAuth } from '../middleware/auth.js'
 import { orchestratePostTriageCare, type TriageOrchestrationInput } from '../services/careOrchestration.js'
+import { generateAdaptiveTriageQuestion } from '../services/geminiQuestions.js'
 
 const router = Router()
 
@@ -12,6 +13,37 @@ const HOSPITAL_LEVELS: Record<string, { level: number; label: string; desc: stri
   high:      { level: 3, label: 'District Hospital',          desc: 'District or Rural Hospital' },
   emergency: { level: 4, label: 'Tertiary / Medical College', desc: 'Tertiary care — Medical College or Super-Speciality Hospital' },
 }
+
+// POST /triage/generate-question — Generate adaptive triage question using Groq AI
+router.post('/generate-question', async (req, res) => {
+  try {
+    const { history, firstAnswer, language = 'en' } = req.body
+
+    if (!Array.isArray(history)) {
+      return res.status(400).json({ error: 'history must be an array' })
+    }
+
+    console.log(`🎯 Generating triage question (language: ${language}, history: ${history.length} turns)`)
+    
+    const question = await generateAdaptiveTriageQuestion(history, firstAnswer, language)
+    
+    if (!question) {
+      return res.json({ done: true })
+    }
+
+    res.json({ 
+      question: question.text, 
+      hint: question.hint || '',
+      done: false 
+    })
+  } catch (error: any) {
+    console.error('❌ Error generating triage question:', error.message)
+    res.status(500).json({ 
+      error: 'Failed to generate question', 
+      details: error.message 
+    })
+  }
+})
 
 // POST /triage/assess — proxy to Python ML backend
 router.post('/assess', requireAuth, async (req, res) => {

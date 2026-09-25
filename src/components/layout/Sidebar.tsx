@@ -85,9 +85,11 @@ export function Sidebar() {
     }
   }, [role, patientId])
 
-  // Hide sidebar on public pages
+  // Hide sidebar on public pages and facility portal
   const publicPaths = ['/', '/login', '/ivr', '/test']
-  if (publicPaths.includes(location.pathname)) {
+  const isFacilityPath = location.pathname.startsWith('/facility')
+  
+  if (publicPaths.includes(location.pathname) || isFacilityPath) {
     return null
   }
 

@@ -750,3 +750,174 @@ export default {
   vaccinations:     vaccinationsDb,
   notifications:    notificationsDb,
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// CONSENTS
+// ═══════════════════════════════════════════════════════════════
+
+export const consentsDb = {
+  async create(data: any) {
+    const ref = await db.collection('consents').add({
+      ...data,
+      status: data.status || 'ACTIVE',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return { id: ref.id, ...data }
+  },
+
+  async findById(id: string) {
+    const doc = await db.collection('consents').doc(id).get()
+    return doc.exists ? { id: doc.id, ...doc.data() } : null
+  },
+
+  async getByPatient(patientId: string, includeHistory = false) {
+    let query: any = db.collection('consents').where('patientId', '==', patientId)
+    
+    if (!includeHistory) {
+      // Only active consents
+      query = query.where('status', 'in', ['ACTIVE', 'PENDING'])
+    }
+
+    const snap = await query.get()
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    return sortByCreatedAt(docs, 'desc')
+  },
+
+  async getActiveConsent(
+    patientId: string,
+    recipientId: string,
+    dataCategory: string
+  ): Promise<any | null> {
+    try {
+      const snap = await db
+        .collection('consents')
+        .where('patientId', '==', patientId)
+        .where('recipientId', '==', recipientId)
+        .where('dataCategory', '==', dataCategory)
+        .where('status', '==', 'ACTIVE')
+        .limit(1)
+        .get()
+
+      if (snap.empty) return null
+
+      const consent = { id: snap.docs[0].id, ...snap.docs[0].data() }
+
+      // Check if expired
+      if (consent.expiresAt) {
+        const expiryDate = new Date(consent.expiresAt)
+        if (expiryDate < new Date()) {
+          // Auto-expire
+          await this.expireConsent(consent.id)
+          return null
+        }
+      }
+
+      return consent
+    } catch (error) {
+      console.error('Error checking consent:', error)
+      return null
+    }
+  },
+
+  async revokeConsent(consentId: string, revokedBy: string) {
+    await db.collection('consents').doc(consentId).update({
+      status: 'REVOKED',
+      revokedAt: FieldValue.serverTimestamp(),
+      revokedBy,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return this.findById(consentId)
+  },
+
+  async expireConsent(consentId: string) {
+    await db.collection('consents').doc(consentId).update({
+      status: 'EXPIRED',
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return this.findById(consentId)
+  },
+
+  async update(id: string, data: any) {
+    await db.collection('consents').doc(id).update({
+      ...data,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return this.findById(id)
+  },
+
+  /**
+   * Check if a user has valid consent to access patient data
+   */
+  async hasValidConsent(
+    patientId: string,
+    recipientId: string,
+    dataCategory: string
+  ): Promise<boolean> {
+    const consent = await this.getActiveConsent(patientId, recipientId, dataCategory)
+    return consent !== null
+  },
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCHEMES
+// ═══════════════════════════════════════════════════════════════
+
+export const schemesDb = {
+  async create(data: any) {
+    const ref = await db.collection('schemes').add({
+      ...data,
+      active: data.active !== undefined ? data.active : true,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return { id: ref.id, ...data }
+  },
+
+  async findById(id: string) {
+    const doc = await db.collection('schemes').doc(id).get()
+    return doc.exists ? { id: doc.id, ...doc.data() } : null
+  },
+
+  async getAllActive() {
+    const snap = await db.collection('schemes').where('active', '==', true).get()
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  },
+
+  async getByState(state: string) {
+    const snap = await db
+      .collection('schemes')
+      .where('active', '==', true)
+      .where('state', 'in', [state, 'ALL', 'National', ''])
+      .get()
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  },
+
+  async update(id: string, data: any) {
+    await db.collection('schemes').doc(id).update({
+      ...data,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    return this.findById(id)
+  },
+
+  async bulkCreate(schemes: any[]) {
+    const batch = db.batch()
+    const refs: any[] = []
+
+    for (const scheme of schemes) {
+      const ref = db.collection('schemes').doc()
+      batch.set(ref, {
+        ...scheme,
+        active: scheme.active !== undefined ? scheme.active : true,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      })
+      refs.push({ id: ref.id, ...scheme })
+    }
+
+    await batch.commit()
+    return refs
+  },
+}

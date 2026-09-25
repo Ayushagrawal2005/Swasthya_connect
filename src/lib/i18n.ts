@@ -1710,5 +1710,9 @@ export const translations = {
 export type TranslationKey = keyof typeof translations
 
 export function translate(key: TranslationKey, lang: SupportedLanguage): string {
+  if (!translations[key]) {
+    console.warn(`Translation key missing: ${String(key)}`)
+    return String(key)
+  }
   return translations[key][lang] || translations[key].en
 }

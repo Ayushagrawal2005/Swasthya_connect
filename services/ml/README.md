@@ -1,6 +1,33 @@
 # ML-Powered Triage System
 
-This backend provides machine learning-based triage predictions for the Swasthya Connect healthcare platform.
+This backend provides machine learning-based triage predictions for the SwasthyaConnect healthcare platform.
+
+## 🎙️ NEW: Voice Triage System
+
+The ML service now includes a **multilingual voice triage system** that conducts doctor-like conversations in English, Hindi, Marathi, and Punjabi. See the complete documentation: [`../../docs/VOICE_TRIAGE_SYSTEM.md`](../../docs/VOICE_TRIAGE_SYSTEM.md)
+
+**Quick Start for Voice Triage:**
+```bash
+# 1. Set up Groq API key
+cp .env.example .env
+# Edit .env and add: GROQ_API_KEY=your_key_here
+
+# 2. Install dependencies
+pip install requests  # if not already installed
+
+# 3. Start server
+python app.py
+
+# 4. Open frontend
+# Open ../../public/voice-triage.html in Chrome/Edge
+```
+
+**Demo without ML model:**
+```bash
+python demo_multilingual_extraction.py
+```
+
+---
 
 ## Features
 

@@ -121,6 +121,10 @@ export function LandingPage() {
                 <button onClick={() => navigate('/login')} className="btn-secondary text-base px-7 py-3.5">
                   {t('asha')}
                 </button>
+                <button onClick={() => navigate('/facility')} className="btn-secondary text-base px-7 py-3.5 gap-2">
+                  <Building2 size={18} />
+                  Facility Portal
+                </button>
               </motion.div>
 
               <motion.div variants={fadeUp} custom={4} className="mt-8 flex items-center gap-4 text-sm text-[#5F5E5A]">

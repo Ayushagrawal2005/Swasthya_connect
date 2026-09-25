@@ -13,6 +13,9 @@ import multer from 'multer'
 import axios from 'axios'
 import FormData from 'form-data'
 import db from './services/db'
+import { generateAdaptiveTriageQuestion } from './services/geminiQuestions.js'
+import referralRoutes from './routes/referrals.js'
+import emergencyRoutes from './routes/emergency.js'
 
 const app = express()
 const server = createServer(app)
@@ -46,6 +49,16 @@ const authenticateToken = (req: any, res: any, next: any) => {
     next()
   })
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ENHANCED REFERRAL MANAGEMENT ROUTES
+// ═══════════════════════════════════════════════════════════════
+app.use('/api', referralRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// BACHAO BACHAO EMERGENCY ROUTES
+// ═══════════════════════════════════════════════════════════════
+app.use('/api/emergency', emergencyRoutes)
 
 // ═══════════════════════════════════════════════════════════════
 // AUTH ROUTES
@@ -537,6 +550,99 @@ app.patch('/appointments/:id/status', authenticateToken, async (req, res) => {
 // TRIAGE ROUTES
 // ═══════════════════════════════════════════════════════════════
 
+// POST /triage/generate-question — Generate adaptive triage question using Groq AI
+app.post('/triage/generate-question', async (req, res) => {
+  try {
+    const { history, firstAnswer, language = 'en' } = req.body
+
+    if (!Array.isArray(history)) {
+      return res.status(400).json({ error: 'history must be an array' })
+    }
+
+    console.log(`🎯 Generating triage question (language: ${language}, history: ${history.length} turns)`)
+    
+    const question = await generateAdaptiveTriageQuestion(history, firstAnswer, language)
+    
+    if (!question) {
+      return res.json({ done: true })
+    }
+
+    res.json({ 
+      question: question.text, 
+      hint: question.hint || '',
+      done: false 
+    })
+  } catch (error: any) {
+    console.error('❌ Error generating triage question:', error.message)
+    res.status(500).json({ 
+      error: 'Failed to generate question', 
+      details: error.message 
+    })
+  }
+})
+
+// POST /triage/generate-dynamic-questions — Generate form-based triage questions
+app.post('/triage/generate-dynamic-questions', async (req, res) => {
+  try {
+    const { chiefComplaint, condition, maxQuestions = 7, language = 'en' } = req.body
+
+    console.log(`📝 Generating dynamic questions for: ${chiefComplaint} (${condition})`)
+    
+    // For now, return a basic set of questions based on condition
+    // This can be enhanced with Groq AI in the future
+    const questions = [
+      {
+        id: 'q1',
+        question: language === 'hi' ? 'लक्षण कब से हैं?' : 'How long have you had these symptoms?',
+        type: 'text',
+        required: true,
+        redFlag: false
+      },
+      {
+        id: 'q2',
+        question: language === 'hi' ? 'दर्द/परेशानी की गंभीरता (1-10)?' : 'Rate the severity of pain/discomfort (1-10)?',
+        type: 'scale',
+        required: true,
+        redFlag: false,
+        minValue: 1,
+        maxValue: 10
+      },
+      {
+        id: 'q3',
+        question: language === 'hi' ? 'क्या कोई अन्य लक्षण हैं?' : 'Are there any other symptoms?',
+        type: 'text',
+        required: false,
+        redFlag: false
+      },
+      {
+        id: 'q4',
+        question: language === 'hi' ? 'क्या सीने में दर्द है?' : 'Do you have chest pain?',
+        type: 'yes-no',
+        required: true,
+        redFlag: true
+      },
+      {
+        id: 'q5',
+        question: language === 'hi' ? 'क्या सांस लेने में कठिनाई है?' : 'Do you have difficulty breathing?',
+        type: 'yes-no',
+        required: true,
+        redFlag: true
+      }
+    ]
+
+    res.json({ 
+      questions: questions.slice(0, maxQuestions),
+      count: Math.min(questions.length, maxQuestions)
+    })
+  } catch (error: any) {
+    console.error('❌ Error generating dynamic questions:', error.message)
+    res.status(500).json({ 
+      error: 'Failed to generate questions', 
+      details: error.message 
+    })
+  }
+})
+
 app.post('/triage/assess', authenticateToken, async (req: any, res) => {
   try {
     // In production, this would call ML backend
@@ -923,6 +1029,141 @@ app.patch('/followups/:id/status', authenticateToken, async (req, res) => {
 })
 
 // ═══════════════════════════════════════════════════════════════
+// CONSENT MANAGEMENT ROUTES
+// ═══════════════════════════════════════════════════════════════
+
+// In-memory consent store (for testing - replace with database later)
+const consentsStore: any[] = []
+
+// GET /consents?history=false — Get consents for current user
+app.get('/consents', authenticateToken, async (req: any, res) => {
+  try {
+    const { userId, role, patientId } = req.user
+    const includeHistory = req.query.history === 'true'
+
+    if (role === 'patient') {
+      if (!patientId) {
+        return res.status(400).json({ error: 'Patient ID not found' })
+      }
+      
+      // Filter consents for this patient
+      let consents = consentsStore.filter((c: any) => c.patientId === patientId)
+      
+      // If not showing history, only show active consents
+      if (!includeHistory) {
+        consents = consents.filter((c: any) => c.status === 'ACTIVE')
+      }
+      
+      res.json(consents)
+    } else {
+      res.json([]) // For now, empty for non-patients
+    }
+  } catch (error) {
+    console.error('Get consents error:', error)
+    res.status(500).json({ error: 'Failed to fetch consents' })
+  }
+})
+
+// POST /consents — Create new consent
+app.post('/consents', authenticateToken, async (req: any, res) => {
+  try {
+    const { userId, role, patientId } = req.user
+
+    if (role !== 'patient') {
+      return res.status(403).json({ error: 'Only patients can grant consent' })
+    }
+
+    if (!patientId) {
+      return res.status(400).json({ error: 'Patient ID not found' })
+    }
+
+    let {
+      recipientId,
+      recipientRole,
+      recipientName,
+      dataCategory,
+      purpose,
+      durationDays,
+    } = req.body
+
+    // If recipientId is empty, generate a placeholder based on role
+    if (!recipientId || recipientId.trim() === '') {
+      recipientId = `${recipientRole}_${Date.now()}`
+    }
+
+    if (!recipientRole || !dataCategory || !purpose) {
+      return res.status(400).json({
+        error: 'recipientRole, dataCategory, and purpose are required',
+      })
+    }
+
+    // Create consent and store in memory
+    const consent = {
+      id: `consent_${Date.now()}`,
+      patientId,
+      grantedBy: userId,
+      recipientId,
+      recipientRole,
+      recipientName: recipientName || '',
+      dataCategory,
+      purpose,
+      status: 'ACTIVE',
+      grantedAt: new Date().toISOString(),
+      expiresAt: durationDays ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString() : null,
+      revokedAt: null,
+      revokedBy: null,
+    }
+    
+    consentsStore.push(consent)
+    console.log('✅ Consent created:', consent.id, '(Total:', consentsStore.length, ')')
+    res.status(201).json(consent)
+  } catch (error) {
+    console.error('Create consent error:', error)
+    res.status(500).json({ error: 'Failed to create consent' })
+  }
+})
+
+// PATCH /consents/:id/revoke — Revoke a consent
+app.patch('/consents/:id/revoke', authenticateToken, async (req: any, res) => {
+  try {
+    const { userId, role, patientId } = req.user
+    const { id } = req.params
+
+    if (role !== 'patient') {
+      return res.status(403).json({ error: 'Only patients can revoke consent' })
+    }
+
+    // Find consent in store
+    const consent = consentsStore.find((c: any) => c.id === id)
+
+    if (!consent) {
+      return res.status(404).json({ error: 'Consent not found' })
+    }
+
+    // Verify ownership
+    if (consent.patientId !== patientId) {
+      return res.status(403).json({ error: 'Unauthorized: not your consent' })
+    }
+
+    // Check if already revoked
+    if (consent.status === 'REVOKED') {
+      return res.status(400).json({ error: 'Consent already revoked' })
+    }
+
+    // Update consent status
+    consent.status = 'REVOKED'
+    consent.revokedAt = new Date().toISOString()
+    consent.revokedBy = userId
+    
+    console.log('✅ Consent revoked:', id)
+    res.json(consent)
+  } catch (error) {
+    console.error('Revoke consent error:', error)
+    res.status(500).json({ error: 'Failed to revoke consent' })
+  }
+})
+
+// ═══════════════════════════════════════════════════════════════
 // IVR ROUTES
 // ═══════════════════════════════════════════════════════════════
 
@@ -1137,6 +1378,18 @@ wss.on('connection', (ws) => {
 // ═══════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════
+// CONSENT MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+import consentRoutes from './routes/consents.js'
+app.use('/consents', consentRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// GOVERNMENT SCHEME CHECKER (SIMPLE AI-BASED)
+// ═══════════════════════════════════════════════════════════════
+import schemeRoutesSimple from './routes/schemes-simple.js'
+app.use('/schemes', schemeRoutesSimple)
+
+// ═══════════════════════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════════════════════
 import notificationRoutes from './routes/notifications.js'
@@ -1165,6 +1418,48 @@ app.use('/teleconsult-queue', teleconsultQueueRoutes)
 // ═══════════════════════════════════════════════════════════════
 import longitudinalRoutes from './routes/longitudinal.js'
 app.use('/longitudinal', longitudinalRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL AUTH
+// ═══════════════════════════════════════════════════════════════
+import facilityAuthRoutes from './routes/facility-auth.js'
+app.use('/facility/auth', facilityAuthRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL QUEUE
+// ═══════════════════════════════════════════════════════════════
+import facilityQueueRoutes from './routes/facility-queue.js'
+app.use('/facility', facilityQueueRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL MEDICINE
+// ═══════════════════════════════════════════════════════════════
+import facilityMedicineRoutes from './routes/facility-medicine.js'
+app.use('/facility', facilityMedicineRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL DIAGNOSTICS
+// ═══════════════════════════════════════════════════════════════
+import facilityDiagnosticsRoutes from './routes/facility-diagnostics.js'
+app.use('/facility', facilityDiagnosticsRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL EMERGENCY
+// ═══════════════════════════════════════════════════════════════
+import facilityEmergencyRoutes from './routes/facility-emergency.js'
+app.use('/facility', facilityEmergencyRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL REFERRALS
+// ═══════════════════════════════════════════════════════════════
+import facilityReferralsRoutes from './routes/facility-referrals.js'
+app.use('/facility', facilityReferralsRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// FACILITY PORTAL STAFF
+// ═══════════════════════════════════════════════════════════════
+import facilityStaffRoutes from './routes/facility-staff.js'
+app.use('/facility', facilityStaffRoutes)
 
 // ═══════════════════════════════════════════════════════════════
 // START SERVER + BACKGROUND SERVICES

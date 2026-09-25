@@ -1,12 +1,13 @@
 /**
  * Central API service — all backend calls go through here.
- * Base URL from environment variable or fallback to localhost
+ * Base URL from environment variable or fallback to production
  * 
  * Environment Variables Required:
  * - VITE_API_URL: Backend API base URL (e.g., https://swasthya-connect-1x6r.onrender.com)
  */
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// Use production URL by default, override with env var if set
+const BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
 
 console.log('🔗 API Base URL:', BASE) // Debug log to verify URL in production
 

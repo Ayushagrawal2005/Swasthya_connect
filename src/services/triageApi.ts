@@ -6,7 +6,8 @@
  * - VITE_ML_API_URL: ML Service base URL (e.g., https://swasthya-connect-ml.onrender.com)
  */
 
-const API_BASE_URL = import.meta.env.VITE_ML_API_URL || 'http://localhost:5000'
+// Use production URL by default, override with env var if set
+const API_BASE_URL = import.meta.env.VITE_ML_API_URL || 'https://swasthya-connect-ml.onrender.com'
 
 console.log('🔗 ML API Base URL:', API_BASE_URL) // Debug log
 

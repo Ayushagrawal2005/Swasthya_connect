@@ -12,7 +12,12 @@ import json
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://swasthya-connect-9nwa.vercel.app",
+    r"https://.*\.vercel\.app$"  # Allow all Vercel preview deployments
+], supports_credentials=True)
 
 # Load the trained model
 MODEL_PATH   = os.path.join(os.path.dirname(__file__), 'models', 'triage_model.pkl')

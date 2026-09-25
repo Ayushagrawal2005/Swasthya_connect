@@ -24,8 +24,16 @@ const server = createServer(app)
 // Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() })
 
-// Middleware
-app.use(cors())
+// Middleware - Configure CORS to allow Vercel frontend
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000', 
+    'https://swasthya-connect-9nwa.vercel.app',
+    /\.vercel\.app$/ // Allow all Vercel preview deployments
+  ],
+  credentials: true
+}))
 app.use(express.json())
 
 const JWT_SECRET = process.env.JWT_SECRET || 'healthcare-secret-key'

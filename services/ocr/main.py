@@ -22,11 +22,16 @@ from models import OCRResult
 
 app = FastAPI(title="SwasthyaConnect OCR Service")
 
-# Allow the frontend dev server (and any origin) to call this API.
-# Tighten allow_origins before a real deployment.
+# Configure CORS to allow Vercel frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://swasthya-connect-9nwa.vercel.app",
+        "https://*.vercel.app"  # Allow all Vercel preview deployments
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

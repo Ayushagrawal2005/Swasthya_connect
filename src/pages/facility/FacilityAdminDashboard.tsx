@@ -116,7 +116,8 @@ export function FacilityAdminDashboard() {
       setPendingCount(referrals.filter(r => r.status === 'pending').length)
       
       // Load emergency alerts
-      const response = await fetch(`http://localhost:4000/api/emergency?facilityId=fac_001&status=active,acknowledged,en-route`, {
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+      const response = await fetch(`${API_BASE}/api/emergency?facilityId=fac_001&status=active,acknowledged,en-route`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -386,7 +387,8 @@ export function FacilityAdminDashboard() {
                         <button
                           onClick={async () => {
                             try {
-                              await fetch(`http://localhost:4000/api/emergency/${alert.id}/acknowledge`, {
+                              const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+                              await fetch(`${API_BASE}/api/emergency/${alert.id}/acknowledge`, {
                                 method: 'POST',
                                 headers: {
                                   'Content-Type': 'application/json',

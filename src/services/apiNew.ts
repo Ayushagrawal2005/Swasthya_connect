@@ -1,5 +1,7 @@
 // Backend API configuration
-const API_BASE_URL = 'http://localhost:4000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+
+console.log('✅ API New Base URL:', API_BASE_URL)
 
 // API client with auth header
 const apiClient = {

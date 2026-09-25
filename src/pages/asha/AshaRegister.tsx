@@ -125,7 +125,8 @@ export function AshaRegisterPage() {
         console.log(`📄 [${i + 1}/${uploadedFiles.length}] Uploading file to OCR:`, file.name, 'for patient:', patientId)
 
         // Try backend proxy first
-        const response = await fetch('http://localhost:4000/ocr/extract', {
+        const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+        const response = await fetch(`${API_BASE}/ocr/extract`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -198,7 +199,8 @@ export function AshaRegisterPage() {
       console.log('Saving OCR data to patient:', patientId)
       console.log('OCR data to save:', JSON.stringify(ocrData, null, 2))
       
-      const response = await fetch(`http://localhost:4000/patients/${patientId}/records`, {
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+      const response = await fetch(`${API_BASE}/patients/${patientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

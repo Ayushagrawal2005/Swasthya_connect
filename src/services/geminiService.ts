@@ -5,7 +5,9 @@
 
 import axios from 'axios'
 
-const API_URL = 'http://localhost:4000'
+const API_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+
+console.log('✅ Gemini Service API URL:', API_URL)
 
 // ─── Question Generation ──────────────────────────────────────────────────────
 

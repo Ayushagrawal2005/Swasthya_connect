@@ -92,12 +92,13 @@ export function DoctorPatientSearch() {
     const headers = { Authorization: `Bearer ${token}` }
 
     try {
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
       const [recs, refs, meds] = await Promise.all([
-        axios.get(`http://localhost:4000/patients/${p.id}/records`, { headers })
+        axios.get(`${API_BASE}/patients/${p.id}/records`, { headers })
           .then(r => Array.isArray(r.data) ? r.data : []).catch(() => []),
-        axios.get(`http://localhost:4000/patients/${p.id}/referrals`, { headers })
+        axios.get(`${API_BASE}/patients/${p.id}/referrals`, { headers })
           .then(r => Array.isArray(r.data) ? r.data : []).catch(() => []),
-        axios.get(`http://localhost:4000/patients/${p.id}/medicines`, { headers })
+        axios.get(`${API_BASE}/patients/${p.id}/medicines`, { headers })
           .then(r => Array.isArray(r.data) ? r.data : []).catch(() => []),
       ])
       setRecords(recs)

@@ -281,7 +281,10 @@ let wsInstance: WebSocket | null = null
 export function connectWs(onMessage: (type: string, data: unknown) => void): WebSocket {
   if (wsInstance && wsInstance.readyState === WebSocket.OPEN) return wsInstance
 
-  wsInstance = new WebSocket('ws://localhost:4000/ws')
+  const WS_URL = BASE.replace('https', 'wss').replace('http', 'ws') + '/ws'
+  console.log('🔌 WebSocket URL:', WS_URL)
+  
+  wsInstance = new WebSocket(WS_URL)
 
   wsInstance.addEventListener('open', () => {
     const token = getToken()

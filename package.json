@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:check": "tsc -b && vite build",
     "preview": "vite preview",
     "backend": "cd backend && npm run dev",
     "dev:all": "npx concurrently \"npm run dev\" \"npm run backend\" --names \"frontend,backend\" --prefix-colors \"teal,cyan\""

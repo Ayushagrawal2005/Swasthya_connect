@@ -1,9 +1,14 @@
 /**
  * ML-powered Triage API Service
  * Connects to Flask backend for ML predictions
+ * 
+ * Environment Variables Required:
+ * - VITE_ML_API_URL: ML Service base URL (e.g., https://swasthya-connect-ml.onrender.com)
  */
 
 const API_BASE_URL = import.meta.env.VITE_ML_API_URL || 'http://localhost:5000'
+
+console.log('🔗 ML API Base URL:', API_BASE_URL) // Debug log
 
 export interface TriageInput {
   vitals?: {

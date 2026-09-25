@@ -10,14 +10,14 @@ import { getStorage } from 'firebase/storage'
 import { getAnalytics } from 'firebase/analytics'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCaixDjVKhA8W4viJk4kNGaFbHViy0H0Us",
-  authDomain: "swasthyaconnect-4bfa1.firebaseapp.com",
-  databaseURL: "https://swasthyaconnect-4bfa1-default-rtdb.firebaseio.com",
-  projectId: "swasthyaconnect-4bfa1",
-  storageBucket: "swasthyaconnect-4bfa1.firebasestorage.app",
-  messagingSenderId: "783756925629",
-  appId: "1:783756925629:web:addb9275a5637760eff5d4",
-  measurementId: "G-LZLGD6WC4P"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCaixDjVKhA8W4viJk4kNGaFbHViy0H0Us",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "swasthyaconnect-4bfa1.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://swasthyaconnect-4bfa1-default-rtdb.firebaseio.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "swasthyaconnect-4bfa1",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "swasthyaconnect-4bfa1.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "783756925629",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:783756925629:web:addb9275a5637760eff5d4",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-LZLGD6WC4P"
 }
 
 // Initialize Firebase

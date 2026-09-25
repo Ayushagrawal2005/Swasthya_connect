@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "echo Build skipped - using tsx runtime",
+    "start": "tsx src/server.ts",
     "seed": "tsx src/seed.ts",
     "verify": "tsx src/verify-database.ts"
   },

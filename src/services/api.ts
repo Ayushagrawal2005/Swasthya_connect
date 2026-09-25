@@ -1,9 +1,9 @@
 /**
  * Central API service — all backend calls go through here.
- * Base URL: http://localhost:4000
+ * Base URL from environment variable or fallback to localhost
  */
 
-const BASE = 'http://localhost:4000'
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
 function getToken(): string | null {
   return localStorage.getItem('swasthya_token')

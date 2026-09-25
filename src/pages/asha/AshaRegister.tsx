@@ -149,7 +149,8 @@ export function AshaRegisterPage() {
             const directFormData = new FormData()
             directFormData.append('file', file)
             
-            const directResponse = await fetch('http://localhost:8000/ocr/extract', {
+            const OCR_API_URL = import.meta.env.VITE_OCR_API_URL || 'https://swasthya-connect-ocr.onrender.com'
+            const directResponse = await fetch(`${OCR_API_URL}/ocr/extract`, {
               method: 'POST',
               body: directFormData
             })

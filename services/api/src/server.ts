@@ -37,7 +37,8 @@ app.use(cors({
 app.use(express.json())
 
 const JWT_SECRET = process.env.JWT_SECRET || 'healthcare-secret-key'
-const OCR_SERVICE_URL = process.env.OCR_SERVICE_URL || 'http://localhost:8000'
+const OCR_SERVICE_URL = process.env.OCR_SERVICE_URL || 'https://swasthya-connect-ocr.onrender.com'
+console.log('✅ OCR Service URL:', OCR_SERVICE_URL)
 
 // ═══════════════════════════════════════════════════════════════
 // AUTH MIDDLEWARE

@@ -7,6 +7,9 @@ import { generateAdaptiveTriageQuestion } from '../services/geminiQuestions.js'
 
 const router = Router()
 
+const ML_API_URL = process.env.ML_API_URL || 'https://swasthya-connect-ml.onrender.com'
+console.log('✅ Backend Triage ML API URL:', ML_API_URL)
+
 const HOSPITAL_LEVELS: Record<string, { level: number; label: string; desc: string }> = {
   low:       { level: 1, label: 'Sub-Centre / ASHA',         desc: 'Manage at home with ASHA guidance' },
   medium:    { level: 2, label: 'PHC / CHC',                 desc: 'Primary Health Centre or Community Health Centre' },
@@ -48,7 +51,7 @@ router.post('/generate-question', async (req, res) => {
 // POST /triage/assess — proxy to Python ML backend
 router.post('/assess', requireAuth, async (req, res) => {
   try {
-    const mlResp = await fetch('http://localhost:5000/predict', {
+    const mlResp = await fetch(`${ML_API_URL}/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),

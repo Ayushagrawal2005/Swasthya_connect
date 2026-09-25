@@ -121,7 +121,8 @@ export function AshaOcrUploadPage() {
           data = response.data
         } catch {
           // Backend proxy failed — try OCR service directly
-          const response = await axios.post('http://localhost:8000/ocr/extract', formData, {
+          const OCR_API_URL = import.meta.env.VITE_OCR_API_URL || 'https://swasthya-connect-ocr.onrender.com'
+          const response = await axios.post(`${OCR_API_URL}/ocr/extract`, formData, {
             timeout: 40000
           })
           // OCR service returns the correct OCRResult shape directly

@@ -18,6 +18,9 @@ import type { RiskLevel } from '../../lib/riskScoring'
 type Step = 'language' | 'vitals' | 'symptoms' | 'done'
 interface Msg { role: 'ai' | 'user'; text: string; hint?: string }
 
+const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'https://swasthya-connect-ml.onrender.com'
+console.log('✅ Voice Triage ML API URL:', ML_API_URL)
+
 // Language code mapping for Web Speech API
 const LANGUAGE_CODES: Record<'en' | 'hi' | 'mr', string> = {
   en: 'en-IN',
@@ -175,7 +178,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
   // Voice triage API functions
   async function startVoiceTriageSession(chiefComplaint: string) {
     try {
-      const response = await fetch('http://localhost:5000/voice-triage/start', {
+      const response = await fetch(`${ML_API_URL}/voice-triage/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -194,7 +197,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
 
   async function getNextVoiceQuestion(answer: string) {
     try {
-      const response = await fetch('http://localhost:5000/voice-triage/next-question', {
+      const response = await fetch(`${ML_API_URL}/voice-triage/next-question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,7 +217,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
 
   async function finalizeVoiceTriage() {
     try {
-      const response = await fetch('http://localhost:5000/voice-triage/finalize', {
+      const response = await fetch(`${ML_API_URL}/voice-triage/finalize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

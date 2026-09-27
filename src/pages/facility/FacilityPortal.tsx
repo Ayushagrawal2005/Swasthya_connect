@@ -1,6 +1,7 @@
 /**
  * Facility Portal - Role Selection Landing
  * 6 roles: Admin, Queue Desk, Pharmacist, Lab Tech, Ambulance, District Officer
+ * Multilingual support via i18n
  */
 
 import { useNavigate } from 'react-router-dom'
@@ -9,12 +10,13 @@ import {
   Shield, Users, Pill, FlaskConical, Ambulance, Building2,
   ArrowRight, Activity
 } from 'lucide-react'
+import { useT } from '../../context/AppContext'
 
 type FacilityRole = {
   id: string
-  name: string
+  nameKey: string
   icon: React.ReactNode
-  description: string
+  descKey: string
   color: string
   bgColor: string
   route: string
@@ -23,54 +25,54 @@ type FacilityRole = {
 const FACILITY_ROLES: FacilityRole[] = [
   {
     id: 'facility_admin',
-    name: 'Facility Administrator',
+    nameKey: 'facilityAdministrator',
     icon: <Shield size={32} />,
-    description: 'Manage facility operations, staff, and resource allocation',
+    descKey: 'manageFacilityOps',
     color: 'text-purple-600',
     bgColor: 'bg-purple-100 hover:bg-purple-200 border-purple-300',
     route: '/facility/admin'
   },
   {
     id: 'queue_desk',
-    name: 'Queue Desk',
+    nameKey: 'queueDesk',
     icon: <Users size={32} />,
-    description: 'Patient registration, queue management, and appointment scheduling',
+    descKey: 'queueDeskDesc',
     color: 'text-teal-600',
     bgColor: 'bg-teal-100 hover:bg-teal-200 border-teal-300',
     route: '/facility/queue'
   },
   {
     id: 'pharmacist',
-    name: 'Pharmacist',
+    nameKey: 'pharmacist',
     icon: <Pill size={32} />,
-    description: 'Prescription processing, inventory management, and drug dispensing',
+    descKey: 'pharmacistDesc',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100 hover:bg-blue-200 border-blue-300',
     route: '/facility/pharmacy'
   },
   {
     id: 'lab_technician',
-    name: 'Lab Technician',
+    nameKey: 'labTechnician',
     icon: <FlaskConical size={32} />,
-    description: 'Sample collection, test processing, and report generation',
+    descKey: 'labTechnicianDesc',
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-100 hover:bg-indigo-200 border-indigo-300',
     route: '/facility/lab'
   },
   {
     id: 'ambulance_coordinator',
-    name: 'Ambulance Coordinator',
+    nameKey: 'ambulanceCoordinator',
     icon: <Ambulance size={32} />,
-    description: 'Emergency transport, vehicle tracking, and dispatch management',
+    descKey: 'ambulanceCoordinatorDesc',
     color: 'text-red-600',
     bgColor: 'bg-red-100 hover:bg-red-200 border-red-300',
     route: '/facility/ambulance'
   },
   {
     id: 'district_officer',
-    name: 'District Health Officer',
+    nameKey: 'districtHealthOfficer',
     icon: <Building2 size={32} />,
-    description: 'District oversight, analytics, and policy implementation',
+    descKey: 'districtOfficerDesc',
     color: 'text-amber-600',
     bgColor: 'bg-amber-100 hover:bg-amber-200 border-amber-300',
     route: '/facility/district'
@@ -88,6 +90,7 @@ const fadeUp = {
 
 export function FacilityPortal() {
   const navigate = useNavigate()
+  const t = useT()
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-teal-50">
@@ -102,10 +105,10 @@ export function FacilityPortal() {
             <Activity size={40} className="text-white" />
           </div>
           <h1 className="text-4xl font-bold text-[#2C2C2A] mb-3">
-            Facility Portal
+            {t('facilityPortal')}
           </h1>
           <p className="text-lg text-[#5F5E5A] max-w-2xl mx-auto">
-            Select your role to access specialized dashboard and tools
+            {t('selectRoleMessage')}
           </p>
         </motion.div>
 
@@ -131,17 +134,17 @@ export function FacilityPortal() {
 
               {/* Role Name */}
               <h3 className="text-xl font-bold text-[#2C2C2A] mb-2 group-hover:text-teal-700 transition-colors">
-                {role.name}
+                {t(role.nameKey)}
               </h3>
 
               {/* Description */}
               <p className="text-sm text-[#5F5E5A] mb-4 leading-relaxed">
-                {role.description}
+                {t(role.descKey)}
               </p>
 
               {/* Arrow */}
               <div className="flex items-center text-teal-600 font-medium text-sm group-hover:gap-2 transition-all">
-                <span>Access Dashboard</span>
+                <span>{t('accessDashboard')}</span>
                 <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
               </div>
             </motion.button>
@@ -156,7 +159,7 @@ export function FacilityPortal() {
           className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6 text-center"
         >
           <p className="text-sm text-blue-900">
-            <strong>Need Help?</strong> Contact your facility administrator or IT support for role assignment and access management.
+            {t('needHelpContact')}
           </p>
         </motion.div>
       </div>

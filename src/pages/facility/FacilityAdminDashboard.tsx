@@ -2,6 +2,7 @@
  * Facility Administrator Dashboard
  * Overall facility management, staff oversight, resource allocation
  * INTEGRATED WITH REAL-TIME REFERRAL MANAGEMENT
+ * Multilingual support via i18n
  */
 
 import { useState, useEffect } from 'react'
@@ -15,6 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { referralManagementService, type Referral, type Facility } from '../../services/referralManagement'
 import EmergencyMap from '../../components/emergency/EmergencyMap'
+import { useT } from '../../context/AppContext'
 
 type StaffMember = {
   id: string
@@ -56,6 +58,7 @@ type EmergencyAlert = {
 
 export function FacilityAdminDashboard() {
   const navigate = useNavigate()
+  const t = useT()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   
@@ -199,16 +202,16 @@ export function FacilityAdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#2C2C2A] flex items-center gap-3">
-            Facility Administration
+            {t('facilityAdministrator')}
             {pendingCount > 0 && (
               <span className="flex items-center gap-1 text-base font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full animate-pulse">
                 <Bell size={14} />
-                {pendingCount} Pending Referral{pendingCount > 1 ? 's' : ''}
+                {pendingCount} {t('pendingReferrals')}
               </span>
             )}
           </h1>
           <p className="text-[#5F5E5A] mt-1">
-            {facilityInfo?.name || 'PHC Beed'} · Manage facility operations and resources
+            {facilityInfo?.name || 'PHC Beed'} · {t('manageFacilityOps')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -218,11 +221,11 @@ export function FacilityAdminDashboard() {
             className="btn-secondary"
           >
             <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
-            Refresh
+            {t('refresh')}
           </button>
           <button className="btn-secondary">
             <Settings size={18} />
-            Settings
+            {t('settings')}
           </button>
         </div>
       </div>
@@ -231,33 +234,33 @@ export function FacilityAdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           icon={<Bed size={24} className="text-indigo-600" />}
-          title="Bed Availability"
+          title={t('bedsAvailable')}
           value={`${bedsAvailable}/${bedsTotal}`}
-          subtitle={`${bedOccupancyPercent}% occupied`}
+          subtitle={`${bedOccupancyPercent}% ${t('bedsOccupied').toLowerCase()}`}
           trend={bedOccupancyPercent > 80 ? 'urgent' : 'neutral'}
           bgColor="bg-indigo-50"
         />
         <MetricCard
           icon={<AlertTriangle size={24} className="text-red-600" />}
-          title="Pending Referrals"
+          title={t('pendingReferrals')}
           value={pendingCount.toString()}
-          subtitle="Awaiting response"
+          subtitle={t('waiting')}
           trend={pendingCount > 0 ? 'urgent' : 'neutral'}
           bgColor="bg-red-50"
         />
         <MetricCard
           icon={<Users size={24} className="text-teal-600" />}
-          title="Active Staff"
+          title={t('staff')}
           value={`${metrics.activeStaff}/${metrics.totalStaff}`}
-          subtitle={`${staffUtilization}% utilization`}
+          subtitle={`${staffUtilization}%`}
           trend="up"
           bgColor="bg-teal-50"
         />
         <MetricCard
           icon={<Activity size={24} className="text-blue-600" />}
-          title="Patients Today"
+          title={t('patientsToday')}
           value={metrics.patientsToday.toString()}
-          subtitle="12% increase from yesterday"
+          subtitle=""
           trend="up"
           bgColor="bg-blue-50"
         />

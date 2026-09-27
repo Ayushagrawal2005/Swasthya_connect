@@ -7,6 +7,7 @@ import { SyncStatusDrawer } from './components/ui/SyncStatusDrawer'
 
 // Public
 import { LandingPage }      from './pages/Landing'
+import LandingNew from './pages/LandingNew'
 import { LoginPage }        from './pages/Login'
 import { IvrSimulatorPage } from './pages/IvrSimulator'
 import { TestAllFeaturesPage } from './pages/TestAllFeatures'
@@ -80,7 +81,8 @@ function AppShell() {
         <main className="flex-1 min-w-0 overflow-y-auto" id="main-content">
           <Routes>
             {/* Public */}
-            <Route path="/"      element={<LandingPage />} />
+            <Route path="/"      element={<LandingNew />} />
+            <Route path="/old-landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
             <Route path="/test"  element={<TestAllFeaturesPage />} />

@@ -85,7 +85,7 @@
   
   /* Card Styles */
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-soft hover:shadow-medium transition-shadow duration-200;
+    @apply bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200;
   }
   
   .card-hover {

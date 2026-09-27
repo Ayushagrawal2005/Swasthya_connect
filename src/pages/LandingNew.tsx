@@ -11,12 +11,10 @@ import {
   Shield, Clock, Award, TrendingUp, Home, Briefcase,
   Heart, Share2, CheckCircle, AlertTriangle, Zap
 } from 'lucide-react'
-import { useT } from '../context/AppContext'
 import ImagePlaceholder from '../components/ui/ImagePlaceholder'
 
 export function LandingNew() {
   const navigate = useNavigate()
-  const t = useT()
   
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })

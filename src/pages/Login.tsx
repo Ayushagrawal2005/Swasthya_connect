@@ -52,7 +52,7 @@ const DEMO_ACCOUNTS: {
     name: 'Anjali Kulkarni',
     icon: <Settings2 size={16} />,
     color: 'bg-coral-50 text-coral-600 border-coral-200',
-    path: '/admin',
+    path: '/facility',
   },
   {
     id: 'patient_female',
@@ -120,7 +120,11 @@ export function LoginPage() {
       }
       
       // Hard redirect to avoid React state issues
-      const path = res.user.role === 'patient' ? '/patient' : `/${res.user.role}`
+      let path = '/patient' // default
+      if (res.user.role === 'patient') path = '/patient'
+      else if (res.user.role === 'admin') path = '/facility'
+      else path = `/${res.user.role}`
+      
       window.location.href = path
     } catch (err) {
       console.error('Login error:', err)
@@ -149,7 +153,11 @@ export function LoginPage() {
       }
       
       // Hard redirect to avoid React state issues
-      const path = res.user.role === 'patient' ? '/patient' : `/${res.user.role}`
+      let path = '/patient' // default
+      if (res.user.role === 'patient') path = '/patient'
+      else if (res.user.role === 'admin') path = '/facility'
+      else path = `/${res.user.role}`
+      
       window.location.href = path
     } catch (err) {
       console.error('Login error:', err)

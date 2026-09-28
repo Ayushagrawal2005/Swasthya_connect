@@ -508,14 +508,14 @@ export function LandingPage() {
           <div className="mx-auto max-w-[1800px] px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5">
             <div className="flex items-center justify-between gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
               {/* Left - Government & Health Ministry Logos */}
-              <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 flex-shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 flex-shrink min-w-0">
                 {/* Indian Government Logo */}
-                <div className="flex h-[38px] w-[38px] sm:h-[42px] sm:w-[42px] md:h-[48px] md:w-[48px] lg:h-[55px] lg:w-[55px] items-center justify-center overflow-hidden">
+                <div className="flex h-[42px] w-[42px] sm:h-[45px] sm:w-[45px] md:h-[50px] md:w-[50px] lg:h-[55px] lg:w-[55px] items-center justify-center overflow-hidden flex-shrink-0">
                   <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
                 </div>
 
-                {/* Ministry of Health Logo */}
-                <div className="hidden sm:flex h-[42px] w-[42px] md:h-[48px] md:w-[48px] lg:h-[55px] lg:w-[55px] items-center justify-center overflow-hidden">
+                {/* Ministry of Health Logo - Show on mobile */}
+                <div className="flex h-[42px] w-[42px] sm:h-[45px] sm:w-[45px] md:h-[50px] md:w-[50px] lg:h-[55px] lg:w-[55px] items-center justify-center overflow-hidden flex-shrink-0">
                   <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
                 </div>
 
@@ -555,14 +555,14 @@ export function LandingPage() {
                   <img src={nhmLogo} alt="National Health Mission" className="h-full w-full object-contain" />
                 </div>
 
-                {/* Digital India Logo Section */}
-                <div className="hidden sm:flex items-center gap-1.5 md:gap-2 border-l-2 border-r-2 border-gray-300 px-2 md:px-2.5 lg:px-3">
-                  <div className="flex h-[40px] w-[40px] md:h-[45px] md:w-[45px] lg:h-[52px] lg:w-[52px] items-center justify-center rounded overflow-hidden">
+                {/* Digital India Logo Section - Show on mobile */}
+                <div className="flex items-center gap-1 md:gap-1.5 border-l-2 border-gray-300 pl-1.5 sm:pl-2 md:px-2.5 lg:px-3">
+                  <div className="flex h-[40px] w-[40px] sm:h-[42px] sm:w-[42px] md:h-[48px] md:w-[48px] lg:h-[52px] lg:w-[52px] items-center justify-center rounded overflow-hidden flex-shrink-0">
                     <img src={digitalIndiaLogo} alt="Digital India" className="h-full w-full object-contain" />
                   </div>
                   <div className="hidden md:flex flex-col items-start min-w-0">
-                    <div className="text-[11px] lg:text-[13px] xl:text-[15px] font-bold text-[#123B6D] leading-tight">Digital India</div>
-                    <div className="text-[8px] lg:text-[9px] xl:text-[10px] text-gray-600 leading-tight">Power to Empower</div>
+                    <div className="text-[11px] lg:text-[13px] xl:text-[14px] font-bold text-[#123B6D] leading-tight">Digital India</div>
+                    <div className="text-[8px] lg:text-[9px] text-gray-600 leading-tight">Power to Empower</div>
                   </div>
                 </div>
 

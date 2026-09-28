@@ -8,7 +8,6 @@ import { SyncStatusDrawer } from './components/ui/SyncStatusDrawer'
 
 // Public
 import { LandingPage }      from './pages/Landing'
-import LandingNew from './pages/LandingNew'
 import { LoginPage }        from './pages/Login'
 import { IvrSimulatorPage } from './pages/IvrSimulator'
 import { TestAllFeaturesPage } from './pages/TestAllFeatures'
@@ -93,7 +92,6 @@ function AppShell() {
           <Routes>
             {/* Public - Clear auth when accessing these pages */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/landing-new" element={<LandingNew />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
             <Route path="/test"  element={<TestAllFeaturesPage />} />

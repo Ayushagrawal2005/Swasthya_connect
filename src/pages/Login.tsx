@@ -7,6 +7,14 @@ import {
 import { useT } from '../context/AppContext'
 import { authApi } from '../services/api'
 
+// Import logos and hero image from landing page
+import heroImage from '../assets/images/hero(1).jpg'
+import digitalIndiaLogo from '../assets/images/digital india.svg'
+import ministryLogo from '../assets/images/ministry of affairs.svg'
+import nhmLogo from '../assets/images/national-health-mission-logo-png_seeklogo-389828.png'
+import indianGovtLogo from '../assets/images/indian govt.png'
+import swasthyaConnectLogo from '../assets/images/swasthya_connect.png'
+
 type DemoRole = 'asha' | 'doctor' | 'admin' | 'patient' | 'patient_female' | 'patient_male'
 
 // ── Demo credentials — one per role ──────────────────────────────
@@ -168,8 +176,8 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-gray-50">
-      {/* Left panel - Brand Hero */}
-      <div className="hidden lg:flex flex-col w-[45%] bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white p-8 md:p-10 lg:p-12 xl:p-16 relative overflow-hidden">
+      {/* Left panel - Brand Hero with Phone Mockup */}
+      <div className="hidden lg:flex flex-col w-[50%] bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white p-8 md:p-10 lg:p-12 xl:p-16 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-16 left-8 w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-white/10" />
@@ -178,56 +186,82 @@ export function LoginPage() {
         </div>
 
         <div className="relative z-10 flex flex-col h-full">
-          {/* Logo & Brand */}
-          <div className="mb-auto">
-            <div className="flex items-center gap-2 sm:gap-3 mb-8 md:mb-12">
-              <Activity className="w-7 h-7 sm:w-8 sm:h-8 text-[#E85D04]" aria-hidden="true" />
-              <span className="text-xl sm:text-2xl font-bold">Swasthya Connect</span>
+          {/* Logo Header - Match Landing Page */}
+          <div className="mb-8 md:mb-12">
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Ministry of Health Logo */}
+              <div className="flex h-[48px] w-[48px] md:h-[55px] md:w-[55px] items-center justify-center overflow-hidden flex-shrink-0">
+                <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
+              </div>
+
+              {/* Swasthya Connect Logo + Text */}
+              <div className="flex items-center gap-2 md:gap-2.5">
+                <div className="flex h-[40px] w-[40px] md:h-[48px] md:w-[48px] items-center justify-center overflow-hidden flex-shrink-0">
+                  <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
+                </div>
+                
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xl md:text-2xl font-bold text-white">Swasthya Connect</span>
+                  <span className="text-[10px] md:text-xs text-gray-200 font-medium">स्वास्थ्य कनेक्ट</span>
+                </div>
+              </div>
+
+              {/* Government of India Logo */}
+              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center overflow-hidden flex-shrink-0 ml-auto">
+                <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
+              </div>
+
+              {/* Digital India Logo */}
+              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center overflow-hidden flex-shrink-0">
+                <img src={digitalIndiaLogo} alt="Digital India" className="h-full w-full object-contain" />
+              </div>
+
+              {/* National Health Mission Logo */}
+              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center rounded overflow-hidden">
+                <img src={nhmLogo} alt="National Health Mission" className="h-full w-full object-contain" />
+              </div>
             </div>
-            
+          </div>
+
+          {/* Hero Content */}
+          <div className="flex-1 flex flex-col justify-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 md:mb-6">
               Government Healthcare Platform
             </h1>
-            <p className="text-base sm:text-lg text-gray-200 leading-relaxed mb-8 md:mb-12">
+            <p className="text-base sm:text-lg text-gray-200 leading-relaxed mb-8 md:mb-10">
               Unified digital health infrastructure connecting citizens, healthcare workers, and facilities across India's public health system.
             </p>
 
+            {/* Phone Mockup - Same as Landing Page */}
+            <div className="relative mx-auto mb-8 md:mb-10">
+              <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px]">
+                {/* Phone frame */}
+                <div className="absolute inset-0 bg-gray-900 rounded-[3rem] shadow-2xl border-[8px] md:border-[10px] border-gray-800">
+                  {/* Screen */}
+                  <div className="absolute inset-[10px] md:inset-[12px] bg-white rounded-[2.5rem] overflow-hidden">
+                    <img src={heroImage} alt="Swasthya Connect App" className="w-full h-full object-cover" />
+                  </div>
+                  {/* Notch */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] md:w-[140px] h-[24px] md:h-[28px] bg-gray-800 rounded-b-[1.5rem]" />
+                </div>
+              </div>
+            </div>
+
             {/* Healthcare Tier Chain */}
-            <div className="flex items-center gap-2 flex-wrap mb-8 md:mb-12">
+            <div className="flex items-center gap-2 flex-wrap justify-center mb-6">
               {['Sub-centre', 'PHC', 'CHC', 'District Hospital'].map((tier, i, arr) => (
                 <div key={tier} className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm bg-white/10 border border-white/20 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-medium">
+                  <span className="text-xs bg-white/10 border border-white/20 px-2.5 py-1 rounded-full font-medium">
                     {tier}
                   </span>
-                  {i < arr.length - 1 && <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/50" />}
+                  {i < arr.length - 1 && <ArrowRight className="w-3 h-3 text-white/50" />}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Platform Features */}
-          <div className="relative space-y-3 md:space-y-4">
-            <p className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#E85D04] mb-4">
-              Platform Features
-            </p>
-            {[
-              'ABDM/FHIR-compliant health records',
-              'Offline-first — works without internet',
-              'Multi-language support (6 Indian languages)',
-              'Role-based access for all healthcare tiers',
-              'AI-powered triage and diagnostics',
-            ].map((feature) => (
-              <div key={feature} className="flex items-start gap-3 text-sm sm:text-base">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#E85D04]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#E85D04]" aria-hidden="true" />
-                </div>
-                <span className="leading-relaxed">{feature}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Team Branding */}
-          <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="mt-auto pt-6 border-t border-white/10">
             <p className="text-xs text-gray-300">HealthSync1 Team <span className="text-gray-400">*ID - 165109*</span></p>
           </div>
         </div>
@@ -241,10 +275,31 @@ export function LoginPage() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-md lg:max-w-lg"
         >
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-6 sm:mb-8">
-            <Activity className="w-7 h-7 sm:w-8 sm:h-8 text-[#E85D04]" aria-hidden="true" />
-            <span className="text-xl sm:text-2xl font-bold text-[#123B6D]">Swasthya Connect</span>
+          {/* Mobile Logo Header - Match Landing Page */}
+          <div className="lg:hidden mb-6 sm:mb-8">
+            <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+              {/* Ministry of Health Logo */}
+              <div className="flex h-[38px] w-[38px] sm:h-[42px] sm:w-[42px] items-center justify-center overflow-hidden flex-shrink-0">
+                <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
+              </div>
+
+              {/* Swasthya Connect Logo + Text */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="flex h-[32px] w-[32px] sm:h-[38px] sm:w-[38px] items-center justify-center overflow-hidden flex-shrink-0">
+                  <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
+                </div>
+                
+                <div className="flex flex-col leading-tight">
+                  <span className="text-lg sm:text-xl font-bold text-[#123B6D]">Swasthya Connect</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 font-medium">स्वास्थ्य कनेक्ट</span>
+                </div>
+              </div>
+
+              {/* Government of India Logo (on larger mobiles) */}
+              <div className="hidden sm:flex h-[38px] w-[38px] items-center justify-center overflow-hidden flex-shrink-0">
+                <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
+              </div>
+            </div>
           </div>
 
           {/* Demo credentials card */}

@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Hospital,
   Link2,
+  Menu,
   Search,
   Shield,
   ShieldCheck,
@@ -22,6 +23,7 @@ import {
   Stethoscope,
   Users,
   Video,
+  X,
 } from 'lucide-react'
 
 // Import local images
@@ -40,6 +42,7 @@ export function LandingPage() {
   const { language, setLanguage } = useApp()
   const t = useT()
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const languageMenuRef = useRef<HTMLDivElement>(null)
 
   const languages = [
@@ -422,12 +425,13 @@ export function LandingPage() {
 
       {/* Top utility bar */}
       <div className="h-[24px] bg-[#171717] text-[11px] text-white relative z-[100] overflow-visible">
-        <div className="mx-auto flex h-full max-w-[1800px] items-center justify-between px-4">
-          <div>{t('govIndia')} | Team - HealthSync1 Team ID- 165109 </div>
-          <div className="flex items-center gap-3">
-            <button className="opacity-90 hover:opacity-100">Skip to main content</button>
-            <button className="opacity-90 hover:opacity-100">Screen Reader Access</button>
-            <div className="flex items-center gap-2 border-l border-white/20 pl-2">
+        <div className="mx-auto flex h-full max-w-[1800px] items-center justify-between px-2 md:px-4">
+          <div className="hidden sm:block text-[10px] sm:text-[11px]">{t('govIndia')} | Team - HealthSync1 Team ID- 165109 </div>
+          <div className="sm:hidden text-[9px]">{t('govIndia')}</div>
+          <div className="flex items-center gap-1 sm:gap-3">
+            <button className="opacity-90 hover:opacity-100 hidden md:block">Skip to main content</button>
+            <button className="opacity-90 hover:opacity-100 hidden md:block">Screen Reader Access</button>
+            <div className="hidden sm:flex items-center gap-2 border-l border-white/20 pl-2">
               <button className="hover:text-[#E85D04] transition-colors">A-</button>
               <button className="hover:text-[#E85D04] transition-colors">A</button>
               <button className="font-bold hover:text-[#E85D04] transition-colors">A+</button>
@@ -436,13 +440,13 @@ export function LandingPage() {
             <div className="relative" ref={languageMenuRef}>
               <button
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-1 opacity-90 hover:opacity-100 hover:text-[#E85D04] transition-all border-l border-white/20 pl-3"
+                className="flex items-center gap-1 opacity-90 hover:opacity-100 hover:text-[#E85D04] transition-all border-l border-white/20 pl-2 sm:pl-3"
                 aria-label="Select Language"
                 aria-expanded={showLanguageMenu}
               >
-                <span className="font-medium">{currentLanguage.name}</span>
+                <span className="font-medium text-[10px] sm:text-[11px]">{currentLanguage.name}</span>
                 <ChevronDown
-                  size={14}
+                  size={12}
                   className={`transition-transform duration-200 ${showLanguageMenu ? 'rotate-180' : ''}`}
                 />
               </button>
@@ -454,7 +458,7 @@ export function LandingPage() {
                     onClick={() => setShowLanguageMenu(false)}
                   />
                   {/* Dropdown menu */}
-                  <div className="absolute right-0 top-full mt-1 bg-white border-2 border-gray-300 rounded-md shadow-2xl py-1 min-w-[140px] z-[200]">
+                  <div className="absolute right-0 top-full mt-1 bg-white border-2 border-gray-300 rounded-md shadow-2xl py-1 min-w-[120px] sm:min-w-[140px] z-[200]">
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
@@ -462,7 +466,7 @@ export function LandingPage() {
                           setLanguage(lang.code)
                           setShowLanguageMenu(false)
                         }}
-                        className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-all duration-150 ${
+                        className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all duration-150 ${
                           lang.code === language
                             ? 'bg-[#E85D04] text-white shadow-sm'
                             : 'text-gray-800 hover:bg-[#123B6D] hover:text-white'
@@ -483,77 +487,78 @@ export function LandingPage() {
       <header className="bg-white text-[#123B6D] sticky top-0 z-50 shadow-lg">
         {/* Top Header with Logos */}
         <div className="bg-white border-b border-gray-200">
-          <div className="mx-auto max-w-[1800px] px-4 py-4">
-            <div className="flex items-center justify-between gap-6">
+          <div className="mx-auto max-w-[1800px] px-2 sm:px-4 py-2 sm:py-4">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 lg:gap-6">
               {/* Left - Government & Health Ministry Logos */}
-              <div className="flex items-center gap-5 flex-shrink-0">
-                {/* Indian Government Logo - First - Full Display */}
-                <div className="flex h-[70px] w-[70px] items-center justify-center overflow-hidden">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-5 flex-shrink-0">
+                {/* Indian Government Logo */}
+                <div className="flex h-[40px] w-[40px] sm:h-[50px] sm:w-[50px] md:h-[70px] md:w-[70px] items-center justify-center overflow-hidden">
                   <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
                 </div>
 
-                {/* Ministry of Health Logo - Beside Govt Logo */}
-                <div className="flex h-[70px] w-[70px] items-center justify-center overflow-hidden">
+                {/* Ministry of Health Logo */}
+                <div className="hidden sm:flex h-[50px] w-[50px] md:h-[70px] md:w-[70px] items-center justify-center overflow-hidden">
                   <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
                 </div>
 
-                <div className="h-16 border-r-2 border-gray-300" />
+                <div className="hidden md:block h-12 md:h-16 border-r-2 border-gray-300" />
 
                 {/* Swasthya Connect Logo & Text */}
-                <div className="flex items-center gap-4">
-                  <div className="flex h-[64px] w-[64px] items-center justify-center overflow-hidden">
+                <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+                  <div className="flex h-[40px] w-[40px] sm:h-[48px] sm:w-[48px] md:h-[64px] md:w-[64px] items-center justify-center overflow-hidden">
                     <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
                   </div>
                   
                   <div className="flex flex-col justify-center">
-                    <h1 className="text-[28px] font-bold leading-none text-[#123B6D]">Swasthya Connect</h1>
-                    <p className="text-[13px] text-gray-600 mt-1.5">by HealthSync1 Team *ID - 165109*</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Integrated Rural Healthcare Platform</p>
+                    <h1 className="text-[16px] sm:text-[20px] md:text-[24px] lg:text-[28px] font-bold leading-none text-[#123B6D]">Swasthya Connect</h1>
+                    <p className="text-[9px] sm:text-[11px] md:text-[13px] text-gray-600 mt-0.5 sm:mt-1 md:mt-1.5">by HealthSync1 Team *ID - 165109*</p>
+                    <p className="hidden sm:block text-[9px] md:text-[11px] text-gray-500 mt-0.5">Integrated Rural Healthcare Platform</p>
                   </div>
                 </div>
 
-                <div className="h-16 border-r-2 border-gray-300" />
+                <div className="hidden lg:block h-16 border-r-2 border-gray-300" />
 
                 {/* Prototype Badge */}
-                <span className="inline-flex flex-col items-start rounded-lg bg-[#E85D04] px-4 py-2 text-white whitespace-nowrap shadow-md">
+                <span className="hidden lg:inline-flex flex-col items-start rounded-lg bg-[#E85D04] px-4 py-2 text-white whitespace-nowrap shadow-md">
                   <span className="text-[11px] font-bold">Prototype • Smart India Hackathon 2026</span>
                   <span className="text-[9px] font-semibold">HealthSync1 Team *ID - 165109*</span>
                 </span>
               </div>
 
               {/* Right - Digital India & Additional Logos */}
-              <div className="flex items-center gap-6 flex-shrink-0">
-                {/* Gandhi's Specs Logo - Blended */}
-                <div className="flex h-[64px] w-[64px] items-center justify-center rounded-lg overflow-hidden">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 flex-shrink-0">
+                {/* Gandhi's Specs Logo */}
+                <div className="hidden md:flex h-[48px] w-[48px] lg:h-[64px] lg:w-[64px] items-center justify-center rounded-lg overflow-hidden">
                   <img src={gandhiLogo} alt="Swachh Bharat" className="h-full w-full object-contain" />
                 </div>
 
-                {/* National Health Mission Logo - Blended */}
-                <div className="flex h-[64px] w-[64px] items-center justify-center rounded-lg overflow-hidden">
+                {/* National Health Mission Logo */}
+                <div className="hidden md:flex h-[48px] w-[48px] lg:h-[64px] lg:w-[64px] items-center justify-center rounded-lg overflow-hidden">
                   <img src={nhmLogo} alt="National Health Mission" className="h-full w-full object-contain" />
                 </div>
 
-                {/* Digital India Logo Section - Blended */}
-                <div className="flex items-center gap-3 border-l-2 border-r-2 border-gray-300 px-5">
-                  <div className="flex h-[64px] w-[64px] items-center justify-center rounded-lg overflow-hidden">
+                {/* Digital India Logo Section */}
+                <div className="hidden sm:flex items-center gap-2 md:gap-3 border-l-2 border-r-2 border-gray-300 px-2 md:px-3 lg:px-5">
+                  <div className="flex h-[40px] w-[40px] sm:h-[48px] sm:w-[48px] lg:h-[64px] lg:w-[64px] items-center justify-center rounded-lg overflow-hidden">
                     <img src={digitalIndiaLogo} alt="Digital India" className="h-full w-full object-contain" />
                   </div>
-                  <div className="flex flex-col items-start">
-                    <div className="text-[16px] font-bold text-[#123B6D]">Digital India</div>
-                    <div className="text-[11px] text-gray-600">Power to Empower</div>
+                  <div className="hidden md:flex flex-col items-start">
+                    <div className="text-[12px] lg:text-[16px] font-bold text-[#123B6D]">Digital India</div>
+                    <div className="text-[9px] lg:text-[11px] text-gray-600">Power to Empower</div>
                   </div>
                 </div>
 
                 {/* Enhanced Login Button */}
                 <button
                   onClick={() => navigate('/login')}
-                  className="rounded-xl bg-[#E85D04] px-8 py-4 text-[17px] font-bold text-white shadow-xl transition hover:bg-[#d34b03] hover:shadow-2xl hover:scale-105"
+                  className="rounded-lg sm:rounded-xl bg-[#E85D04] px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 text-[12px] sm:text-[14px] md:text-[17px] font-bold text-white shadow-xl transition hover:bg-[#d34b03] hover:shadow-2xl hover:scale-105"
                 >
-                  <div className="flex items-center gap-3">
-                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    <span>{t('login')} / {t('register')}</span>
+                    <span className="hidden sm:inline">{t('login')} / {t('register')}</span>
+                    <span className="sm:hidden">{t('login')}</span>
                   </div>
                 </button>
               </div>
@@ -563,10 +568,19 @@ export function LandingPage() {
 
         {/* Navigation Bar with Search */}
         <div className="bg-[#123B6D] border-t border-blue-700">
-          <div className="mx-auto max-w-[1800px] px-4 py-0">
+          <div className="mx-auto max-w-[1800px] px-2 sm:px-4 py-0">
             <div className="flex items-center justify-between gap-2">
-              {/* Navigation Menu */}
-              <nav className="flex items-center gap-1">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="lg:hidden flex items-center text-white p-2"
+                aria-label="Toggle menu"
+              >
+                {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+              </button>
+
+              {/* Navigation Menu - Desktop */}
+              <nav className="hidden lg:flex items-center gap-1 overflow-x-auto">
                 {navItems.map((item, index) => (
                   <button
                     key={item}
@@ -590,40 +604,80 @@ export function LandingPage() {
                 ))}
               </nav>
 
-              {/* Search Bar in Header - Shorter */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Mobile Menu Title */}
+              <div className="lg:hidden flex-1 text-white text-sm font-medium text-center">
+                Swasthya Connect
+              </div>
+
+              {/* Search Bar - Hidden on small screens */}
+              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
                 <div className="flex items-center overflow-hidden rounded-lg bg-white shadow-sm border border-gray-300">
                   <Search size={14} className="ml-2 text-[#8b99aa]" />
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="h-[36px] w-[180px] bg-transparent px-2 text-[12px] text-[#123B6D] outline-none placeholder:text-[#7d8ba0]"
+                    className="h-[36px] w-[120px] md:w-[150px] lg:w-[180px] bg-transparent px-2 text-[12px] text-[#123B6D] outline-none placeholder:text-[#7d8ba0]"
                   />
-                  <button className="flex h-[36px] w-[40px] items-center justify-center bg-[#E85D04] text-white transition hover:bg-[#d34b03]">
+                  <button className="flex h-[36px] w-[36px] md:w-[40px] items-center justify-center bg-[#E85D04] text-white transition hover:bg-[#d34b03]">
                     <Search size={14} />
                   </button>
                 </div>
               </div>
+
+              {/* Mobile Search Icon */}
+              <button className="md:hidden p-2 text-white">
+                <Search size={20} />
+              </button>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {showMobileMenu && (
+              <nav className="lg:hidden py-2 border-t border-blue-700 mt-2">
+                {navItems.map((item, index) => (
+                  <button
+                    key={item}
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`w-full text-left px-4 py-3 text-[13px] font-medium transition ${
+                      index === 0
+                        ? 'bg-[#1a5a8f] text-white border-l-4 border-[#E85D04]'
+                        : 'text-white hover:bg-[#1a5a8f] hover:border-l-4 hover:border-[#E85D04]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {item}
+                      {[
+                        'Services',
+                        'For Patients',
+                        'For Frontline Workers',
+                        'For Doctors',
+                        'For Facilities',
+                        'Schemes & Policies',
+                        'Resources',
+                      ].includes(item) && <ChevronDown size={14} />}
+                    </div>
+                  </button>
+                ))}
+              </nav>
+            )}
           </div>
         </div>
       </header>
 
       {/* Government Updates Ticker Strip */}
-      <section className="bg-[#123B6D] py-3 border-b border-white/10 overflow-hidden">
+      <section className="bg-[#123B6D] py-2 sm:py-3 border-b border-white/10 overflow-hidden">
         <div className="relative">
-          <div className="flex items-center gap-4 animate-scroll">
-            <span className="flex-shrink-0 flex items-center gap-2 bg-[#E85D04] text-white px-4 py-1.5 rounded-md text-[12px] font-bold uppercase">
+          <div className="flex items-center gap-2 sm:gap-4 animate-scroll">
+            <span className="flex-shrink-0 flex items-center gap-1 sm:gap-2 bg-[#E85D04] text-white px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 rounded-md text-[10px] sm:text-[11px] md:text-[12px] font-bold uppercase">
               Latest Updates
             </span>
             {govUpdates.map((update, index) => (
-              <span key={index} className="flex-shrink-0 text-white text-[13px] font-medium px-6 border-l border-white/20">
+              <span key={index} className="flex-shrink-0 text-white text-[11px] sm:text-[12px] md:text-[13px] font-medium px-3 sm:px-4 md:px-6 border-l border-white/20">
                 {update}
               </span>
             ))}
             {/* Duplicate for seamless loop */}
             {govUpdates.map((update, index) => (
-              <span key={`dup-${index}`} className="flex-shrink-0 text-white text-[13px] font-medium px-6 border-l border-white/20">
+              <span key={`dup-${index}`} className="flex-shrink-0 text-white text-[11px] sm:text-[12px] md:text-[13px] font-medium px-3 sm:px-4 md:px-6 border-l border-white/20">
                 {update}
               </span>
             ))}
@@ -632,9 +686,9 @@ export function LandingPage() {
       </section>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-[#123B6D] py-16">
+      <section className="relative overflow-hidden bg-[#123B6D] py-8 sm:py-12 md:py-16">
         {/* Background with increased opacity for better visibility */}
-        <div className="absolute inset-0 opacity-95">
+        <div className="absolute inset-0 opacity-85 md:opacity-95">
           <img 
             src={heroImage} 
             alt="Rural healthcare background"
@@ -642,57 +696,57 @@ export function LandingPage() {
           />
         </div>
         
-        <div className="absolute inset-0 bg-gradient-to-r from-[#123B6D]/65 via-[#123B6D]/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#123B6D]/75 via-[#123B6D]/55 to-[#123B6D]/30 md:from-[#123B6D]/65 md:via-[#123B6D]/45 md:to-transparent" />
 
-        <div className="relative mx-auto grid max-w-[1800px] grid-cols-[1.2fr_0.8fr] gap-12 px-4 items-center">
+        <div className="relative mx-auto max-w-[1800px] px-3 sm:px-4 md:px-6 lg:px-4">
           {/* Left Content */}
-          <div className="text-white">
-            <div className="mb-6 inline-block rounded-full border border-white/30 bg-white/10 px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/90">
+          <div className="text-white max-w-[700px]">
+            <div className="mb-4 md:mb-6 inline-block rounded-full border border-white/30 bg-white/10 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.1em] sm:tracking-[0.15em] text-white/90">
               Integrated Rural Healthcare Platform
             </div>
 
-            <h2 className="max-w-[700px] text-[64px] font-bold leading-[1.0] mb-6 text-white">
+            <h2 className="max-w-[90%] sm:max-w-[600px] md:max-w-[700px] text-[32px] sm:text-[42px] md:text-[52px] lg:text-[64px] font-bold leading-[1.1] sm:leading-[1.05] md:leading-[1.0] mb-4 sm:mb-5 md:mb-6 text-white">
               Healthcare that reaches
               <br />
               every home in <span className="text-[#E85D04]">rural India</span>
             </h2>
 
-            <p className="text-[20px] font-medium text-white/90 mb-4">
+            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] font-medium text-white/90 mb-3 sm:mb-4">
               Accessible. People-Centric. Technology-Enabled.
             </p>
 
-            <p className="max-w-[680px] text-[16px] leading-relaxed text-white/85 mb-8">
+            <p className="max-w-[95%] sm:max-w-[600px] md:max-w-[680px] text-[13px] sm:text-[14px] md:text-[15px] lg:text-[16px] leading-relaxed text-white/85 mb-6 sm:mb-7 md:mb-8">
               {t('appName')} by HealthSync1 Team (ID: 165109) brings together patients, frontline workers, doctors and health
               facilities for continuous, equitable healthcare in rural communities.
             </p>
 
-            <div className="flex gap-4 mb-10">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8 md:mb-10">
               <button
                 onClick={() => navigate('/login')}
-                className="cta-button flex items-center gap-2 rounded-lg bg-[#E85D04] px-8 py-3.5 text-[16px] font-semibold text-white transition hover:bg-[#d64b03] shadow-lg"
+                className="cta-button flex items-center justify-center gap-2 rounded-lg bg-[#E85D04] px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-white transition hover:bg-[#d64b03] shadow-lg w-full sm:w-auto"
               >
                 Access Services
-                <ChevronRight size={18} />
+                <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
 
-              <button className="rounded-lg border-2 border-white bg-transparent px-8 py-3.5 text-[16px] font-semibold text-white transition hover:bg-white/10">
+              <button className="rounded-lg border-2 border-white bg-transparent px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-white transition hover:bg-white/10 w-full sm:w-auto">
                 Learn More
               </button>
             </div>
 
             {/* Testimonial Card */}
-            <div className="testimonial-card max-w-[540px] rounded-xl border border-white/20 bg-white/10 backdrop-blur-md p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
-                  <Users size={18} color="#E85D04" />
+            <div className="testimonial-card max-w-full sm:max-w-[90%] md:max-w-[540px] rounded-xl border border-white/20 bg-white/10 backdrop-blur-md p-4 sm:p-5">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white flex-shrink-0">
+                  <Users size={16} className="sm:w-[18px] sm:h-[18px]" color="#E85D04" />
                 </div>
                 <div>
-                  <p className="text-[16px] font-bold text-white">Sushila Devi</p>
-                  <p className="text-[12px] text-white/80">Frontline Worker, Beed District</p>
+                  <p className="text-[14px] sm:text-[15px] md:text-[16px] font-bold text-white">Sushila Devi</p>
+                  <p className="text-[11px] sm:text-[12px] text-white/80">Frontline Worker, Beed District</p>
                 </div>
               </div>
 
-              <p className="text-[14px] italic text-white leading-relaxed">
+              <p className="text-[12px] sm:text-[13px] md:text-[14px] italic text-white leading-relaxed">
                 "सुस्वास्थ्य से हमारे गांव की महिलाओं को समय पर इलाज मिल रहा है, पहले नहीं मिलता था"
               </p>
             </div>
@@ -839,12 +893,12 @@ export function LandingPage() {
       {/* Key Services Section */}
       <section className="bg-[#eef2f6] py-12">
         <div className="mx-auto max-w-[1800px] px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-[36px] font-bold text-[#123B6D] mb-3">Key Services</h2>
-            <p className="text-[16px] text-[#5f718a]">Comprehensive healthcare solutions for rural India</p>
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <h2 className="text-[28px] sm:text-[32px] md:text-[36px] font-bold text-[#123B6D] mb-2 sm:mb-3">Key Services</h2>
+            <p className="text-[14px] sm:text-[15px] md:text-[16px] text-[#5f718a] px-4">Comprehensive healthcare solutions for rural India</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
             {featureCards.map((card, index) => (
               <div
                 key={card.title}
@@ -852,17 +906,17 @@ export function LandingPage() {
                 style={{ animationDelay: card.delay }}
               >
                 <div
-                  className={`feature-card ${card.bgColor} rounded-xl border border-[#d8e1ea] p-6 ${
+                  className={`feature-card ${card.bgColor} rounded-xl border border-[#d8e1ea] p-5 sm:p-6 ${
                     index % 2 === 0 ? 'float-card' : 'float-card-delayed'
                   }`}
                   style={{ animationDelay: card.delay }}
                 >
-                  <div className={`mb-4 inline-block rounded-lg p-3 ${card.iconBg} ${card.iconColor}`}>
+                  <div className={`mb-3 sm:mb-4 inline-block rounded-lg p-2.5 sm:p-3 ${card.iconBg} ${card.iconColor}`}>
                     {card.icon}
                   </div>
 
-                  <h4 className="text-[15px] font-bold text-[#123B6D] mb-2">{card.title}</h4>
-                  <p className="text-[13px] text-[#5f718a] leading-relaxed">{card.subtitle}</p>
+                  <h4 className="text-[14px] sm:text-[15px] font-bold text-[#123B6D] mb-1.5 sm:mb-2">{card.title}</h4>
+                  <p className="text-[12px] sm:text-[13px] text-[#5f718a] leading-relaxed">{card.subtitle}</p>
                 </div>
               </div>
             ))}
@@ -871,12 +925,12 @@ export function LandingPage() {
       </section>
 
       {/* Mobile App Showcase Section */}
-      <section className="bg-gradient-to-br from-[#123B6D] to-[#1a4a7f] text-white py-16">
-        <div className="mx-auto max-w-[1800px] px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="bg-gradient-to-br from-[#123B6D] to-[#1a4a7f] text-white py-10 sm:py-12 md:py-16">
+        <div className="mx-auto max-w-[1800px] px-4 sm:px-6">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
             {/* Left: App Info */}
-            <div>
-              <div className="inline-block mb-4 px-4 py-2 bg-[#E85D04] rounded-full text-[12px] font-bold">
+            <div className="order-2 lg:order-1">
+              <div className="inline-block mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#E85D04] rounded-full text-[11px] sm:text-[12px] font-bold">
                 NOW AVAILABLE
               </div>
               <h2 className="text-[42px] font-bold leading-tight mb-6 text-white">
@@ -1067,19 +1121,19 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-[#123B6D] text-white">
-        <div className="mx-auto grid max-w-[1800px] grid-cols-5 gap-10 px-5 py-12">
-          <div className="pr-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-[42px] w-[42px] items-center justify-center rounded bg-white p-1">
+        <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 px-4 sm:px-5 py-8 sm:py-10 md:py-12 max-w-[1800px]">
+          <div className="sm:col-span-2 lg:col-span-1 pr-0 lg:pr-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-[36px] w-[36px] sm:h-[42px] sm:w-[42px] items-center justify-center rounded bg-white p-1 flex-shrink-0">
                 <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
               </div>
               <div>
-                <h3 className="text-[18px] font-bold text-white">Swasthya Connect</h3>
-                <p className="text-[11px] text-blue-200">by HealthSync1 Team *ID - 165109*</p>
-                <p className="text-[10px] text-blue-200">Integrated Rural Healthcare Platform</p>
+                <h3 className="text-[16px] sm:text-[18px] font-bold text-white">Swasthya Connect</h3>
+                <p className="text-[10px] sm:text-[11px] text-blue-200">by HealthSync1 Team *ID - 165109*</p>
+                <p className="hidden sm:block text-[9px] sm:text-[10px] text-blue-200">Integrated Rural Healthcare Platform</p>
               </div>
             </div>
-            <p className="mt-5 text-[12px] text-blue-200">Prototype • Smart India Hackathon 2026</p>
+            <p className="mt-3 sm:mt-5 text-[11px] sm:text-[12px] text-blue-200">Prototype • Smart India Hackathon 2026</p>
           </div>
 
           {[
@@ -1089,8 +1143,8 @@ export function LandingPage() {
             ['Help & Support', ['FAQs', 'Feedback', 'Report an Issue', 'Sitemap']],
           ].map(([heading, links]) => (
             <div key={heading as string}>
-              <h4 className="mb-4 text-[16px] font-bold text-white">{heading}</h4>
-              <ul className="space-y-2 text-[13px] text-blue-200">
+              <h4 className="mb-3 sm:mb-4 text-[14px] sm:text-[15px] md:text-[16px] font-bold text-white">{heading}</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-[12px] sm:text-[13px] text-blue-200">
                 {(links as string[]).map((link) => (
                   <li key={link} className="hover:text-white transition-colors cursor-pointer">{link}</li>
                 ))}
@@ -1100,10 +1154,10 @@ export function LandingPage() {
         </div>
 
         <div className="border-t border-blue-700">
-          <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-6 px-5 py-4 text-[12px] text-blue-200">
+          <div className="mx-auto flex flex-col sm:flex-row max-w-[1800px] items-center justify-between gap-3 sm:gap-6 px-4 sm:px-5 py-3 sm:py-4 text-[11px] sm:text-[12px] text-blue-200 text-center sm:text-left">
             <div>Content owned by Team - HealthSync1 Team ID- 165109 (Prototype).</div>
-            <div>Not an official Government of India website.</div>
-            <div>Prototype for Smart India Hackathon 2026 | </div>
+            <div className="hidden sm:block">Not an official Government of India website.</div>
+            <div>Prototype for Smart India Hackathon 2026</div>
           </div>
         </div>
       </footer>

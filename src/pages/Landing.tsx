@@ -925,9 +925,9 @@ export function LandingPage() {
       </section>
 
       {/* Mobile App Showcase Section */}
-      <section className="bg-gradient-to-br from-[#123B6D] to-[#1a4a7f] text-white py-10 sm:py-12 md:py-16">
+      <section className="bg-gradient-to-br from-[#123B6D] to-[#1a4a7f] text-white py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="mx-auto max-w-[1800px] px-4 sm:px-6">
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-center">
             {/* Left: App Info */}
             <div className="order-2 lg:order-1">
               <div className="inline-block mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#E85D04] rounded-full text-[11px] sm:text-[12px] font-bold">
@@ -1005,13 +1005,13 @@ export function LandingPage() {
             </div>
 
             {/* Right: Phone Mockup */}
-            <div className="flex justify-center app-phone">
-              <div className="h-[680px] w-[340px] rounded-[50px] bg-gradient-to-b from-gray-900 to-black p-3 shadow-2xl">
+            <div className="order-1 lg:order-2 flex justify-center app-phone">
+              <div className="h-[480px] w-[240px] sm:h-[580px] sm:w-[290px] md:h-[680px] md:w-[340px] rounded-[40px] sm:rounded-[50px] bg-gradient-to-b from-gray-900 to-black p-2 sm:p-3 shadow-2xl">
                 {/* Dynamic Island */}
-                <div className="absolute left-1/2 top-0 z-20 h-[32px] w-[120px] -translate-x-1/2 rounded-b-3xl bg-black" />
+                <div className="absolute left-1/2 top-0 z-20 h-[24px] w-[90px] sm:h-[28px] sm:w-[110px] md:h-[32px] md:w-[120px] -translate-x-1/2 rounded-b-2xl sm:rounded-b-3xl bg-black" />
                 
                 {/* Screen */}
-                <div className="relative h-full w-full overflow-hidden rounded-[44px] bg-gray-100">
+                <div className="relative h-full w-full overflow-hidden rounded-[36px] sm:rounded-[40px] md:rounded-[44px] bg-gray-100">
                   {/* Status Bar */}
                   <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-8 pt-3 text-[11px] font-semibold text-[#123B6D]">
                     <span>9:41</span>

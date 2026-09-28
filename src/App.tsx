@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
+import { useEffect } from 'react'
 import { Navbar }           from './components/layout/Navbar'
 import { Sidebar }          from './components/layout/Sidebar'
 import { OfflineBanner }    from './components/ui/OfflineBanner'
@@ -70,19 +71,29 @@ import { AmbulanceCoordinatorDashboard } from './pages/facility/AmbulanceCoordin
 import { DistrictOfficerDashboard }      from './pages/facility/DistrictOfficerDashboard'
 
 function AppShell() {
-  const { role, isOnline } = useApp()
+  const { role, isOnline, logout } = useApp()
+  const location = useLocation()
+
+  // Auto-logout when navigating to public pages
+  useEffect(() => {
+    if (role && (location.pathname === '/' || location.pathname === '/login')) {
+      logout()
+    }
+  }, [location.pathname, role, logout])
 
   return (
     <div className="flex flex-col min-h-screen">
       {!isOnline && <OfflineBanner />}
-      <Navbar />
+      {/* Only show Navbar if user is logged in (has a role) */}
+      {role && <Navbar />}
       <div className="flex flex-1 min-h-0">
-        <Sidebar />
+        {/* Only show Sidebar if user is logged in (has a role) */}
+        {role && <Sidebar />}
         <main className="flex-1 min-w-0 overflow-y-auto" id="main-content">
           <Routes>
-            {/* Public */}
-            <Route path="/"      element={<LandingNew />} />
-            <Route path="/old-landing" element={<LandingPage />} />
+            {/* Public - Clear auth when accessing these pages */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landing-new" element={<LandingNew />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
             <Route path="/test"  element={<TestAllFeaturesPage />} />

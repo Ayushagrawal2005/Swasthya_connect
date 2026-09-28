@@ -1,181 +1,259 @@
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Government Portal Design System */
+/* SWASTHYA CONNECT DESIGN SYSTEM */
 :root {
-  /* Colors */
-  --color-primary: #0066ff;
-  --color-primary-dark: #003d99;
-  --color-secondary: #f97316;
-  --color-navy: #102a43;
-  --color-navy-dark: #0a1929;
+  /* Brand Colors */
+  --color-primary: #123B6D;      /* Government Navy */
+  --color-accent: #E85D04;       /* Swasthya Orange */
+  --color-background: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-border: #D9E1EA;
+  
+  /* Text Colors */
+  --color-text-primary: #172B4D;
+  --color-text-secondary: #52657A;
+  
+  /* Semantic Colors */
+  --color-success: #198754;
+  --color-warning: #D98C00;
+  --color-critical: #D92D20;
+  --color-info: #1677C8;
   
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-sans: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', sans-serif;
   
-  /* Shadows */
-  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.15);
+  /* Shadows - Subtle */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-border-default;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-bg-secondary text-text-primary antialiased;
     font-family: var(--font-sans);
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-semibold text-text-primary;
+    letter-spacing: -0.01em;
   }
   
   h1 {
-    @apply text-4xl md:text-5xl;
+    @apply text-3xl md:text-4xl lg:text-5xl;
   }
   
   h2 {
-    @apply text-3xl md:text-4xl;
-  }
-  
-  h3 {
     @apply text-2xl md:text-3xl;
   }
   
-  h4 {
+  h3 {
     @apply text-xl md:text-2xl;
   }
   
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+  }
+  
+  /* Focus States - Accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent-500 ring-offset-2;
   }
 }
 
 @layer components {
-  /* Button Styles - Government Portal */
+  /* SWASTHYA CONNECT BUTTON SYSTEM */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
   
   .btn-primary {
-    @apply bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 shadow-md hover:shadow-lg;
+    @apply bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500;
   }
   
   .btn-secondary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-md hover:shadow-lg;
+    @apply bg-white text-primary-500 border-2 border-primary-500 hover:bg-primary-50 focus:ring-primary-500;
   }
   
-  .btn-outline {
-    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-primary-500;
+  .btn-tertiary {
+    @apply text-primary-500 hover:text-accent-500 hover:bg-primary-50 focus:ring-primary-500;
   }
   
-  .btn-ghost {
-    @apply text-gray-700 hover:bg-gray-100 focus:ring-gray-500;
+  .btn-danger {
+    @apply bg-critical text-white hover:bg-critical-dark focus:ring-critical;
   }
   
-  /* Card Styles */
+  /* CARD SYSTEM */
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200;
+    @apply bg-white rounded-lg border border-border-default shadow-sm;
   }
   
   .card-hover {
-    @apply card hover:border-primary-200 cursor-pointer;
+    @apply card hover:border-primary-200 hover:shadow-md transition-all cursor-pointer;
   }
   
-  /* Input Styles */
+  /* INPUT SYSTEM */
   .input {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors;
+    @apply w-full px-4 py-2.5 border border-border-default rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white;
   }
   
-  /* Badge Styles */
+  .input-error {
+    @apply border-critical focus:ring-critical;
+  }
+  
+  /* BADGE SYSTEM */
   .badge {
-    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-medium;
   }
   
   .badge-success {
-    @apply bg-green-100 text-green-800;
+    @apply bg-success-light text-success-dark;
   }
   
   .badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
+    @apply bg-warning-light text-warning-dark;
   }
   
-  .badge-error {
-    @apply bg-red-100 text-red-800;
+  .badge-critical {
+    @apply bg-critical-light text-critical-dark;
   }
   
   .badge-info {
-    @apply bg-blue-100 text-blue-800;
+    @apply bg-info-light text-info-dark;
   }
   
-  /* Section Styles */
-  .section {
-    @apply py-12 md:py-20;
+  .badge-neutral {
+    @apply bg-gray-100 text-gray-700;
   }
   
-  .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  /* GOVERNMENT-STYLE UTILITY BAR */
+  .utility-bar {
+    @apply bg-primary-900 text-white text-xs py-1.5;
   }
   
-  /* Government Top Banner */
-  .gov-banner {
-    @apply bg-navy-950 text-white text-sm py-2;
+  /* MAIN HEADER */
+  .main-header {
+    @apply bg-white border-b border-border-default sticky top-0 z-50 shadow-sm;
   }
   
-  /* Navigation */
+  /* NAVIGATION */
+  .nav-primary {
+    @apply bg-primary-500 text-white;
+  }
+  
   .nav-link {
-    @apply text-gray-700 hover:text-primary-600 px-4 py-2 rounded-md font-medium transition-colors;
+    @apply px-4 py-3 text-sm font-medium hover:bg-primary-600 transition-colors;
   }
   
   .nav-link-active {
-    @apply text-primary-600 bg-primary-50;
+    @apply bg-accent-500;
   }
   
-  /* Stats Card */
+  /* SEARCH BAR */
+  .search-bar {
+    @apply flex items-center gap-3 bg-white border-2 border-border-default rounded-md px-4 py-2.5 focus-within:border-primary-500 transition-colors;
+  }
+  
+  /* CONTAINER */
+  .container-swasthya {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* SECTION SPACING */
+  .section {
+    @apply py-12 md:py-16;
+  }
+  
+  /* USER ROLE CARD */
+  .role-card {
+    @apply card p-6 hover:border-primary-300 transition-all;
+  }
+  
+  /* SERVICE CARD */
+  .service-card {
+    @apply card p-5 text-center hover:shadow-md transition-all;
+  }
+  
+  /* STAT CARD */
   .stat-card {
-    @apply text-center p-6;
+    @apply text-center;
   }
   
   .stat-number {
-    @apply text-4xl md:text-5xl font-bold text-primary-600 mb-2;
+    @apply text-3xl md:text-4xl font-bold text-primary-500 mb-1;
   }
   
   .stat-label {
-    @apply text-sm text-gray-600 font-medium;
+    @apply text-sm text-text-secondary font-medium;
   }
   
-  /* Feature Card */
-  .feature-card {
-    @apply card p-6 text-center hover:scale-105 transition-transform;
+  /* ALERT SYSTEM */
+  .alert {
+    @apply flex items-start gap-3 p-4 rounded-md border-l-4;
   }
   
-  .feature-icon {
-    @apply w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-primary-100 text-primary-600;
+  .alert-critical {
+    @apply bg-critical-light border-critical text-critical-dark;
   }
   
-  /* User Type Card */
-  .user-type-card {
-    @apply card p-8 hover:border-primary-400 transition-all cursor-pointer;
+  .alert-warning {
+    @apply bg-warning-light border-warning text-warning-dark;
   }
   
-  /* Search Bar */
-  .search-bar {
-    @apply flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg px-4 py-3 focus-within:border-primary-500 transition-colors;
+  .alert-success {
+    @apply bg-success-light border-success text-success-dark;
   }
   
-  /* Footer */
+  .alert-info {
+    @apply bg-info-light border-info text-info-dark;
+  }
+  
+  /* TABLE SYSTEM */
+  .table {
+    @apply w-full border-collapse;
+  }
+  
+  .table th {
+    @apply bg-primary-50 text-primary-700 text-left text-sm font-semibold px-4 py-3 border-b-2 border-primary-200;
+  }
+  
+  .table td {
+    @apply px-4 py-3 border-b border-border-default text-sm;
+  }
+  
+  .table tr:hover {
+    @apply bg-primary-50/30;
+  }
+  
+  /* PROTOTYPE BADGE */
+  .prototype-badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 bg-accent-100 text-accent-700 text-xs font-semibold rounded-full;
+  }
+  
+  /* FOOTER */
   .footer-link {
-    @apply text-gray-400 hover:text-white transition-colors;
+    @apply text-primary-200 hover:text-white transition-colors text-sm;
+  }
+  
+  /* OFFLINE INDICATOR */
+  .offline-banner {
+    @apply bg-warning-light text-warning-dark p-3 flex items-center gap-3;
+  }
+  
+  /* EMERGENCY BUTTON */
+  .emergency-btn {
+    @apply bg-critical hover:bg-critical-dark text-white font-semibold rounded-lg px-6 py-3 flex items-center gap-2 shadow-md;
   }
 }
 

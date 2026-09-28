@@ -4,84 +4,61 @@
  */
 
 export const colors = {
-  // Primary - Deep Blue (Government Portal Style)
+  // PRIMARY: Government Navy (Locked Design) - #123B6D
   primary: {
-    50: '#e6f0ff',
-    100: '#cce0ff',
-    200: '#99c2ff',
-    300: '#66a3ff',
-    400: '#3385ff',
-    500: '#0066ff', // Main primary
-    600: '#0052cc',
-    700: '#003d99',
-    800: '#002966',
-    900: '#001433',
-    950: '#000a1a'
+    50: '#e8eef5',
+    100: '#d1dce9',
+    200: '#a3b9d4',
+    300: '#7596be',
+    400: '#4773a9',
+    500: '#123B6D', // Main Government Navy - LOCKED
+    600: '#0f3059',
+    700: '#0b2445',
+    800: '#081830',
+    900: '#040c1c',
+    950: '#02060e'
   },
   
-  // Secondary - Orange (CTA Buttons)
-  secondary: {
-    50: '#fff7ed',
-    100: '#ffedd5',
-    200: '#fed7aa',
-    300: '#fdba74',
-    400: '#fb923c',
-    500: '#f97316', // Main orange
-    600: '#ea580c',
-    700: '#c2410c',
-    800: '#9a3412',
-    900: '#7c2d12'
+  // ACCENT: Swasthya Orange (Locked Design) - #E85D04
+  accent: {
+    50: '#fef3e6',
+    100: '#fde7cc',
+    200: '#fbcf99',
+    300: '#f9b766',
+    400: '#f79f33',
+    500: '#E85D04', // Main Swasthya Orange - LOCKED
+    600: '#ba4a03',
+    700: '#8b3802',
+    800: '#5d2502',
+    900: '#2e1301'
   },
   
-  // Navy - Dark Professional Background
-  navy: {
-    50: '#f0f4f8',
-    100: '#d9e2ec',
-    200: '#bcccdc',
-    300: '#9fb3c8',
-    400: '#829ab1',
-    500: '#627d98',
-    600: '#486581',
-    700: '#334e68', // Main navy
-    800: '#243b53',
-    900: '#102a43',
-    950: '#0a1929'
-  },
-  
-  // Success, Warning, Error
-  success: '#10b981',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  info: '#3b82f6',
-  
-  // Neutral Grays
-  gray: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827'
-  },
-  
-  // Background & Text
+  // BACKGROUND
   background: {
-    primary: '#ffffff',
-    secondary: '#f9fafb',
-    dark: '#0a1929',
-    navy: '#102a43'
+    primary: '#FFFFFF',
+    secondary: '#F5F7FA',
+    dark: '#123B6D',
+    navy: '#123B6D'
   },
   
+  // TEXT
   text: {
-    primary: '#111827',
-    secondary: '#4b5563',
+    primary: '#172B4D',
+    secondary: '#52657A',
     tertiary: '#9ca3af',
     inverse: '#ffffff'
-  }
+  },
+  
+  // SEMANTIC COLORS
+  success: '#198754',
+  warning: '#D98C00',
+  critical: '#D92D20',
+  error: '#D92D20',
+  info: '#1677C8',
+  
+  // BORDER
+  border: '#D9E1EA',
+  surface: '#FFFFFF'
 }
 
 export const typography = {
@@ -177,22 +154,23 @@ export const breakpoints = {
 export const components = {
   button: {
     primary: {
-      bg: colors.secondary[500],
-      bgHover: colors.secondary[600],
-      text: colors.text.inverse,
-      borderRadius: borderRadius.md
+      bg: '#E85D04', // Swasthya Orange - LOCKED
+      bgHover: '#ba4a03',
+      text: '#ffffff',
+      borderRadius: '6px'
     },
     secondary: {
-      bg: colors.primary[600],
-      bgHover: colors.primary[700],
-      text: colors.text.inverse,
-      borderRadius: borderRadius.md
+      bg: '#ffffff',
+      bgHover: '#F5F7FA',
+      text: '#123B6D',
+      border: '#123B6D',
+      borderRadius: '6px'
     },
-    outline: {
-      border: colors.primary[600],
-      text: colors.primary[600],
-      bgHover: colors.primary[50],
-      borderRadius: borderRadius.md
+    tertiary: {
+      bg: 'transparent',
+      text: '#123B6D',
+      textHover: '#E85D04',
+      borderRadius: '6px'
     }
   },
   

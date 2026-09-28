@@ -5,44 +5,60 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Government Portal Primary Colors
+        // SWASTHYA CONNECT BRAND COLORS (LOCKED DESIGN)
+        // Primary: Government Navy - #123B6D
         primary: {
-          50: '#e6f0ff',
-          100: '#cce0ff',
-          200: '#99c2ff',
-          300: '#66a3ff',
-          400: '#3385ff',
-          500: '#0066ff',
-          600: '#0052cc',
-          700: '#003d99',
-          800: '#002966',
-          900: '#001433'
+          50: '#e8eef5',
+          100: '#d1dce9',
+          200: '#a3b9d4',
+          300: '#7596be',
+          400: '#4773a9',
+          500: '#123B6D',  // Main Government Navy - LOCKED
+          600: '#0f3059',
+          700: '#0b2445',
+          800: '#081830',
+          900: '#040c1c',
         },
-        secondary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12'
+        // Accent: Swasthya Orange - #E85D04
+        accent: {
+          50: '#fef3e6',
+          100: '#fde7cc',
+          200: '#fbcf99',
+          300: '#f9b766',
+          400: '#f79f33',
+          500: '#E85D04',  // Main Swasthya Orange - LOCKED
+          600: '#ba4a03',
+          700: '#8b3802',
+          800: '#5d2502',
+          900: '#2e1301'
         },
-        navy: {
-          50: '#f0f4f8',
-          100: '#d9e2ec',
-          200: '#bcccdc',
-          300: '#9fb3c8',
-          400: '#829ab1',
-          500: '#627d98',
-          600: '#486581',
-          700: '#334e68',
-          800: '#243b53',
-          900: '#102a43',
-          950: '#0a1929'
+        // Semantic Colors
+        success: {
+          DEFAULT: '#198754',
+          light: '#d1f4e0',
+          dark: '#0d5132'
         },
+        warning: {
+          DEFAULT: '#D98C00',
+          light: '#fef3c7',
+          dark: '#92400e'
+        },
+        critical: {
+          DEFAULT: '#D92D20',
+          light: '#fee2e2',
+          dark: '#991b1b'
+        },
+        info: {
+          DEFAULT: '#1677C8',
+          light: '#dbeafe',
+          dark: '#1e3a8a'
+        },
+        // Background & Text
+        'bg-primary': '#FFFFFF',
+        'bg-secondary': '#F5F7FA',
+        'text-primary': '#172B4D',
+        'text-secondary': '#52657A',
+        'border-default': '#D9E1EA',
         // Legacy colors kept for backward compatibility
         teal: {
           50:  '#f0fdf9',

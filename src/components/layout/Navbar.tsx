@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Globe, Menu, X, Heart, ChevronDown, Bell } from 'lucide-react'
+import { Globe, Menu, X, ChevronDown, Bell, LogOut } from 'lucide-react'
 import { useApp, useT } from '../../context/AppContext'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../ui/NotificationBell'
 import { ReferralNotificationBell } from '../ui/ReferralNotificationBell'
+import swasthyaConnectLogo from '../../assets/images/swasthya_connect.png'
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -15,7 +16,7 @@ const languages = [
 ] as const
 
 export function Navbar() {
-  const { language, setLanguage, role } = useApp()
+  const { language, setLanguage, role, logout } = useApp()
   const t = useT()
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,154 +32,179 @@ export function Navbar() {
   }
 
   return (
-    <>
-      {/* Government of India Tricolor Header Strip */}
-      <div className="gov-header-strip" aria-hidden="true" />
-      
-      <nav
-        className="sticky top-0 z-40 bg-white border-b border-[#D4D4D4] shadow-sm"
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Logo - Government Style */}
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF9933] rounded"
-            aria-label="SwasthyaConnect — go to home"
-          >
-            {/* Government Emblem Style Icon */}
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF9933] via-white to-[#138808] flex items-center justify-center shadow-md border border-[#D4D4D4]">
-              <Heart size={20} className="text-[#000080]" fill="currentColor" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-base font-bold text-[#1A1A1A] leading-tight tracking-tight">{t('appName')}</h1>
-              <p className="text-[10px] text-[#6B6B6B] leading-tight font-medium">{t('govIndia')}</p>
-            </div>
-          </button>
+    <nav
+      className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
+        {/* Logo - Swasthya Connect Branding */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2.5 sm:gap-3 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E85D04] rounded-lg p-1"
+          aria-label="Swasthya Connect — go to home"
+        >
+          {/* Logo Icon */}
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-1.5">
+            <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="w-full h-full object-contain" />
+          </div>
+          <div className="text-left">
+            <h1 className="text-base sm:text-lg font-bold text-[#123B6D] leading-tight">Swasthya Connect</h1>
+            <p className="text-[10px] sm:text-xs text-gray-600 leading-tight font-medium">स्वास्थ्य कनेक्ट</p>
+          </div>
+        </button>
 
-          {/* Desktop links - Government Portal Style */}
-          {isLanding && (
-            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[#4A4A4A]">
-              <a href="#how-it-works" className="hover:text-[#FF9933] transition-colors border-b-2 border-transparent hover:border-[#FF9933] pb-1">
-                How it works
-              </a>
-              <a href="#impact" className="hover:text-[#FF9933] transition-colors border-b-2 border-transparent hover:border-[#FF9933] pb-1">
-                Impact
-              </a>
-              <button onClick={() => navigate('/ivr')} className="hover:text-[#FF9933] transition-colors border-b-2 border-transparent hover:border-[#FF9933] pb-1">
-                IVR helpline
-              </button>
-            </div>
-          )}
-
-          {/* Role Badge - Government Style */}
-          {role && !isLanding && (
-            <span className="hidden sm:flex items-center gap-2 text-xs font-semibold bg-gradient-to-r from-[#FF9933] to-[#E67300] text-white px-4 py-1.5 rounded shadow-sm">
-              <span className="capitalize">{role === 'asha' ? t('frontlineWorkerPortal') : `${t(role)} ${t('portalLabel')}`}</span>
-            </span>
-          )}
-
-          <div className="flex items-center gap-2">
-            {/* Notifications - shown when logged in */}
-            {role && !isLanding && (
-              <>
-                <NotificationBell />
-                <ReferralNotificationBell />
-              </>
-            )}
-            
-            {/* Language Picker - Government Portal Standard */}
-            <div className="relative">
-              <button
-                onClick={() => setLangOpen(p => !p)}
-                className="flex items-center gap-1.5 text-sm text-[#4A4A4A] px-3 py-1.5 rounded hover:text-[#FF9933] border border-[#D4D4D4] hover:border-[#FF9933] transition-colors focus-visible:outline-2 focus-visible:outline-[#FF9933]"
-                aria-label="Change language"
-                aria-expanded={langOpen}
-                aria-haspopup="listbox"
-              >
-                <Globe size={14} aria-hidden="true" />
-                <span className="hidden sm:block font-medium">{languages.find(l => l.code === language)?.label}</span>
-                <ChevronDown size={12} aria-hidden="true" />
-              </button>
-              {langOpen && (
-                <div
-                  role="listbox"
-                  aria-label="Language options"
-                  className="absolute right-0 top-full mt-1 bg-white rounded shadow-lg border border-[#D4D4D4] py-1 min-w-[140px] z-50 animate-slide-up"
-                >
-                  {languages.map(lang => (
-                    <button
-                      key={lang.code}
-                      role="option"
-                      aria-selected={language === lang.code}
-                      onClick={() => { setLanguage(lang.code); setLangOpen(false) }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-[#FFF5EB] transition-colors ${
-                        language === lang.code ? 'text-[#FF9933] font-semibold bg-[#FFF5EB]' : 'text-[#4A4A4A]'
-                      }`}
-                    >
-                      {lang.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Notifications - Government Style */}
-            {role && (
-              <button
-                className="p-2 rounded text-[#4A4A4A] hover:text-[#FF9933] hover:bg-[#FFF5EB] relative transition-colors focus-visible:outline-2 focus-visible:outline-[#FF9933]"
-                aria-label="Notifications"
-                onClick={() => navigate('/notifications')}
-              >
-                <Bell size={18} aria-hidden="true" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF9933] rounded-full border-2 border-white" aria-hidden="true" />
-              </button>
-            )}
-
-            {/* Auth CTA - Government Button Style */}
-            {isLanding && (
-              <button onClick={() => navigate('/login')} className="btn-primary py-2 px-5 text-sm font-semibold shadow-sm">
-                {t('login')}
-              </button>
-            )}
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setMobileOpen(p => !p)}
-              className="md:hidden p-2 rounded text-[#4A4A4A] hover:bg-[#FFF5EB] transition-colors focus-visible:outline-2 focus-visible:outline-[#FF9933]"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileOpen}
-            >
-              {mobileOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+        {/* Desktop links */}
+        {isLanding && (
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
+            <a href="#how-it-works" className="hover:text-[#E85D04] transition-colors">
+              How it works
+            </a>
+            <a href="#impact" className="hover:text-[#E85D04] transition-colors">
+              Impact
+            </a>
+            <button onClick={() => navigate('/ivr')} className="hover:text-[#E85D04] transition-colors">
+              IVR helpline
             </button>
           </div>
-        </div>
+        )}
 
-        {/* Mobile Menu - Government Style */}
-        {mobileOpen && (
-          <div className="md:hidden bg-white border-t border-[#D4D4D4] px-4 py-3 space-y-2 animate-slide-up shadow-md">
-            {isLanding && (
-              <>
-                <a href="#how-it-works" className="block px-4 py-2 text-sm font-medium text-[#4A4A4A] hover:text-[#FF9933] hover:bg-[#FFF5EB] rounded transition-colors" onClick={() => setMobileOpen(false)}>
-                  How it works
-                </a>
-                <a href="#impact" className="block px-4 py-2 text-sm font-medium text-[#4A4A4A] hover:text-[#FF9933] hover:bg-[#FFF5EB] rounded transition-colors" onClick={() => setMobileOpen(false)}>
-                  Impact
-                </a>
-                <button onClick={() => { navigate('/ivr'); setMobileOpen(false) }} className="block w-full text-left px-4 py-2 text-sm font-medium text-[#4A4A4A] hover:text-[#FF9933] hover:bg-[#FFF5EB] rounded transition-colors">
-                  IVR helpline
-                </button>
-                <div className="pt-2">
-                  <button onClick={() => { navigate('/login'); setMobileOpen(false) }} className="btn-primary w-full justify-center py-2.5">
-                    {t('login')}
+        {/* Role Badge */}
+        {role && !isLanding && (
+          <span className="hidden sm:flex items-center gap-2 text-xs font-semibold bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white px-4 py-2 rounded-lg shadow-sm">
+            <span className="capitalize">
+              {role === 'asha' ? t('frontlineWorkerPortal') : `${t(role)} ${t('portalLabel')}`}
+            </span>
+          </span>
+        )}
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Notifications - shown when logged in */}
+          {role && !isLanding && (
+            <div className="flex items-center gap-1.5">
+              <NotificationBell />
+              <ReferralNotificationBell />
+            </div>
+          )}
+          
+          {/* Language Picker */}
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(p => !p)}
+              className="flex items-center gap-1.5 text-sm text-gray-700 px-3 py-2 rounded-lg hover:text-[#E85D04] hover:bg-gray-50 border border-gray-200 hover:border-[#E85D04] transition-all focus:outline-none focus:ring-2 focus:ring-[#E85D04]"
+              aria-label="Change language"
+              aria-expanded={langOpen}
+              aria-haspopup="listbox"
+            >
+              <Globe className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:block font-medium">{languages.find(l => l.code === language)?.label}</span>
+              <ChevronDown className="w-3 h-3" aria-hidden="true" />
+            </button>
+            {langOpen && (
+              <div
+                role="listbox"
+                aria-label="Language options"
+                className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[160px] z-50 animate-slide-up"
+              >
+                {languages.map(lang => (
+                  <button
+                    key={lang.code}
+                    role="option"
+                    aria-selected={language === lang.code}
+                    onClick={() => { setLanguage(lang.code); setLangOpen(false) }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#E85D04]/5 transition-colors ${
+                      language === lang.code ? 'text-[#E85D04] font-semibold bg-[#E85D04]/10' : 'text-gray-700'
+                    }`}
+                  >
+                    {lang.label}
                   </button>
-                </div>
-              </>
+                ))}
+              </div>
             )}
           </div>
-        )}
-      </nav>
-    </>
+
+          {/* Logout Button - When logged in */}
+          {role && !isLanding && (
+            <button
+              onClick={logout}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#E85D04] hover:bg-gray-50 border border-gray-200 hover:border-[#E85D04] transition-all focus:outline-none focus:ring-2 focus:ring-[#E85D04]"
+              aria-label="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          )}
+
+          {/* Login Button - When not logged in */}
+          {isLanding && (
+            <button 
+              onClick={() => navigate('/login')} 
+              className="bg-gradient-to-r from-[#E85D04] to-[#d94f03] hover:from-[#d94f03] hover:to-[#c44803] text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+            >
+              {t('login')}
+            </button>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileOpen(p => !p)}
+            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-[#E85D04] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E85D04]"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 px-4 py-3 space-y-2 shadow-lg">
+          {isLanding && (
+            <>
+              <a 
+                href="#how-it-works" 
+                className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-[#E85D04] hover:bg-gray-50 rounded-lg transition-colors" 
+                onClick={() => setMobileOpen(false)}
+              >
+                How it works
+              </a>
+              <a 
+                href="#impact" 
+                className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-[#E85D04] hover:bg-gray-50 rounded-lg transition-colors" 
+                onClick={() => setMobileOpen(false)}
+              >
+                Impact
+              </a>
+              <button 
+                onClick={() => { navigate('/ivr'); setMobileOpen(false) }} 
+                className="block w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-[#E85D04] hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                IVR helpline
+              </button>
+              <div className="pt-2">
+                <button 
+                  onClick={() => { navigate('/login'); setMobileOpen(false) }} 
+                  className="bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white w-full py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                >
+                  {t('login')}
+                </button>
+              </div>
+            </>
+          )}
+          
+          {/* Mobile Logout */}
+          {role && !isLanding && (
+            <button
+              onClick={() => { logout(); setMobileOpen(false) }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-[#E85D04] hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          )}
+        </div>
+      )}
+    </nav>
   )
 }

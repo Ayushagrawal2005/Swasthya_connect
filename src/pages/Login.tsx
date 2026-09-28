@@ -2,17 +2,13 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Stethoscope, Settings2, Shield, ArrowRight,
-  Heart, Eye, EyeOff, Users, Activity, CheckCircle,
+  Heart, Eye, EyeOff, Users, LogIn,
 } from 'lucide-react'
 import { useT } from '../context/AppContext'
 import { authApi } from '../services/api'
 
-// Import logos and hero image from landing page
+// Import logo and hero image
 import heroImage from '../assets/images/hero(1).jpg'
-import digitalIndiaLogo from '../assets/images/digital india.svg'
-import ministryLogo from '../assets/images/ministry of affairs.svg'
-import nhmLogo from '../assets/images/national-health-mission-logo-png_seeklogo-389828.png'
-import indianGovtLogo from '../assets/images/indian govt.png'
 import swasthyaConnectLogo from '../assets/images/swasthya_connect.png'
 
 type DemoRole = 'asha' | 'doctor' | 'admin' | 'patient' | 'patient_female' | 'patient_male'
@@ -176,93 +172,56 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-gray-50">
-      {/* Left panel - Brand Hero with Phone Mockup */}
-      <div className="hidden lg:flex flex-col w-[50%] bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white p-8 md:p-10 lg:p-12 xl:p-16 relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-16 left-8 w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-white/10" />
-          <div className="absolute bottom-24 right-8 w-48 h-48 md:w-64 md:h-64 rounded-full border-2 border-white/10" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 md:w-80 md:h-80 rounded-full border border-white/10" />
-        </div>
+      {/* Left panel - Hero Image */}
+      <div className="hidden lg:flex flex-col w-[50%] bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white relative overflow-hidden">
+        {/* Background overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#123B6D]/95 to-[#123B6D]/70 z-10" />
+        
+        {/* Hero Image */}
+        <img 
+          src={heroImage} 
+          alt="Healthcare Worker" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-        <div className="relative z-10 flex flex-col h-full">
-          {/* Logo Header - Match Landing Page */}
-          <div className="mb-8 md:mb-12">
-            <div className="flex items-center gap-3 md:gap-4">
-              {/* Ministry of Health Logo */}
-              <div className="flex h-[48px] w-[48px] md:h-[55px] md:w-[55px] items-center justify-center overflow-hidden flex-shrink-0">
-                <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
-              </div>
-
-              {/* Swasthya Connect Logo + Text */}
-              <div className="flex items-center gap-2 md:gap-2.5">
-                <div className="flex h-[40px] w-[40px] md:h-[48px] md:w-[48px] items-center justify-center overflow-hidden flex-shrink-0">
-                  <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
-                </div>
-                
-                <div className="flex flex-col leading-tight">
-                  <span className="text-xl md:text-2xl font-bold text-white">Swasthya Connect</span>
-                  <span className="text-[10px] md:text-xs text-gray-200 font-medium">स्वास्थ्य कनेक्ट</span>
-                </div>
-              </div>
-
-              {/* Government of India Logo */}
-              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center overflow-hidden flex-shrink-0 ml-auto">
-                <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
-              </div>
-
-              {/* Digital India Logo */}
-              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center overflow-hidden flex-shrink-0">
-                <img src={digitalIndiaLogo} alt="Digital India" className="h-full w-full object-contain" />
-              </div>
-
-              {/* National Health Mission Logo */}
-              <div className="hidden xl:flex h-[48px] w-[48px] items-center justify-center rounded overflow-hidden">
-                <img src={nhmLogo} alt="National Health Mission" className="h-full w-full object-contain" />
-              </div>
+        {/* Content Overlay */}
+        <div className="relative z-20 flex flex-col h-full p-8 md:p-10 lg:p-12 xl:p-16">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-auto">
+            <div className="flex h-[56px] w-[56px] md:h-[64px] md:w-[64px] items-center justify-center bg-white rounded-xl shadow-lg p-2">
+              <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-2xl md:text-3xl font-bold text-white">Swasthya Connect</span>
+              <span className="text-sm md:text-base text-gray-200 font-medium">स्वास्थ्य कनेक्ट</span>
             </div>
           </div>
 
           {/* Hero Content */}
-          <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 md:mb-6">
+          <div className="mt-auto">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 md:mb-6 text-white">
               Government Healthcare Platform
             </h1>
-            <p className="text-base sm:text-lg text-gray-200 leading-relaxed mb-8 md:mb-10">
+            <p className="text-base sm:text-lg md:text-xl text-gray-100 leading-relaxed mb-8">
               Unified digital health infrastructure connecting citizens, healthcare workers, and facilities across India's public health system.
             </p>
 
-            {/* Phone Mockup - Same as Landing Page */}
-            <div className="relative mx-auto mb-8 md:mb-10">
-              <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px]">
-                {/* Phone frame */}
-                <div className="absolute inset-0 bg-gray-900 rounded-[3rem] shadow-2xl border-[8px] md:border-[10px] border-gray-800">
-                  {/* Screen */}
-                  <div className="absolute inset-[10px] md:inset-[12px] bg-white rounded-[2.5rem] overflow-hidden">
-                    <img src={heroImage} alt="Swasthya Connect App" className="w-full h-full object-cover" />
-                  </div>
-                  {/* Notch */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] md:w-[140px] h-[24px] md:h-[28px] bg-gray-800 rounded-b-[1.5rem]" />
-                </div>
-              </div>
-            </div>
-
             {/* Healthcare Tier Chain */}
-            <div className="flex items-center gap-2 flex-wrap justify-center mb-6">
+            <div className="flex items-center gap-2 flex-wrap mb-6">
               {['Sub-centre', 'PHC', 'CHC', 'District Hospital'].map((tier, i, arr) => (
                 <div key={tier} className="flex items-center gap-2">
-                  <span className="text-xs bg-white/10 border border-white/20 px-2.5 py-1 rounded-full font-medium">
+                  <span className="text-xs sm:text-sm bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full font-medium">
                     {tier}
                   </span>
-                  {i < arr.length - 1 && <ArrowRight className="w-3 h-3 text-white/50" />}
+                  {i < arr.length - 1 && <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/50" />}
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Team Branding */}
-          <div className="mt-auto pt-6 border-t border-white/10">
-            <p className="text-xs text-gray-300">HealthSync1 Team <span className="text-gray-400">*ID - 165109*</span></p>
+            {/* Team Branding */}
+            <div className="pt-6 border-t border-white/20">
+              <p className="text-xs text-gray-200">HealthSync1 Team <span className="text-gray-300">*ID - 165109*</span></p>
+            </div>
           </div>
         </div>
       </div>
@@ -275,38 +234,22 @@ export function LoginPage() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-md lg:max-w-lg"
         >
-          {/* Mobile Logo Header - Match Landing Page */}
-          <div className="lg:hidden mb-6 sm:mb-8">
-            <div className="flex items-center justify-center gap-2 sm:gap-2.5">
-              {/* Ministry of Health Logo */}
-              <div className="flex h-[38px] w-[38px] sm:h-[42px] sm:w-[42px] items-center justify-center overflow-hidden flex-shrink-0">
-                <img src={ministryLogo} alt="Ministry of Health" className="h-full w-full object-contain" />
-              </div>
-
-              {/* Swasthya Connect Logo + Text */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="flex h-[32px] w-[32px] sm:h-[38px] sm:w-[38px] items-center justify-center overflow-hidden flex-shrink-0">
-                  <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
-                </div>
-                
-                <div className="flex flex-col leading-tight">
-                  <span className="text-lg sm:text-xl font-bold text-[#123B6D]">Swasthya Connect</span>
-                  <span className="text-[9px] sm:text-[10px] text-gray-600 font-medium">स्वास्थ्य कनेक्ट</span>
-                </div>
-              </div>
-
-              {/* Government of India Logo (on larger mobiles) */}
-              <div className="hidden sm:flex h-[38px] w-[38px] items-center justify-center overflow-hidden flex-shrink-0">
-                <img src={indianGovtLogo} alt="Government of India" className="h-full w-full object-contain" />
+          {/* Mobile Logo Header */}
+          <div className="lg:hidden mb-8 text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="flex h-[56px] w-[56px] items-center justify-center bg-white rounded-xl shadow-md border border-gray-100 p-2">
+                <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
               </div>
             </div>
+            <h2 className="text-2xl font-bold text-[#123B6D]">Swasthya Connect</h2>
+            <p className="text-sm text-gray-600 font-medium">स्वास्थ्य कनेक्ट</p>
           </div>
 
           {/* Demo credentials card */}
           <div className="mb-6 sm:mb-8 rounded-xl border border-gray-200 bg-white shadow-sm p-4 sm:p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#E85D04]/10 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-[#E85D04]" />
+              <div className="w-9 h-9 rounded-lg bg-[#E85D04]/10 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-[#E85D04]" />
               </div>
               <p className="text-xs sm:text-sm font-semibold text-[#123B6D] uppercase tracking-wide">
                 Demo Accounts — Click to Auto-Login
@@ -318,24 +261,24 @@ export function LoginPage() {
                 <button
                   key={acc.id}
                   onClick={() => handleQuickFill(acc)}
-                  className="w-full flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-lg border border-gray-200 bg-white hover:border-[#E85D04] hover:shadow-md transition-all duration-200 text-left group"
+                  className="w-full flex items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-lg border-2 border-gray-200 bg-white hover:border-[#E85D04] hover:bg-[#E85D04]/5 hover:shadow-md transition-all duration-200 text-left group"
                   aria-label={`Login as ${acc.label}`}
                 >
-                  <span className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 border ${acc.color}`} aria-hidden="true">
+                  <span className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center flex-shrink-0 border-2 ${acc.color} group-hover:scale-110 transition-transform duration-200`} aria-hidden="true">
                     {acc.icon}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-semibold text-[#123B6D] mb-0.5">{acc.label}</p>
+                    <p className="text-sm sm:text-base font-semibold text-[#123B6D] mb-0.5">{acc.label}</p>
                     <p className="text-[10px] sm:text-xs text-gray-600 truncate">{acc.sublabel}</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-[#E85D04] transition-colors flex-shrink-0" />
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-[#E85D04] group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
                 </button>
               ))}
             </div>
             
             <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4 flex items-center gap-1.5">
               <span>Password for all accounts:</span>
-              <code className="font-mono bg-gray-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[#123B6D] font-medium">demo1234</code>
+              <code className="font-mono bg-gray-100 px-2 py-1 rounded text-[#123B6D] font-semibold text-xs">demo1234</code>
             </p>
           </div>
 
@@ -346,10 +289,10 @@ export function LoginPage() {
               <p className="text-sm sm:text-base text-gray-600">Select a demo account above or enter your credentials.</p>
             </div>
 
-            <form onSubmit={handleSignIn} noValidate className="space-y-4 sm:space-y-5">
+            <form onSubmit={handleSignIn} noValidate className="space-y-5 sm:space-y-6">
               {/* Username Field */}
               <div>
-                <label htmlFor="username" className="block text-sm sm:text-base font-medium text-[#123B6D] mb-1.5 sm:mb-2">
+                <label htmlFor="username" className="block text-sm sm:text-base font-semibold text-[#123B6D] mb-2">
                   {t('username')}
                 </label>
                 <input
@@ -359,7 +302,7 @@ export function LoginPage() {
                   value={username}
                   onChange={(e) => { setUsername(e.target.value); setError('') }}
                   placeholder="Enter username or email"
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-colors text-sm sm:text-base"
+                  className="w-full px-4 py-3 sm:px-4 sm:py-3.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-sm sm:text-base font-medium placeholder:text-gray-400"
                   aria-required="true"
                   aria-invalid={!!error}
                   aria-describedby={error ? 'login-error' : undefined}
@@ -368,7 +311,7 @@ export function LoginPage() {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm sm:text-base font-medium text-[#123B6D] mb-1.5 sm:mb-2">
+                <label htmlFor="password" className="block text-sm sm:text-base font-semibold text-[#123B6D] mb-2">
                   {t('password')}
                 </label>
                 <div className="relative">
@@ -379,17 +322,17 @@ export function LoginPage() {
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); setError('') }}
                     placeholder="Enter password"
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-colors text-sm sm:text-base"
+                    className="w-full px-4 py-3 sm:px-4 sm:py-3.5 pr-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-sm sm:text-base font-medium placeholder:text-gray-400"
                     aria-required="true"
                     aria-invalid={!!error}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-[#E85D04] hover:bg-[#E85D04]/10 rounded-lg transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#E85D04] hover:bg-[#E85D04]/10 rounded-lg transition-colors"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
@@ -403,9 +346,9 @@ export function LoginPage() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 rounded"
+                    className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r"
                   >
-                    <p className="text-xs sm:text-sm text-red-700">{error}</p>
+                    <p className="text-sm text-red-700 font-medium">{error}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -414,17 +357,18 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !username || !password}
-                className="w-full bg-[#E85D04] hover:bg-[#d94f03] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 text-sm sm:text-base mt-6"
+                className="w-full bg-gradient-to-r from-[#E85D04] to-[#d94f03] hover:from-[#d94f03] hover:to-[#c44803] disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white px-6 py-3.5 sm:px-8 sm:py-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2.5 text-base sm:text-lg shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" aria-hidden="true" />
+                    <span className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin" aria-hidden="true" />
                     <span>Signing in…</span>
                   </>
                 ) : (
                   <>
+                    <LogIn className="w-5 h-5" aria-hidden="true" />
                     <span>{t('signIn')}</span>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
+                    <ArrowRight className="w-5 h-5" aria-hidden="true" />
                   </>
                 )}
               </button>

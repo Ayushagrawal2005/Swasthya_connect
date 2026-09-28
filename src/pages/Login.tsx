@@ -171,221 +171,243 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-stretch bg-gray-50">
-      {/* Left panel - Hero Image */}
-      <div className="hidden lg:flex flex-col w-[50%] bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white relative overflow-hidden">
-        {/* Background overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#123B6D]/95 to-[#123B6D]/70 z-10" />
-        
-        {/* Hero Image */}
-        <img 
-          src={heroImage} 
-          alt="Healthcare Worker" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-
-        {/* Content Overlay */}
-        <div className="relative z-20 flex flex-col h-full p-8 md:p-10 lg:p-12 xl:p-16">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-auto">
-            <div className="flex h-[56px] w-[56px] md:h-[64px] md:w-[64px] items-center justify-center bg-white rounded-xl shadow-lg p-2">
-              <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="text-2xl md:text-3xl font-bold text-white">Swasthya Connect</span>
-              <span className="text-sm md:text-base text-gray-200 font-medium">स्वास्थ्य कनेक्ट</span>
-            </div>
-          </div>
-
-          {/* Hero Content */}
-          <div className="mt-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 md:mb-6 text-white">
-              Government Healthcare Platform
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-100 leading-relaxed mb-8">
-              Unified digital health infrastructure connecting citizens, healthcare workers, and facilities across India's public health system.
-            </p>
-
-            {/* Healthcare Tier Chain */}
-            <div className="flex items-center gap-2 flex-wrap mb-6">
-              {['Sub-centre', 'PHC', 'CHC', 'District Hospital'].map((tier, i, arr) => (
-                <div key={tier} className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full font-medium">
-                    {tier}
-                  </span>
-                  {i < arr.length - 1 && <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/50" />}
-                </div>
-              ))}
-            </div>
-
-            {/* Team Branding */}
-            <div className="pt-6 border-t border-white/20">
-              <p className="text-xs text-gray-200">HealthSync1 Team <span className="text-gray-300">*ID - 165109*</span></p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 p-4 sm:p-6 md:p-8 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-[#123B6D]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#E85D04]/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#123B6D]/3 rounded-full blur-3xl" />
       </div>
 
-      {/* Right panel - Login Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md lg:max-w-lg"
-        >
-          {/* Mobile Logo Header */}
-          <div className="lg:hidden mb-8 text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex h-[56px] w-[56px] items-center justify-center bg-white rounded-xl shadow-md border border-gray-100 p-2">
-                <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
+      {/* Main Content Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-6xl relative z-10"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
+          {/* Left Card - Branding & Hero */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-gradient-to-br from-[#123B6D] to-[#1a5490] rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden relative"
+          >
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0">
+              <img 
+                src={heroImage} 
+                alt="Healthcare" 
+                className="w-full h-full object-cover opacity-40"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#123B6D]/95 via-[#123B6D]/90 to-[#1a5490]/85" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 p-8 md:p-10 lg:p-12 flex flex-col h-full min-h-[500px] lg:min-h-[700px]">
+              {/* Logo */}
+              <div className="flex items-center gap-4 mb-8">
+                <div className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center bg-white rounded-2xl shadow-xl p-3">
+                  <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-2xl md:text-3xl font-bold text-white">Swasthya Connect</span>
+                  <span className="text-sm md:text-base text-gray-200 font-medium">स्वास्थ्य कनेक्ट</span>
+                </div>
+              </div>
+
+              {/* Hero Content */}
+              <div className="flex-1 flex flex-col justify-center space-y-6">
+                <div>
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 text-white">
+                    Government Healthcare Platform
+                  </h1>
+                  <p className="text-base md:text-lg text-gray-100 leading-relaxed">
+                    Unified digital health infrastructure connecting citizens, healthcare workers, and facilities across India's public health system.
+                  </p>
+                </div>
+
+                {/* Key Features */}
+                <div className="space-y-3">
+                  {[
+                    { icon: <Shield className="w-5 h-5" />, text: 'Secure & ABDM Compliant' },
+                    { icon: <Users className="w-5 h-5" />, text: 'Multi-role Access System' },
+                    { icon: <Heart className="w-5 h-5" />, text: 'Patient-Centric Care' },
+                  ].map((feature, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.1 }}
+                      className="flex items-center gap-3 text-white"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                        {feature.icon}
+                      </div>
+                      <span className="text-sm md:text-base font-medium">{feature.text}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Healthcare Tier */}
+              <div className="mt-auto pt-6 border-t border-white/20">
+                <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm">
+                  {['Sub-centre', 'PHC', 'CHC', 'District'].map((tier, i, arr) => (
+                    <div key={tier} className="flex items-center gap-2">
+                      <span className="bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full font-medium">
+                        {tier}
+                      </span>
+                      {i < arr.length - 1 && <ArrowRight className="w-3 h-3 text-white/50" />}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-300 mt-4">HealthSync1 Team <span className="text-gray-400">*ID - 165109*</span></p>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-[#123B6D]">Swasthya Connect</h2>
-            <p className="text-sm text-gray-600 font-medium">स्वास्थ्य कनेक्ट</p>
-          </div>
+          </motion.div>
 
-          {/* Demo credentials card */}
-          <div className="mb-6 sm:mb-8 rounded-xl border border-gray-200 bg-white shadow-sm p-4 sm:p-5 md:p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-[#E85D04]/10 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-[#E85D04]" />
+          {/* Right Card - Login Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col"
+          >
+            {/* Demo Accounts - Compact Card Style */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 md:p-6 mb-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E85D04] to-[#d94f03] flex items-center justify-center shadow-lg">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#123B6D]">Quick Access</p>
+                  <p className="text-xs text-gray-600">Click to auto-login</p>
+                </div>
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-[#123B6D] uppercase tracking-wide">
-                Demo Accounts — Click to Auto-Login
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {DEMO_ACCOUNTS.map((acc) => (
+                  <button
+                    key={acc.id}
+                    onClick={() => handleQuickFill(acc)}
+                    className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 hover:border-[#E85D04] hover:from-[#E85D04]/5 hover:to-[#E85D04]/10 hover:shadow-lg transition-all duration-200 text-left group"
+                    aria-label={`Login as ${acc.label}`}
+                  >
+                    <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border-2 ${acc.color} group-hover:scale-110 transition-transform duration-200`}>
+                      {acc.icon}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[#123B6D] truncate">{acc.label}</p>
+                      <p className="text-[9px] text-gray-500 truncate">{acc.sublabel}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              
+              <p className="text-[10px] text-gray-500 mt-3 flex items-center gap-1.5">
+                <span>Password:</span>
+                <code className="font-mono bg-gray-100 px-2 py-0.5 rounded text-[#E85D04] font-bold">demo1234</code>
               </p>
             </div>
-            
-            <div className="space-y-2 sm:space-y-2.5">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.id}
-                  onClick={() => handleQuickFill(acc)}
-                  className="w-full flex items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-lg border-2 border-gray-200 bg-white hover:border-[#E85D04] hover:bg-[#E85D04]/5 hover:shadow-md transition-all duration-200 text-left group"
-                  aria-label={`Login as ${acc.label}`}
-                >
-                  <span className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center flex-shrink-0 border-2 ${acc.color} group-hover:scale-110 transition-transform duration-200`} aria-hidden="true">
-                    {acc.icon}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm sm:text-base font-semibold text-[#123B6D] mb-0.5">{acc.label}</p>
-                    <p className="text-[10px] sm:text-xs text-gray-600 truncate">{acc.sublabel}</p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-[#E85D04] group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
-                </button>
-              ))}
-            </div>
-            
-            <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4 flex items-center gap-1.5">
-              <span>Password for all accounts:</span>
-              <code className="font-mono bg-gray-100 px-2 py-1 rounded text-[#123B6D] font-semibold text-xs">demo1234</code>
-            </p>
-          </div>
 
-          {/* Sign-in form */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-7 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#123B6D] mb-2">{t('signIn')}</h2>
-              <p className="text-sm sm:text-base text-gray-600">Select a demo account above or enter your credentials.</p>
-            </div>
-
-            <form onSubmit={handleSignIn} noValidate className="space-y-5 sm:space-y-6">
-              {/* Username Field */}
-              <div>
-                <label htmlFor="username" className="block text-sm sm:text-base font-semibold text-[#123B6D] mb-2">
-                  {t('username')}
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => { setUsername(e.target.value); setError('') }}
-                  placeholder="Enter username or email"
-                  className="w-full px-4 py-3 sm:px-4 sm:py-3.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-sm sm:text-base font-medium placeholder:text-gray-400"
-                  aria-required="true"
-                  aria-invalid={!!error}
-                  aria-describedby={error ? 'login-error' : undefined}
-                />
+            {/* Login Form Card */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8 flex-1">
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#123B6D] mb-1">{t('signIn')}</h2>
+                <p className="text-sm text-gray-600">Enter your credentials to continue</p>
               </div>
 
-              {/* Password Field */}
-              <div>
-                <label htmlFor="password" className="block text-sm sm:text-base font-semibold text-[#123B6D] mb-2">
-                  {t('password')}
-                </label>
-                <div className="relative">
+              <form onSubmit={handleSignIn} noValidate className="space-y-5">
+                {/* Username */}
+                <div>
+                  <label htmlFor="username" className="block text-sm font-bold text-[#123B6D] mb-2">
+                    {t('username')}
+                  </label>
                   <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); setError('') }}
-                    placeholder="Enter password"
-                    className="w-full px-4 py-3 sm:px-4 sm:py-3.5 pr-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-sm sm:text-base font-medium placeholder:text-gray-400"
+                    id="username"
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); setError('') }}
+                    placeholder="Enter username or email"
+                    className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-base font-medium placeholder:text-gray-400 bg-gray-50 focus:bg-white"
                     aria-required="true"
                     aria-invalid={!!error}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#E85D04] hover:bg-[#E85D04]/10 rounded-lg transition-colors"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
-                  </button>
                 </div>
-              </div>
 
-              {/* Error Message */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    id="login-error"
-                    role="alert"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r"
-                  >
-                    <p className="text-sm text-red-700 font-medium">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                {/* Password */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-bold text-[#123B6D] mb-2">
+                    {t('password')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError('') }}
+                      placeholder="Enter password"
+                      className="w-full px-4 py-3.5 pr-12 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-all text-base font-medium placeholder:text-gray-400 bg-gray-50 focus:bg-white"
+                      aria-required="true"
+                      aria-invalid={!!error}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#E85D04] hover:bg-[#E85D04]/10 rounded-lg transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading || !username || !password}
-                className="w-full bg-gradient-to-r from-[#E85D04] to-[#d94f03] hover:from-[#d94f03] hover:to-[#c44803] disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white px-6 py-3.5 sm:px-8 sm:py-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2.5 text-base sm:text-lg shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
-              >
-                {loading ? (
-                  <>
-                    <span className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin" aria-hidden="true" />
-                    <span>Signing in…</span>
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="w-5 h-5" aria-hidden="true" />
-                    <span>{t('signIn')}</span>
-                    <ArrowRight className="w-5 h-5" aria-hidden="true" />
-                  </>
-                )}
-              </button>
-            </form>
+                {/* Error */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl"
+                    >
+                      <p className="text-sm text-red-700 font-medium">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-            {/* Footer note */}
-            <p className="text-xs sm:text-sm text-center text-gray-500 mt-6">
-              By signing in, you agree to our Terms of Service and Privacy Policy
-            </p>
-          </div>
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading || !username || !password}
+                  className="w-full bg-gradient-to-r from-[#E85D04] to-[#d94f03] hover:from-[#d94f03] hover:to-[#c44803] disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-3 text-lg shadow-lg hover:shadow-2xl disabled:shadow-none transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin" />
+                      <span>Signing in…</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{t('signIn')}</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </form>
 
-          {/* Mobile Team Branding */}
-          <div className="lg:hidden mt-6 text-center">
-            <p className="text-xs text-gray-500">HealthSync1 Team <span className="text-gray-400">*ID - 165109*</span></p>
-          </div>
-        </motion.div>
-      </div>
+              <p className="text-xs text-center text-gray-500 mt-6">
+                By signing in, you agree to our{' '}
+                <span className="text-[#123B6D] font-semibold">Terms</span> &{' '}
+                <span className="text-[#123B6D] font-semibold">Privacy Policy</span>
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
   )
 }

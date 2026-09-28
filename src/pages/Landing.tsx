@@ -566,16 +566,17 @@ export function LandingPage() {
                   </div>
                 </div>
 
-                {/* Enhanced Login Button */}
+                {/* Enhanced Login / Register Button */}
                 <button
                   onClick={() => navigate('/login')}
-                  className="rounded-lg bg-[#E85D04] px-3 sm:px-4 md:px-5 lg:px-7 py-2 sm:py-2.5 md:py-3 text-[11px] sm:text-[12px] md:text-[14px] lg:text-[15px] font-bold text-white shadow-lg transition hover:bg-[#d34b03] hover:shadow-xl hover:scale-105 whitespace-nowrap"
+                  className="rounded-lg bg-[#E85D04] px-3 sm:px-4 md:px-5 lg:px-6 xl:px-7 py-2 sm:py-2.5 md:py-3 text-[11px] sm:text-[12px] md:text-[13px] lg:text-[15px] font-bold text-white shadow-lg transition hover:bg-[#d34b03] hover:shadow-xl hover:scale-105 whitespace-nowrap flex-shrink-0"
                 >
                   <div className="flex items-center gap-1.5">
-                    <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-4.5 md:w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    <span className="hidden sm:inline">{t('login')}</span>
+                    <span className="hidden md:inline">{t('login')} / {t('register')}</span>
+                    <span className="hidden sm:inline md:hidden">{t('login')}</span>
                     <span className="sm:hidden">Login</span>
                   </div>
                 </button>

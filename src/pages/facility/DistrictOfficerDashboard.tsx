@@ -59,33 +59,39 @@ export function DistrictOfficerDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-amber-50 via-white to-yellow-50 min-h-[calc(100vh-4rem)]">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[#2C2C2A]">District Health Overview</h1>
-          <p className="text-[#5F5E5A] mt-1">District-wide analytics and policy monitoring</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="btn-secondary">
-            <BarChart3 size={18} />
-            Analytics
-          </button>
-          <button className="btn-primary">
-            <Download size={18} />
-            Export Report
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">District Health Overview</h1>
+              <p className="text-blue-100 mt-1 text-sm">District-wide analytics and policy monitoring</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="px-5 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 border border-white/20">
+                <BarChart3 size={18} />
+                Analytics
+              </button>
+              <button className="px-6 py-3 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-lg flex items-center gap-2">
+                <Download size={18} />
+                Export Report
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatsCard title="Total Facilities" value={stats.totalFacilities} icon={<Building2 size={24} className="text-amber-600" />} bgColor="bg-amber-50" />
         <StatsCard title="Patients (Month)" value={stats.totalPatients} icon={<Users size={24} className="text-blue-600" />} bgColor="bg-blue-50" />
         <StatsCard title="Total Staff" value={stats.totalStaff} icon={<Activity size={24} className="text-teal-600" />} bgColor="bg-teal-50" />
         <StatsCard title="Avg Satisfaction" value={`${stats.avgSatisfaction}/5`} icon={<TrendingUp size={24} className="text-green-600" />} bgColor="bg-green-50" />
-      </div>
+        </div>
 
-      {/* Performance Chart */}
-      <div className="card p-6">
+        {/* Performance Chart */}
+        <div className="card p-6">
         <h2 className="text-xl font-bold text-[#2C2C2A] mb-6">District Performance Trend</h2>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={performanceData}>
@@ -102,10 +108,10 @@ export function DistrictOfficerDashboard() {
             <Area type="monotone" dataKey="patients" stroke="#14b8a6" fillOpacity={1} fill="url(#colorPatients)" />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+        </div>
 
-      {/* Facility Performance */}
-      <div className="card p-6">
+        {/* Facility Performance */}
+        <div className="card p-6">
         <h2 className="text-xl font-bold text-[#2C2C2A] mb-6">Facility Performance</h2>
         <div className="space-y-3">
           {facilities.map((facility) => (
@@ -128,6 +134,7 @@ export function DistrictOfficerDashboard() {
             </div>
           ))}
         </div>
+        </div>
       </div>
     </div>
   )
@@ -135,10 +142,13 @@ export function DistrictOfficerDashboard() {
 
 function StatsCard({ title, value, icon, bgColor }: any) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className={`card p-6 ${bgColor}`}>
-      <div className="mb-3">{icon}</div>
-      <h3 className="text-3xl font-bold text-[#2C2C2A] mb-1">{value}</h3>
-      <p className="text-sm font-medium text-[#5F5E5A]">{title}</p>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 hover:shadow-2xl hover:border-[#E85D04] transition-all">
+      <div className={`mb-4 p-3 rounded-xl ${bgColor} inline-block`}>{icon}</div>
+      <h3 className="text-3xl font-bold text-[#123B6D] mb-2">{value}</h3>
+      <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">{title}</p>
     </motion.div>
   )
 }

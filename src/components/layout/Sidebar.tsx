@@ -3,12 +3,13 @@ import {
   Home, Calendar, FileText, Video, Pill, Heart, ClipboardList,
   Inbox, BarChart2, AlertTriangle, Package, FlaskConical,
   Siren, Users, ArrowRight, LogOut, UserPlus, Search, Upload, Stethoscope, Activity,
-  Baby, Droplet, Syringe,
+  Baby, Droplet, Syringe, X,
 } from 'lucide-react'
 import { useApp, useT } from '../../context/AppContext'
 import { cn } from '../../lib/utils'
 import { useState, useEffect } from 'react'
 import { patientsApi } from '../../services/api'
+import swasthyaConnectLogo from '../../assets/images/swasthya_connect.png'
 
 interface NavItem { labelKey: string; icon: React.ReactNode; path: string; femaleOnly?: boolean }
 
@@ -62,14 +63,12 @@ const adminNav: NavItem[] = [
   { labelKey: 'staff',            icon: <Users size={18} />,         path: '/admin/staff' },
 ]
 
-const accentMap: Record<string, string> = {
-  asha:    'bg-gradient-to-r from-[#FF9933] to-[#E67300]',
-  doctor:  'bg-gradient-to-r from-[#000080] to-[#0000CD]',
-  admin:   'bg-gradient-to-r from-[#138808] to-[#0F6B06]',
-  patient: 'bg-gradient-to-r from-[#FF9933] to-[#138808]',
+interface SidebarProps {
+  isOpen: boolean
+  onClose: () => void
 }
 
-export function Sidebar() {
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { role, setRole, patientId } = useApp()
   const t = useT()
   const navigate = useNavigate()
@@ -101,58 +100,105 @@ export function Sidebar() {
     : adminNav
 
   return (
-    <aside
-      className="hidden lg:flex flex-col w-60 bg-white border-r border-[#D4D4D4] min-h-[calc(100vh-4rem)] flex-shrink-0"
-      role="complementary"
-      aria-label="Side navigation"
-    >
-      {/* Government Accent Strip */}
-      <div className={cn('h-1 w-full', accentMap[role] || '')} aria-hidden="true" />
-
-      {/* Portal Header - Government Style */}
-      <div className="px-5 py-4 border-b border-[#D4D4D4] bg-gradient-to-br from-[#FFF5EB] to-white">
-        <div className="flex items-center gap-2 mb-1">
-          <Heart size={16} className="text-[#FF9933]" aria-hidden="true" />
-          <span className="text-sm font-bold text-[#1A1A1A]">{t('appName')}</span>
-        </div>
-        <p className="text-xs text-[#6B6B6B] font-medium capitalize">
-          {role === 'asha' ? t('frontlineWorkerPortal') : `${t(role)} ${t('portalLabel')}`}
-        </p>
-        <p className="text-[10px] text-[#6B6B6B] mt-0.5">{t('govIndia')}</p>
-      </div>
-
-      {/* Navigation Menu */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label={`${role} navigation`}>
-        {navItems.map(item => (
-          <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={cn('nav-item w-full', location.pathname === item.path && 'nav-item-active')}
-            aria-current={location.pathname === item.path ? 'page' : undefined}
-          >
-            <span aria-hidden="true">{item.icon}</span>
-            {t(item.labelKey as any)}
-          </button>
-        ))}
-      </nav>
-
-      {/* Logout Button - Government Style */}
-      <div className="px-3 py-4 border-t border-[#D4D4D4] bg-[#F8F9FA]">
+    <>
+      {/* Backdrop overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40" 
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 shadow-xl transition-transform duration-300 ease-in-out",
+          "min-h-screen",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+        role="complementary"
+        aria-label="Side navigation"
+      >
+        {/* Close button */}
         <button
-          onClick={() => {
-            // Clear all auth data
-            localStorage.clear()
-            setRole(null)
-            // Hard redirect to login
-            window.location.href = '/login'
-          }}
-          className="nav-item w-full text-[#DC2626] hover:bg-red-50 hover:text-red-700 border-l-[#DC2626]"
-          aria-label="Sign out"
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-[#E85D04] transition-colors z-10"
+          aria-label="Close sidebar"
         >
-          <LogOut size={18} aria-hidden="true" />
-          {t('logout')}
+          <X size={20} />
         </button>
-      </div>
-    </aside>
+
+        {/* Portal Header with Logo */}
+        <div className="px-4 py-5 border-b border-gray-200 bg-white">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-3 mb-3 w-full hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 rounded-xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-1.5">
+              <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-[#123B6D] leading-tight">Swasthya Connect</h2>
+              <p className="text-[10px] text-gray-600 leading-tight">स्वास्थ्य कनेक्ट</p>
+            </div>
+          </button>
+          
+          {/* Role Badge */}
+          <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white px-3 py-2 rounded-lg text-xs font-semibold text-center">
+            {role === 'asha' ? t('frontlineWorkerPortal') : `${t(role)} ${t('portalLabel')}`}
+          </div>
+        </div>
+
+        {/* Navigation Menu - Card Style */}
+        <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto" aria-label={`${role} navigation`}>
+          {navItems.map(item => {
+            const isActive = location.pathname === item.path
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path)
+                  onClose() // Close sidebar on mobile after navigation
+                }}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white shadow-md'
+                    : 'text-gray-700 hover:bg-white hover:shadow-sm hover:text-[#E85D04] bg-transparent'
+                )}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <span aria-hidden="true" className={cn(
+                  'flex-shrink-0',
+                  isActive ? 'text-white' : 'text-gray-600'
+                )}>
+                  {item.icon}
+                </span>
+                <span className="truncate">{t(item.labelKey as any)}</span>
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Logout Button */}
+        <div className="p-3 border-t border-gray-200 bg-white">
+          <button
+            onClick={() => {
+              // Clear all auth data
+              localStorage.clear()
+              setRole(null)
+              // Hard redirect to login
+              window.location.href = '/login'
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 border-2 border-red-200 hover:border-red-300"
+            aria-label="Sign out"
+          >
+            <LogOut size={18} aria-hidden="true" />
+            <span>{t('logout')}</span>
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }

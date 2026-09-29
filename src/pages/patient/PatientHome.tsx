@@ -6,8 +6,16 @@ import { AIPill } from '../../components/ui/AIPill'
 import { patientsApi, appointmentsApi, referralsApi, type PatientRecord, type Appointment, type Referral } from '../../services/api'
 import { useApp, useT } from '../../context/AppContext'
 
-const urgencyBadge: Record<string, string>  = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
-const urgencyBorder: Record<string, string> = { emergency: 'border-l-4 border-l-red-500', urgent: 'border-l-4 border-l-amber-400', routine: '' }
+const urgencyBadge: Record<string, string>  = { 
+  routine: 'bg-teal-50 text-teal-600', 
+  urgent: 'bg-amber-50 text-amber-600', 
+  emergency: 'bg-red-50 text-red-600' 
+}
+const urgencyBorder: Record<string, string> = { 
+  emergency: 'border-l-4 border-l-red-500', 
+  urgent: 'border-l-4 border-l-amber-400', 
+  routine: 'border-l-4 border-l-teal-400' 
+}
 
 export function PatientHome() {
   const navigate = useNavigate()
@@ -44,17 +52,17 @@ export function PatientHome() {
   const activeReferrals = referrals.filter(r => r.status !== 'treated')
 
   const quickActions = [
-    { labelKey: 'checkSymptoms',   icon: <ClipboardList size={22} />, path: '/patient/triage',       color: 'bg-orange-50 text-[#FF9933]' },
-    { labelKey: 'bookAppointment', icon: <Calendar size={22} />,      path: '/patient/appointments', color: 'bg-green-50 text-[#138808]' },
-    { labelKey: 'healthRecords',   icon: <FileText size={22} />,      path: '/patient/records',      color: 'bg-amber-50 text-amber-600' },
-    { labelKey: 'myMedicines',     icon: <Pill size={22} />,          path: '/patient/medicines',    color: 'bg-indigo-50 text-indigo-600' },
-    { labelKey: 'videoConsult',    icon: <Video size={22} />,         path: '/patient/teleconsult',  color: 'bg-red-50 text-red-500' },
+    { labelKey: 'checkSymptoms',   icon: <ClipboardList className="w-6 h-6" />, path: '/patient/triage',       color: 'from-[#E85D04] to-[#d94f03]' },
+    { labelKey: 'bookAppointment', icon: <Calendar className="w-6 h-6" />,      path: '/patient/appointments', color: 'from-emerald-500 to-emerald-600' },
+    { labelKey: 'healthRecords',   icon: <FileText className="w-6 h-6" />,      path: '/patient/records',      color: 'from-amber-500 to-amber-600' },
+    { labelKey: 'myMedicines',     icon: <Pill className="w-6 h-6" />,          path: '/patient/medicines',    color: 'from-purple-500 to-purple-600' },
+    { labelKey: 'videoConsult',    icon: <Video className="w-6 h-6" />,         path: '/patient/teleconsult',  color: 'from-[#123B6D] to-[#1a5490]' },
   ] as const
 
   const vitals = [
-    { labelKey: 'bloodPressure', value: '118/76', unit: 'mmHg', statusKey: 'normal', icon: <Activity size={18} />, ok: true },
-    { labelKey: 'hemoglobin',    value: '11.2',   unit: 'g/dL', statusKey: 'low',    icon: <Heart size={18} />,   ok: false },
-    { labelKey: 'temperature',   value: '98.4',   unit: '°F',   statusKey: 'normal', icon: <Thermometer size={18} />, ok: true },
+    { labelKey: 'bloodPressure', value: '118/76', unit: 'mmHg', statusKey: 'normal', icon: <Activity className="w-5 h-5" />, ok: true },
+    { labelKey: 'hemoglobin',    value: '11.2',   unit: 'g/dL', statusKey: 'low',    icon: <Heart className="w-5 h-5" />,   ok: false },
+    { labelKey: 'temperature',   value: '98.4',   unit: '°F',   statusKey: 'normal', icon: <Thermometer className="w-5 h-5" />, ok: true },
   ] as const
 
   const recentRecords = [
@@ -64,183 +72,256 @@ export function PatientHome() {
   ] as const
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6 animate-fade-in">
-      {/* Greeting */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-[#2C2C2A]">
-              {t('goodMorning')}, {userName?.split(' ')[0] ?? 'Priya'} 👋
-            </h1>
-            <p className="text-sm text-[#5F5E5A] mt-0.5">
-              {patient ? `${patient.conditions?.[0] ?? 'General'}` : '…'}
-            </p>
-            {lastUpdated && (
-              <p className="text-[10px] text-[#9E9C94] mt-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-                {t('live')} · {t('updated')} {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100">
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+        {/* Greeting Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#123B6D] mb-1">
+                {t('goodMorning')}, {userName?.split(' ')[0] ?? 'Priya'} 👋
+              </h1>
+              <p className="text-base text-gray-600">
+                {patient ? `${patient.conditions?.[0] ?? 'General'}` : '…'}
               </p>
-            )}
-          </div>
-          <button onClick={() => { setLoading(true); fetchAll() }}
-            className="p-2 rounded-lg text-[#5F5E5A] hover:text-[#FF9933] hover:bg-orange-50 transition-colors">
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Upcoming appointment */}
-      <section>
-        {upcomingAppt ? (
-          <div className="card p-5 border-l-4 border-l-[#FF9933]">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-[#FF9933] font-medium uppercase tracking-wide mb-1">
-                  {t('upcomingAppointment')}
-                </p>
-                <p className="font-semibold text-[#2C2C2A]">
-                  {upcomingAppt.type === 'teleconsult' ? t('teleconsultation') : t('inPersonVisit')}
-                </p>
-                <p className="text-sm text-[#5F5E5A] mt-0.5">{t('token')} {upcomingAppt.token}</p>
-                <p className="text-sm font-medium text-[#FF9933] mt-1">{upcomingAppt.date} · {upcomingAppt.time}</p>
-              </div>
-              {upcomingAppt.type === 'teleconsult' && (
-                <button onClick={() => navigate('/patient/teleconsult')} className="btn-primary text-xs px-4 py-2 flex-shrink-0">
-                  <Video size={14} /> {t('joinCall')}
-                </button>
+              {lastUpdated && (
+                <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    {t('live')}
+                  </span>
+                  <span className="text-gray-400">·</span>
+                  <span>{t('updated')} {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
               )}
             </div>
-          </div>
-        ) : !loading && (
-          <div className="card p-4 text-sm text-[#5F5E5A] text-center">
-            {t('noUpcomingAppointments')}{' '}
-            <button onClick={() => navigate('/patient/appointments')} className="text-[#FF9933] underline">
-              {t('bookOneNow')}
+            <button 
+              onClick={() => { setLoading(true); fetchAll() }}
+              className="p-3 rounded-xl text-gray-600 hover:text-[#E85D04] hover:bg-[#E85D04]/10 transition-all border border-gray-200 hover:border-[#E85D04]"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
-        )}
-      </section>
+        </motion.div>
 
-      {/* Active referrals */}
-      {(loading || activeReferrals.length > 0) && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="section-header mb-0 flex items-center gap-2">
-              {t('myReferrals')}
-              {activeReferrals.length > 0 && (
-                <span className="badge-amber text-[10px]">{activeReferrals.length} {t('active')}</span>
-              )}
-            </h2>
-            <button onClick={() => navigate('/patient/referrals')} className="text-xs text-[#FF9933] hover:underline flex items-center gap-1">
-              {t('viewAll')} <ChevronRight size={12} />
-            </button>
-          </div>
-          {loading ? (
-            <div className="flex justify-center py-4"><Loader2 size={18} className="animate-spin text-[#FF9933]" /></div>
-          ) : (
-            <div className="space-y-2">
-              {activeReferrals.slice(0, 2).map(r => (
-                <button key={r.id} onClick={() => navigate('/patient/referrals')}
-                  className={`card-hover w-full p-4 flex items-center gap-3 text-left ${urgencyBorder[r.urgency] || ''}`}>
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-                    <ArrowRight size={16} className="text-amber-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="font-medium text-sm text-[#2C2C2A]">{r.toFacilityName}</p>
-                      <span className={`${urgencyBadge[r.urgency] || 'badge-teal'} text-[10px]`}>
-                        {t(r.urgency as any) || r.urgency}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#5F5E5A] truncate">{r.reason}</p>
-                    <p className="text-[10px] text-[#5F5E5A] mt-0.5 flex items-center gap-1">
-                      <MapPin size={9} /> {t('status')}: <span className="font-medium capitalize">{r.status}</span>
-                    </p>
-                  </div>
-                  <ChevronRight size={14} className="text-[#5F5E5A]" />
+        {/* Upcoming Appointment */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          {upcomingAppt ? (
+            <div className="bg-gradient-to-r from-[#E85D04] to-[#d94f03] rounded-2xl shadow-lg p-6 sm:p-8 text-white">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide mb-2 opacity-90">
+                    {t('upcomingAppointment')}
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold mb-1">
+                    {upcomingAppt.type === 'teleconsult' ? t('teleconsultation') : t('inPersonVisit')}
+                  </p>
+                  <p className="text-sm opacity-90">{t('token')} {upcomingAppt.token}</p>
+                  <p className="text-lg font-semibold mt-2">{upcomingAppt.date} · {upcomingAppt.time}</p>
+                </div>
+                {upcomingAppt.type === 'teleconsult' && (
+                  <button 
+                    onClick={() => navigate('/patient/teleconsult')} 
+                    className="bg-white text-[#E85D04] px-6 py-3 rounded-xl font-semibold flex items-center gap-2 hover:shadow-xl transition-all transform hover:scale-105"
+                  >
+                    <Video className="w-5 h-5" /> {t('joinCall')}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : !loading && (
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 text-center">
+              <p className="text-gray-600">
+                {t('noUpcomingAppointments')}{' '}
+                <button onClick={() => navigate('/patient/appointments')} className="text-[#E85D04] font-semibold hover:underline">
+                  {t('bookOneNow')}
                 </button>
-              ))}
+              </p>
             </div>
           )}
-        </section>
-      )}
+        </motion.section>
 
-      {/* Quick actions */}
-      <section>
-        <h2 className="section-header">{t('quickActions')}</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-          {quickActions.map(a => (
-            <button key={a.labelKey} onClick={() => navigate(a.path)}
-              className="flex flex-col items-center gap-2 p-3.5 rounded-card bg-white border border-[#D3D1C7] hover:border-[#FF9933] hover:shadow-card-hover transition-all">
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${a.color}`}>{a.icon}</div>
-              <span className="text-[11px] font-medium text-[#5F5E5A] text-center leading-tight">{t(a.labelKey)}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+        {/* Quick Actions Grid */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-xl font-bold text-[#123B6D] mb-4">{t('quickActions')}</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {quickActions.map((action, index) => (
+              <motion.button
+                key={action.labelKey}
+                onClick={() => navigate(action.path)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + index * 0.05 }}
+                className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:scale-105 transition-all group"
+              >
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform`}>
+                  {action.icon}
+                </div>
+                <span className="text-sm font-semibold text-gray-700 block">{t(action.labelKey)}</span>
+              </motion.button>
+            ))}
+          </div>
+        </motion.section>
 
-      {/* Vitals */}
-      <section>
-        <h2 className="section-header flex items-center gap-2">{t('latestVitals')} <AIPill className="text-[10px]" /></h2>
-        <div className="grid grid-cols-3 gap-3">
-          {vitals.map(v => (
-            <div key={v.labelKey} className="card p-4 flex flex-col gap-1">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${v.ok ? 'text-green-600 bg-green-50' : 'text-amber-600 bg-amber-50'}`}>
-                {v.icon}
+        {/* Active Referrals */}
+        {(loading || activeReferrals.length > 0) && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#123B6D] flex items-center gap-2">
+                {t('myReferrals')}
+                {activeReferrals.length > 0 && (
+                  <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-xs font-semibold">
+                    {activeReferrals.length} {t('active')}
+                  </span>
+                )}
+              </h2>
+              <button 
+                onClick={() => navigate('/patient/referrals')} 
+                className="text-sm text-[#E85D04] font-semibold hover:underline flex items-center gap-1"
+              >
+                {t('viewAll')} <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-[#E85D04]" />
               </div>
-              <p className="text-lg font-semibold text-[#2C2C2A] tabular-nums mt-1">{v.value}</p>
-              <p className="text-[10px] text-[#5F5E5A]">{v.unit}</p>
-              <p className="text-[10px] text-[#5F5E5A]">{t(v.labelKey)}</p>
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit capitalize ${v.ok ? 'text-green-600 bg-green-50' : 'text-amber-600 bg-amber-50'}`}>
-                {t(v.statusKey)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activeReferrals.slice(0, 2).map(r => (
+                  <button 
+                    key={r.id} 
+                    onClick={() => navigate('/patient/referrals')}
+                    className={`bg-white rounded-2xl shadow-md border border-gray-100 p-5 hover:shadow-xl transition-all text-left group ${urgencyBorder[r.urgency] || ''}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center flex-shrink-0 text-white group-hover:scale-110 transition-transform">
+                        <ArrowRight className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-[#123B6D]">{r.toFacilityName}</p>
+                          <span className={`${urgencyBadge[r.urgency]} px-2 py-0.5 rounded-full text-xs font-semibold`}>
+                            {t(r.urgency as any) || r.urgency}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{r.reason}</p>
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> 
+                          {t('status')}: <span className="font-semibold capitalize">{r.status}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.section>
+        )}
 
-      {/* Health tip */}
-      <section>
-        <div className="card p-5 bg-gradient-to-r from-orange-50 to-green-50 border-orange-100">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-              <Bell size={18} className="text-[#FF9933]" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[#E67300] mb-1">{t('healthTip')} · {t('today')}</p>
-              <p className="text-sm text-[#2C2C2A] leading-relaxed">
-                Iron-rich foods like spinach, lentils, and fortified cereals can help manage low hemoglobin. Take your daily iron supplement with vitamin C for better absorption.
-              </p>
-              <AIPill className="mt-2" />
+        {/* Vitals */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl font-bold text-[#123B6D]">{t('latestVitals')}</h2>
+            <AIPill className="text-xs" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {vitals.map(v => (
+              <div key={v.labelKey} className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${v.ok ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'}`}>
+                  {v.icon}
+                </div>
+                <p className="text-3xl font-bold text-[#123B6D] tabular-nums mb-1">{v.value}</p>
+                <p className="text-sm text-gray-500 mb-2">{v.unit}</p>
+                <p className="text-sm font-medium text-gray-700 mb-3">{t(v.labelKey)}</p>
+                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full capitalize ${v.ok ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'}`}>
+                  {t(v.statusKey)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Health Tip */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-emerald-50 rounded-2xl shadow-md border border-orange-100 p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E85D04] to-[#d94f03] flex items-center justify-center flex-shrink-0 text-white">
+                <Bell className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[#E85D04] mb-2">{t('healthTip')} · {t('today')}</p>
+                <p className="text-base text-gray-700 leading-relaxed mb-3">
+                  Iron-rich foods like spinach, lentils, and fortified cereals can help manage low hemoglobin. Take your daily iron supplement with vitamin C for better absorption.
+                </p>
+                <AIPill />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </motion.section>
 
-      {/* Recent records */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="section-header mb-0">{t('recentActivity')}</h2>
-          <button onClick={() => navigate('/patient/records')} className="text-sm text-[#FF9933] hover:underline flex items-center gap-1">
-            {t('viewAll')} <ChevronRight size={14} />
-          </button>
-        </div>
-        <div className="space-y-2">
-          {recentRecords.map(r => (
-            <button key={r.title} onClick={() => navigate('/patient/records')}
-              className="card-hover w-full p-4 flex items-center gap-3 text-left">
-              <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                <FileText size={16} className="text-[#FF9933]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-[#2C2C2A] truncate">{r.title}</p>
-                <p className="text-xs text-[#5F5E5A]">{r.facility} · {r.date}</p>
-              </div>
-              <span className="badge-teal text-[10px] capitalize">{r.typeKey}</span>
+        {/* Recent Activity */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-[#123B6D]">{t('recentActivity')}</h2>
+            <button 
+              onClick={() => navigate('/patient/records')} 
+              className="text-sm text-[#E85D04] font-semibold hover:underline flex items-center gap-1"
+            >
+              {t('viewAll')} <ChevronRight className="w-4 h-4" />
             </button>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="space-y-3">
+            {recentRecords.map(r => (
+              <button 
+                key={r.title} 
+                onClick={() => navigate('/patient/records')}
+                className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 hover:shadow-xl transition-all flex items-center gap-4 text-left group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E85D04] to-[#d94f03] flex items-center justify-center flex-shrink-0 text-white group-hover:scale-110 transition-transform">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-[#123B6D] mb-1">{r.title}</p>
+                  <p className="text-sm text-gray-600">{r.facility} · {r.date}</p>
+                </div>
+                <span className="bg-teal-50 text-teal-600 px-3 py-1 rounded-full text-xs font-semibold capitalize">
+                  {r.typeKey}
+                </span>
+              </button>
+            ))}
+          </div>
+        </motion.section>
+      </div>
     </div>
   )
 }

@@ -203,78 +203,79 @@ export function TeleconsultPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Error banner */}
       {error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-center gap-2 text-red-800 text-sm">
-          <AlertCircle size={16} />
-          <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-800">✕</button>
+        <div className="bg-gradient-to-r from-red-50 to-red-100 border-b-4 border-red-300 px-6 py-4 flex items-center gap-3 text-red-800 text-base shadow-lg">
+          <AlertCircle size={20} />
+          <span className="font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-800 text-xl font-bold">✕</button>
         </div>
       )}
 
       {/* Setup / Waiting room */}
       {(callState === 'setup' || callState === 'waiting') && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full space-y-5 animate-fade-in">
-          <div className="text-center">
-            <h1 className="text-xl font-semibold text-[#2C2C2A] mb-1">Waiting room</h1>
-            <p className="text-sm text-[#5F5E5A]">Dr. Ramesh Patil · PHC Beed</p>
+        <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-2xl mx-auto w-full space-y-8 animate-fade-in">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-2xl shadow-2xl p-8 w-full text-center">
+            <h1 className="text-3xl font-bold mb-3">Waiting Room</h1>
+            <p className="text-lg text-blue-100">Dr. Ramesh Patil · PHC Beed</p>
           </div>
           
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-semibold text-indigo-600">RP</div>
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-4xl font-bold text-indigo-700 shadow-2xl border-4 border-white">RP</div>
             {callState === 'waiting' && (
               <>
-                <span className="absolute inset-0 rounded-full border-2 border-teal-400 animate-ping opacity-30" aria-hidden="true" />
-                <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white" aria-label="Doctor online" />
+                <span className="absolute inset-0 rounded-full border-4 border-teal-400 animate-ping opacity-30" aria-hidden="true" />
+                <span className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-green-500 border-4 border-white shadow-lg" aria-label="Doctor online" />
               </>
             )}
           </div>
 
           {callState === 'setup' && (
             <>
-              <div className="card p-4 w-full text-center">
-                <p className="text-xs text-[#5F5E5A] mb-1">Queue position</p>
-                <p className="text-3xl font-semibold text-[#2C2C2A] tabular-nums">#2</p>
-                <p className="text-sm text-[#5F5E5A] mt-1">Est. wait: ~6 min</p>
+              <div className="bg-white rounded-2xl shadow-xl p-8 w-full text-center border-2 border-gray-100">
+                <p className="text-sm text-gray-600 font-bold mb-2 uppercase">Queue Position</p>
+                <p className="text-6xl font-bold text-[#123B6D] tabular-nums">#2</p>
+                <p className="text-lg text-gray-600 mt-3 font-medium">Est. wait: ~6 min</p>
               </div>
 
-              <div className="card p-4 w-full">
-                <p className="text-xs font-semibold text-[#5F5E5A] mb-3 uppercase tracking-wide">Pre-call checks</p>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl shadow-xl p-8 w-full border-2 border-gray-100">
+                <p className="text-sm font-bold text-gray-600 mb-5 uppercase tracking-wide">Pre-call Checks</p>
+                <div className="space-y-4">
                   {preChecks.map(c => (
-                    <div key={c.label} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2 text-[#5F5E5A]">{c.icon} {c.label}</div>
-                      <CheckCircle size={16} className="text-green-500" aria-label="OK" />
+                    <div key={c.label} className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-3 text-gray-700 font-medium">{c.icon} {c.label}</div>
+                      <CheckCircle size={20} className="text-green-500" aria-label="OK" />
                     </div>
                   ))}
                 </div>
               </div>
 
               {!permissionsGranted && (
-                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 w-full text-center">
+                <div className="text-base text-amber-800 bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-2xl px-6 py-4 w-full text-center font-medium shadow-md">
                   Camera/microphone permissions required. Click "Join call" to grant access.
                 </div>
               )}
 
-              <p className="text-xs text-center text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2">
+              <p className="text-base text-center text-indigo-800 bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-2xl px-6 py-4 font-medium">
                 Real-time WebRTC video calling with adaptive quality based on your network connection.
               </p>
 
-              <button onClick={startCall} className="btn-primary w-full justify-center text-base py-3.5" disabled={!navigator.mediaDevices}>
-                <Video size={18} aria-hidden="true" /> Join call
+              <button onClick={startCall} className="bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white font-bold w-full py-5 rounded-2xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center gap-3 text-xl disabled:opacity-50" disabled={!navigator.mediaDevices}>
+                <Video size={24} aria-hidden="true" /> Join Call
               </button>
             </>
           )}
 
           {callState === 'waiting' && (
             <>
-              <p className="text-sm text-[#5F5E5A] text-center">Connecting to doctor...</p>
-              <div className="flex gap-1" aria-label="Loading">
+              <p className="text-lg text-gray-700 text-center font-medium">Connecting to doctor...</p>
+              <div className="flex gap-2" aria-label="Loading">
                 {[0, 1, 2].map(i => (
                   <motion.div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-teal-500"
+                    className="w-4 h-4 rounded-full bg-teal-500"
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                   />
@@ -287,17 +288,17 @@ export function TeleconsultPage() {
 
       {/* Connecting state */}
       {callState === 'connecting' && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
-          <div className="w-20 h-20 rounded-full bg-teal-100 flex items-center justify-center">
-            <Video size={32} className="text-teal-600" />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-6">
+          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center shadow-2xl">
+            <Video size={48} className="text-teal-600" />
           </div>
-          <p className="text-lg font-semibold text-[#2C2C2A]">Connecting to doctor...</p>
-          <p className="text-sm text-[#5F5E5A]">Setting up video connection</p>
-          <div className="flex gap-1">
+          <p className="text-2xl font-bold text-[#123B6D]">Connecting to doctor...</p>
+          <p className="text-lg text-gray-600">Setting up video connection</p>
+          <div className="flex gap-2">
             {[0, 1, 2].map(i => (
               <motion.div
                 key={i}
-                className="w-2 h-2 rounded-full bg-teal-500"
+                className="w-4 h-4 rounded-full bg-teal-500"
                 animate={{ opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
               />
@@ -404,41 +405,41 @@ export function TeleconsultPage() {
           )}
 
           {/* Call controls */}
-          <div className="flex items-center justify-center gap-4 py-5 bg-black/60 backdrop-blur-sm">
+          <div className="flex items-center justify-center gap-6 py-6 bg-black/70 backdrop-blur-md">
             <button
               onClick={toggleMic}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${micOn ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-red-500 text-white'}`}
+              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ${micOn ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}
               aria-label={micOn ? 'Mute' : 'Unmute'}
               aria-pressed={!micOn}
             >
-              {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+              {micOn ? <Mic size={28} /> : <MicOff size={28} />}
             </button>
             
             <button
               onClick={toggleCamera}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${camOn ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-red-500 text-white'}`}
+              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ${camOn ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}
               aria-label={camOn ? 'Camera off' : 'Camera on'}
               aria-pressed={!camOn}
             >
-              {camOn ? <Video size={20} /> : <VideoOff size={20} />}
+              {camOn ? <Video size={28} /> : <VideoOff size={28} />}
             </button>
             
             <button
               onClick={() => setChatOpen(p => !p)}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center relative"
+              className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center relative transition-all duration-200"
               aria-label="Chat"
               aria-pressed={chatOpen}
             >
-              <MessageSquare size={20} />
-              {messages.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-coral-500" aria-hidden="true" />}
+              <MessageSquare size={28} />
+              {messages.length > 0 && <span className="absolute top-2 right-2 w-3 h-3 rounded-full bg-orange-500 border-2 border-white" aria-hidden="true" />}
             </button>
             
             <button
               onClick={endCall}
-              className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+              className="w-20 h-20 rounded-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white flex items-center justify-center shadow-2xl transition-all duration-200"
               aria-label="End call"
             >
-              <Phone size={22} className="rotate-[135deg]" />
+              <Phone size={32} className="rotate-[135deg]" />
             </button>
           </div>
         </div>
@@ -446,23 +447,23 @@ export function TeleconsultPage() {
 
       {/* Post-call */}
       {callState === 'ended' && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full space-y-5 animate-fade-in">
-          <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle size={28} className="text-green-600" />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-2xl mx-auto w-full space-y-8 animate-fade-in">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center shadow-2xl">
+            <CheckCircle size={48} className="text-green-600" />
           </div>
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-[#2C2C2A]">Call ended</h2>
-            <p className="text-sm text-[#5F5E5A] mt-1">
+            <h2 className="text-3xl font-bold text-[#123B6D]">Call Ended</h2>
+            <p className="text-lg text-gray-600 mt-3">
               Duration: {formatDuration(callDuration)} · Dr. Ramesh Patil
             </p>
           </div>
-          <div className="card p-5 w-full space-y-3">
-            <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide">Doctor's notes</p>
-            <p className="text-sm text-[#2C2C2A] leading-relaxed">Continue iron supplementation. Repeat CBC in 2 weeks. BP review in 5 days.</p>
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full space-y-4 border-2 border-gray-100">
+            <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">Doctor's Notes</p>
+            <p className="text-base text-gray-800 leading-relaxed">Continue iron supplementation. Repeat CBC in 2 weeks. BP review in 5 days.</p>
             <AIPill />
           </div>
-          <button onClick={() => { setCallState('setup'); setCallDuration(0); }} className="btn-secondary w-full justify-center text-sm">
-            <Monitor size={15} /> Back to waiting room
+          <button onClick={() => { setCallState('setup'); setCallDuration(0); }} className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white font-bold w-full py-4 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 text-lg">
+            <Monitor size={20} /> Back to Waiting Room
           </button>
         </div>
       )}

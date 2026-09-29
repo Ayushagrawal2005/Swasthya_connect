@@ -189,3 +189,53 @@ export async function getPatientChronicConditions(patientId: string) {
     return []
   }
 }
+
+/**
+ * Save triage assessment to patient's longitudinal record
+ */
+export async function saveTriageToPatientRecord(
+  patientId: string,
+  triageData: {
+    chiefComplaint: string
+    riskScore: number
+    riskLevel: 'low' | 'medium' | 'high' | 'emergency'
+    flags?: string[]
+    answers?: string[]
+    sessionId?: string
+  }
+): Promise<boolean> {
+  try {
+    const record: Partial<LongitudinalRecord> = {
+      patientId,
+      recordType: 'triage',
+      recordDate: new Date().toISOString(),
+      title: 'AI Triage Assessment',
+      summary: triageData.chiefComplaint,
+      severity: triageData.riskScore,
+      diagnosis: `Risk Level: ${triageData.riskLevel} (Score: ${triageData.riskScore}/100)`,
+      outcome: triageData.flags && triageData.flags.length > 0 
+        ? `Risk factors detected: ${triageData.flags.join(', ')}` 
+        : 'No critical risk factors detected'
+    }
+
+    const response = await fetch(`${API_BASE}/longitudinal/records`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(record)
+    })
+
+    if (!response.ok) {
+      console.error('Failed to save triage record:', await response.text())
+      return false
+    }
+
+    console.log('✅ Triage assessment saved to patient record')
+    return true
+  } catch (error) {
+    console.error('Error saving triage to patient record:', error)
+    return false
+  }
+}

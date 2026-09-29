@@ -91,15 +91,6 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [clearedOnce, setClearedOnce] = useState(false)
-
-  // Clear localStorage ONCE when component mounts
-  useEffect(() => {
-    if (!clearedOnce) {
-      localStorage.clear()
-      setClearedOnce(true)
-    }
-  }, [clearedOnce])
 
   async function handleQuickFill(acc: typeof DEMO_ACCOUNTS[0]) {
     setUsername(acc.username)
@@ -112,8 +103,7 @@ export function LoginPage() {
     try {
       const res = await authApi.login(acc.username, acc.password)
       
-      // Clear old data and set new data
-      localStorage.clear()
+      // Set authentication data
       localStorage.setItem('swasthya_token', res.token)
       localStorage.setItem('swasthya_role', res.user.role)
       localStorage.setItem('swasthya_userId', res.user.id)
@@ -123,7 +113,7 @@ export function LoginPage() {
         localStorage.setItem('swasthya_patientId', res.user.patientId)
       }
       
-      // Hard redirect to avoid React state issues
+      // Determine path
       let path = '/patient' // default
       if (res.user.role === 'patient') path = '/patient'
       else if (res.user.role === 'admin') path = '/facility'
@@ -145,8 +135,7 @@ export function LoginPage() {
     try {
       const res = await authApi.login(username.trim(), password)
       
-      // Clear old data and set new data
-      localStorage.clear()
+      // Set authentication data
       localStorage.setItem('swasthya_token', res.token)
       localStorage.setItem('swasthya_role', res.user.role)
       localStorage.setItem('swasthya_userId', res.user.id)
@@ -156,7 +145,7 @@ export function LoginPage() {
         localStorage.setItem('swasthya_patientId', res.user.patientId)
       }
       
-      // Hard redirect to avoid React state issues
+      // Determine path
       let path = '/patient' // default
       if (res.user.role === 'patient') path = '/patient'
       else if (res.user.role === 'admin') path = '/facility'

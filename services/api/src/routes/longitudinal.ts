@@ -10,6 +10,57 @@ import { requireAuth } from '../middleware/auth.js'
 const router = Router()
 
 // ═══════════════════════════════════════════════════════════════
+// CREATE NEW LONGITUDINAL RECORD
+// ═══════════════════════════════════════════════════════════════
+
+router.post('/records', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user
+    const recordData = req.body
+
+    // Validate required fields
+    if (!recordData.patientId || !recordData.recordType || !recordData.title) {
+      return res.status(400).json({ error: 'Missing required fields: patientId, recordType, title' })
+    }
+
+    // Generate unique ID
+    const newRecord = {
+      id: `record-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      patientId: recordData.patientId,
+      recordType: recordData.recordType,
+      recordDate: recordData.recordDate || new Date().toISOString(),
+      title: recordData.title,
+      summary: recordData.summary || '',
+      diagnosis: recordData.diagnosis,
+      medications: recordData.medications || [],
+      labResults: recordData.labResults || [],
+      vitals: recordData.vitals,
+      provider: recordData.provider || user.name,
+      facility: recordData.facility,
+      tier: recordData.tier,
+      severity: recordData.severity,
+      outcome: recordData.outcome,
+      createdByRole: user.role,
+      createdById: user.id,
+      createdAt: new Date().toISOString(),
+    }
+
+    // Add to database
+    db.longitudinalRecords.push(newRecord)
+
+    console.log(`✅ Created longitudinal record: ${newRecord.id} for patient ${recordData.patientId}`)
+
+    res.status(201).json({
+      success: true,
+      record: newRecord,
+    })
+  } catch (error) {
+    console.error('Create longitudinal record error:', error)
+    res.status(500).json({ error: 'Failed to create longitudinal record' })
+  }
+})
+
+// ═══════════════════════════════════════════════════════════════
 // GET PATIENT LONGITUDINAL RECORDS
 // ═══════════════════════════════════════════════════════════════
 

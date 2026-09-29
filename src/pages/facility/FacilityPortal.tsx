@@ -93,21 +93,21 @@ export function FacilityPortal() {
   const t = useT()
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-teal-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 mb-6">
-            <Activity size={40} className="text-white" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] mb-6 shadow-xl">
+            <Activity size={48} className="text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-[#2C2C2A] mb-3">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#123B6D] to-[#1a5490] bg-clip-text text-transparent mb-4">
             {t('facilityPortal')}
           </h1>
-          <p className="text-lg text-[#5F5E5A] max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {t('selectRoleMessage')}
           </p>
         </motion.div>
@@ -116,8 +116,8 @@ export function FacilityPortal() {
         <motion.div
           initial="hidden"
           animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
         >
           {FACILITY_ROLES.map((role, index) => (
             <motion.button
@@ -125,27 +125,27 @@ export function FacilityPortal() {
               variants={fadeUp}
               custom={index}
               onClick={() => navigate(role.route)}
-              className={`card p-8 text-left border-2 ${role.bgColor} transition-all duration-300 hover:scale-105 hover:shadow-xl group`}
+              className="bg-white rounded-2xl shadow-lg p-8 text-left border-2 border-gray-100 hover:border-[#E85D04] hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
             >
               {/* Icon */}
-              <div className={`${role.color} mb-4 transition-transform group-hover:scale-110`}>
+              <div className={`${role.color} mb-6 transition-transform group-hover:scale-110 duration-300`}>
                 {role.icon}
               </div>
 
               {/* Role Name */}
-              <h3 className="text-xl font-bold text-[#2C2C2A] mb-2 group-hover:text-teal-700 transition-colors">
+              <h3 className="text-xl font-bold text-[#123B6D] mb-3 group-hover:text-[#E85D04] transition-colors">
                 {t(role.nameKey)}
               </h3>
 
               {/* Description */}
-              <p className="text-sm text-[#5F5E5A] mb-4 leading-relaxed">
+              <p className="text-sm text-gray-600 mb-6 leading-relaxed min-h-[3rem]">
                 {t(role.descKey)}
               </p>
 
               {/* Arrow */}
-              <div className="flex items-center text-teal-600 font-medium text-sm group-hover:gap-2 transition-all">
+              <div className="flex items-center text-[#E85D04] font-semibold text-sm group-hover:gap-2 transition-all">
                 <span>{t('accessDashboard')}</span>
-                <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
+                <ArrowRight size={18} className="ml-1 transition-transform group-hover:translate-x-2" />
               </div>
             </motion.button>
           ))}
@@ -153,12 +153,12 @@ export function FacilityPortal() {
 
         {/* Info Banner */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6 text-center"
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 text-center shadow-lg"
         >
-          <p className="text-sm text-blue-900">
+          <p className="text-sm font-medium text-blue-900">
             {t('needHelpContact')}
           </p>
         </motion.div>

@@ -65,35 +65,40 @@ export function PharmacyDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-[calc(100vh-4rem)]">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[#2C2C2A]">Pharmacy Dashboard</h1>
-          <p className="text-[#5F5E5A] mt-1">Prescription processing and inventory control</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="btn-secondary">
-            <FileText size={18} />
-            Print Report
-          </button>
-          <button className="btn-primary">
-            <Plus size={18} />
-            Add Stock
-          </button>
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Pharmacy Dashboard</h1>
+              <p className="text-blue-100 mt-1 text-sm">Prescription processing and inventory control</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="px-5 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 border border-white/20">
+                <FileText size={18} />
+                Print Report
+              </button>
+              <button className="px-6 py-3 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-lg flex items-center gap-2">
+                <Plus size={18} />
+                Add Stock
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatsCard title="Pending" value={stats.pending} icon={<Clock size={24} className="text-amber-600" />} bgColor="bg-amber-50" />
         <StatsCard title="Ready to Dispense" value={stats.ready} icon={<CheckCircle2 size={24} className="text-green-600" />} bgColor="bg-green-50" />
         <StatsCard title="Dispensed Today" value={stats.dispensed} icon={<Pill size={24} className="text-blue-600" />} bgColor="bg-blue-50" />
         <StatsCard title="Low Stock Items" value={stats.lowStock} icon={<AlertTriangle size={24} className="text-red-600" />} bgColor="bg-red-50" />
-      </div>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b-2 border-[#D3D1C7]">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b-2 border-[#D3D1C7]">
         <button
           onClick={() => setActiveTab('prescriptions')}
           className={`px-6 py-3 font-medium transition-all ${
@@ -114,11 +119,11 @@ export function PharmacyDashboard() {
         >
           Inventory
         </button>
-      </div>
+        </div>
 
-      {/* Content */}
-      {activeTab === 'prescriptions' ? (
-        <div className="card p-6">
+        {/* Content */}
+        {activeTab === 'prescriptions' ? (
+          <div className="card p-6">
           <h2 className="text-xl font-bold text-[#2C2C2A] mb-6">Active Prescriptions</h2>
           <div className="space-y-3">
             {prescriptions.map((rx) => (
@@ -136,7 +141,7 @@ export function PharmacyDashboard() {
           </div>
         </div>
       ) : (
-        <div className="card p-6">
+          <div className="card p-6">
           <h2 className="text-xl font-bold text-[#2C2C2A] mb-6">Medicine Inventory</h2>
           <div className="space-y-3">
             {inventory.map((item) => (
@@ -155,18 +160,19 @@ export function PharmacyDashboard() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 function StatsCard({ title, value, icon, bgColor }: any) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className={`card p-6 ${bgColor}`}>
-      <div className="mb-3">{icon}</div>
-      <h3 className="text-3xl font-bold text-[#2C2C2A] mb-1">{value}</h3>
-      <p className="text-sm font-medium text-[#5F5E5A]">{title}</p>
+    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className={`bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 hover:shadow-2xl hover:border-[#E85D04] transition-all`}>
+      <div className={`mb-4 p-3 rounded-xl ${bgColor} inline-block`}>{icon}</div>
+      <h3 className="text-3xl font-bold text-[#123B6D] mb-2">{value}</h3>
+      <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">{title}</p>
     </motion.div>
   )
 }

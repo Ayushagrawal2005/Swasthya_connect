@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navbar }           from './components/layout/Navbar'
 import { Sidebar }          from './components/layout/Sidebar'
+import { Footer }           from './components/layout/Footer'
 import { OfflineBanner }    from './components/ui/OfflineBanner'
 import { SyncStatusDrawer } from './components/ui/SyncStatusDrawer'
 
@@ -72,6 +73,8 @@ import { DistrictOfficerDashboard }      from './pages/facility/DistrictOfficerD
 function AppShell() {
   const { role, isOnline, logout } = useApp()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Auto-logout when navigating to public pages
   useEffect(() => {
@@ -80,19 +83,36 @@ function AppShell() {
     }
   }, [location.pathname, role, logout])
 
+  // Handle logout with navigation
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
+
   return (
     <div className="flex flex-col min-h-screen">
       {!isOnline && <OfflineBanner />}
-      {/* Only show Navbar if user is logged in (has a role) */}
-      {role && <Navbar />}
+      {/* Show Navbar on all pages */}
+      <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <div className="flex flex-1 min-h-0">
-        {/* Only show Sidebar if user is logged in (has a role) */}
-        {role && <Sidebar />}
-        <main className="flex-1 min-w-0 overflow-y-auto" id="main-content">
-          <Routes>
-            {/* Public - Clear auth when accessing these pages */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
+        {/* Sidebar - shown when logged in */}
+        {role && <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
+        <main className={`flex-1 min-w-0 overflow-y-auto ${location.pathname === '/' || location.pathname === '/login' ? '' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100'}`} id="main-content">
+          {/* Content wrapper with government portal styling - removed for landing and login pages */}
+          {location.pathname === '/' || location.pathname === '/login' ? (
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+            </Routes>
+          ) : (
+            <div className="mx-auto max-w-[1800px] px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+              <Routes>
+            {/* Public routes (excluding landing and login which are handled above) */}
             <Route path="/ivr"   element={<IvrSimulatorPage />} />
             <Route path="/test"  element={<TestAllFeaturesPage />} />
 
@@ -155,6 +175,10 @@ function AppShell() {
             <Route path="/facility/ambulance"  element={<AmbulanceCoordinatorDashboard />} />
             <Route path="/facility/district"   element={<DistrictOfficerDashboard />} />
           </Routes>
+          </div>
+          )}
+          {/* Consistent Footer across all pages */}
+          <Footer />
         </main>
       </div>
 

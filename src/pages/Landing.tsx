@@ -522,7 +522,10 @@ export function LandingPage() {
                 <div className="hidden md:block h-10 lg:h-12 border-r-2 border-gray-300" />
 
                 {/* Swasthya Connect Logo & Text */}
-                <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+                <button 
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 hover:opacity-80 transition-opacity"
+                >
                   <div className="flex h-[36px] w-[36px] sm:h-[40px] sm:w-[40px] md:h-[45px] md:w-[45px] lg:h-[52px] lg:w-[52px] items-center justify-center overflow-hidden flex-shrink-0">
                     <img src={swasthyaConnectLogo} alt="Swasthya Connect" className="h-full w-full object-contain" />
                   </div>
@@ -532,7 +535,7 @@ export function LandingPage() {
                     <p className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-[11px] text-gray-600 leading-tight">by HealthSync1 *ID - 165109*</p>
                     <p className="hidden sm:block text-[8px] md:text-[9px] lg:text-[10px] text-gray-500 leading-tight">Integrated Rural Healthcare</p>
                   </div>
-                </div>
+                </button>
 
                 <div className="hidden xl:block h-12 border-r-2 border-gray-300 mx-2" />
 

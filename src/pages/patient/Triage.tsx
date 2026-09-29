@@ -122,41 +122,51 @@ export function TriagePage() {
   const next = result ? NEXT_STEP[result.level] : null
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-2xl mx-auto">
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Header */}
-      <div className="px-4 sm:px-6 py-3 border-b border-[#D3D1C7] bg-white flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="font-semibold text-[#2C2C2A] text-sm">AI Symptom Checker</h1>
-          <p className="text-[11px] text-[#5F5E5A] flex items-center gap-1.5 mt-0.5">
-            <Brain size={11} className="text-teal-500" />
-            Groq adaptive questions · XGBoost ML scoring · 96.4% accuracy
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <LanguageSelector value={language} onChange={setLanguage} />
-          <span className="text-[10px] text-[#9E9C94] bg-gray-100 px-2 py-0.5 rounded-full">Q{questionCount}</span>
-          <AIPill />
-          <button onClick={reset} className="p-1.5 rounded-lg text-[#5F5E5A] hover:bg-gray-100" aria-label="Restart">
-            <RotateCcw size={14} />
-          </button>
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+                <Brain size={28} />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">AI Symptom Checker</h1>
+                <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
+                  <Brain size={14} className="text-teal-300" />
+                  Groq adaptive questions · XGBoost ML scoring · 96.4% accuracy
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <LanguageSelector value={language} onChange={setLanguage} />
+              <span className="text-sm text-white bg-white/20 px-4 py-2 rounded-xl font-bold backdrop-blur-sm">Q{questionCount}</span>
+              <AIPill />
+              <button onClick={reset} className="p-3 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all" aria-label="Restart">
+                <RotateCcw size={18} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
+      <div className="flex flex-col max-w-5xl mx-auto h-[calc(100vh-10rem)]">
+
       {/* Chat */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3" aria-live="polite">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-4" aria-live="polite">
         <AnimatePresence initial={false}>
           {messages.map((m, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22 }}
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
               className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[82%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
+              <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-base leading-relaxed shadow-lg
                 ${m.role === 'user'
-                  ? 'bg-teal-500 text-white rounded-br-sm'
-                  : 'bg-white border border-[#D3D1C7] text-[#2C2C2A] rounded-bl-sm shadow-sm'}`}>
+                  ? 'bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-br-sm'
+                  : 'bg-white border-2 border-gray-200 text-gray-800 rounded-bl-sm'}`}>
                 {m.text}
                 {m.hint && m.role === 'ai' && !result && i === messages.length - 1 && (
-                  <p className="text-[10px] text-[#9E9C94] mt-1">{m.hint}</p>
+                  <p className="text-sm text-gray-500 mt-2 italic">{m.hint}</p>
                 )}
               </div>
             </motion.div>
@@ -165,8 +175,8 @@ export function TriagePage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-[#D3D1C7] rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2 text-sm text-[#5F5E5A]">
-              <Loader2 size={14} className="animate-spin text-teal-500" />
+            <div className="bg-white border-2 border-gray-200 rounded-2xl rounded-bl-sm px-5 py-4 flex items-center gap-3 text-base text-gray-700 shadow-lg">
+              <Loader2 size={20} className="animate-spin text-teal-500" />
               {answers.length > 3 ? 'Analysing with ML model…' : 'Generating next question…'}
             </div>
           </div>
@@ -174,80 +184,80 @@ export function TriagePage() {
 
         {/* Result card */}
         {result && cfg && next && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className={`rounded-2xl border p-5 space-y-4 ${cfg.bgColor} ${cfg.border}`} role="alert">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className={`rounded-2xl border-4 p-8 space-y-6 shadow-2xl ${cfg.bgColor} ${cfg.border}`} role="alert">
 
-            <div className="flex items-center justify-between">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${cfg.badgeBg}`}>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <span className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-lg font-bold ${cfg.badgeBg} border-2`}>
                 {cfg.label}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {/* Color indicator circles */}
-                <div className="flex items-center gap-1">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                <div className="flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full border-4 flex items-center justify-center shadow-md
                     ${result.level === 'low' ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-300'}`}>
-                    {result.level === 'low' && <span className="text-white text-xs">✓</span>}
+                    {result.level === 'low' && <span className="text-white text-sm font-bold">✓</span>}
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                  <div className={`w-8 h-8 rounded-full border-4 flex items-center justify-center shadow-md
                     ${result.level === 'medium' ? 'bg-yellow-400 border-yellow-500' : 'bg-gray-200 border-gray-300'}`}>
-                    {result.level === 'medium' && <span className="text-white text-xs">✓</span>}
+                    {result.level === 'medium' && <span className="text-white text-sm font-bold">✓</span>}
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                  <div className={`w-8 h-8 rounded-full border-4 flex items-center justify-center shadow-md
                     ${result.level === 'high' || result.level === 'emergency' ? 'bg-red-500 border-red-600' : 'bg-gray-200 border-gray-300'}`}>
-                    {(result.level === 'high' || result.level === 'emergency') && <span className="text-white text-xs">✓</span>}
+                    {(result.level === 'high' || result.level === 'emergency') && <span className="text-white text-sm font-bold">✓</span>}
                   </div>
                 </div>
-                <span className={`text-xs text-gray-500 ml-1`}>({result.score}/100)</span>
+                <span className={`text-base font-bold text-gray-700 ml-2`}>({result.score}/100)</span>
               </div>
             </div>
 
             <div>
-              <div className="h-3 bg-white/70 rounded-full overflow-hidden border border-white/50">
+              <div className="h-5 bg-white/70 rounded-full overflow-hidden border-2 border-white/50 shadow-inner">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${result.score}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }} className={`h-full rounded-full ${cfg.barColor}`} />
               </div>
-              <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+              <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
                 <span>🟢 0-40 Green (Low)</span>
                 <span>🟡 40-60 Yellow</span>
                 <span>🟠 60-75 Orange</span>
-                <span className="text-red-400 font-semibold">🔴 75+ Red</span>
+                <span className="text-red-500 font-bold">🔴 75+ Red</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-white/60 rounded-xl px-4 py-2.5 border border-white/50">
-              <span className="text-xl leading-none">🏥</span>
+            <div className="flex items-center gap-4 bg-white/70 rounded-2xl px-6 py-4 border-2 border-white/50 shadow-md">
+              <span className="text-3xl leading-none">🏥</span>
               <div>
-                <p className="text-[10px] text-[#9E9C94] font-medium uppercase tracking-wide">Recommended facility</p>
-                <p className={`text-sm font-semibold ${cfg.textColor}`}>Level {result.hospitalLevel} — {result.hospitalLevelLabel}</p>
-                <p className="text-[10px] text-[#9E9C94] mt-0.5">{result.hospitalLevelDesc}</p>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Recommended facility</p>
+                <p className={`text-lg font-bold ${cfg.textColor} mt-1`}>Level {result.hospitalLevel} — {result.hospitalLevelLabel}</p>
+                <p className="text-sm text-gray-600 mt-1">{result.hospitalLevelDesc}</p>
               </div>
             </div>
 
             {result.autoEscalate && (
-              <div className="flex items-start gap-3 bg-red-600 text-white rounded-xl px-4 py-3" role="alert">
-                <Siren size={18} className="shrink-0 mt-0.5 animate-pulse" />
+              <div className="flex items-start gap-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl px-6 py-4 shadow-xl animate-pulse" role="alert">
+                <Siren size={24} className="shrink-0 mt-1" />
                 <div>
-                  <p className="font-semibold text-sm">Auto-escalation triggered</p>
-                  <p className="text-xs text-red-100 mt-0.5">Score {result.score}/100 exceeded threshold. Nearest facility notified automatically.</p>
+                  <p className="font-bold text-lg">Auto-escalation triggered</p>
+                  <p className="text-base text-red-100 mt-2">Score {result.score}/100 exceeded threshold. Nearest facility notified automatically.</p>
                 </div>
               </div>
             )}
 
             {result.triggeredFlags.length > 0 && (
-              <div className="space-y-1">
-                <p className={`text-xs font-semibold ${cfg.textColor}`}>Risk factors detected:</p>
+              <div className="space-y-2">
+                <p className={`text-base font-bold ${cfg.textColor}`}>Risk factors detected:</p>
                 {result.triggeredFlags.map(flag => (
-                  <div key={flag} className={`flex items-center gap-1.5 text-xs ${cfg.textColor}`}>
-                    <AlertTriangle size={11} /> {flag}
+                  <div key={flag} className={`flex items-center gap-2 text-base ${cfg.textColor}`}>
+                    <AlertTriangle size={16} /> {flag}
                   </div>
                 ))}
               </div>
             )}
 
             {result.probabilities && (
-              <div className="bg-white/60 rounded-xl p-3 space-y-1.5">
-                <p className={`text-[11px] font-semibold mb-2 ${cfg.textColor}`}>ML Probability Breakdown</p>
+              <div className="bg-white/70 rounded-2xl p-5 space-y-3 border-2 border-white/50 shadow-md">
+                <p className={`text-sm font-bold mb-3 ${cfg.textColor}`}>ML Probability Breakdown</p>
                 <ProbBar label="Low"       pct={result.probabilities.low}       color="bg-emerald-500" />
                 <ProbBar label="Medium"    pct={result.probabilities.medium}    color="bg-amber-400"   />
                 <ProbBar label="High"      pct={result.probabilities.high}      color="bg-orange-500"  />
@@ -255,43 +265,43 @@ export function TriagePage() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-[10px] bg-white/70 border border-white/50 rounded-full px-2 py-0.5 text-[#5F5E5A]">
-                <Brain size={9} className="text-teal-500" />
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-2 text-sm bg-white/70 border-2 border-white/50 rounded-xl px-4 py-2 text-gray-700 font-medium">
+                <Brain size={14} className="text-teal-500" />
                 {result.mlUsed ? `XGBoost · ${result.confidence?.toFixed(1)}% confidence` : 'Rule-based'}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 text-purple-700">
+              <span className="inline-flex items-center gap-2 text-sm bg-purple-50 border-2 border-purple-300 rounded-xl px-4 py-2 text-purple-700 font-bold">
                 ✨ {questionCount} Gemini questions
               </span>
               {(result.confidence ?? 0) >= 90 && (
-                <span className="inline-flex items-center gap-1 text-[10px] bg-white/70 border border-white/50 rounded-full px-2 py-0.5 text-emerald-700">
-                  <CheckCircle2 size={9} /> High confidence
+                <span className="inline-flex items-center gap-2 text-sm bg-white/70 border-2 border-white/50 rounded-xl px-4 py-2 text-emerald-700 font-bold">
+                  <CheckCircle2 size={14} /> High confidence
                 </span>
               )}
               <AIPill />
             </div>
 
-            <p className={`text-sm leading-relaxed ${cfg.textColor}`}>{next.advice}</p>
+            <p className={`text-base leading-relaxed font-medium ${cfg.textColor}`}>{next.advice}</p>
 
-            <div className="flex gap-2 flex-wrap pt-1">
+            <div className="flex gap-3 flex-wrap pt-2">
               {result.autoEscalate ? (
                 <>
-                  <a href="tel:104" className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded-xl px-5 py-2.5 text-sm font-medium transition-colors">
-                    <Siren size={14} /> Call 104 now
+                  <a href="tel:104" className="flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-2xl px-8 py-4 text-lg font-bold transition-all duration-200 shadow-xl hover:shadow-2xl">
+                    <Siren size={20} /> Call 104 now
                   </a>
-                  <button onClick={() => navigate('/patient/referrals')} className="btn-secondary text-sm py-2.5 px-4">View escalation</button>
+                  <button onClick={() => navigate('/patient/referrals')} className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white font-bold py-4 px-6 rounded-2xl hover:shadow-xl transition-all duration-200 text-base">View escalation</button>
                 </>
               ) : (
                 <>
                   <button onClick={() => navigate(next.route)}
-                    className={`${result.level === 'high' ? 'btn-coral' : 'btn-primary'} text-sm py-2.5 px-5 flex items-center gap-1.5`}>
-                    {next.cta} <ChevronRight size={14} />
+                    className={`${result.level === 'high' ? 'bg-gradient-to-r from-orange-600 to-orange-700' : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03]'} text-white font-bold py-4 px-8 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center gap-2 text-base`}>
+                    {next.cta} <ChevronRight size={18} />
                   </button>
                   <button onClick={() => navigate('/patient/teleconsult')}
-                    className="flex items-center gap-1.5 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors">
-                    <Video size={14} /> Teleconsult
+                    className="flex items-center gap-2 bg-gradient-to-r from-teal-50 to-teal-100 hover:from-teal-100 hover:to-teal-200 border-2 border-teal-300 text-teal-700 rounded-2xl px-6 py-4 text-base font-bold transition-all duration-200 shadow-md">
+                    <Video size={18} /> Teleconsult
                   </button>
-                  <button onClick={reset} className="btn-secondary text-sm py-2.5 px-4">Start over</button>
+                  <button onClick={reset} className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white font-bold py-4 px-6 rounded-2xl hover:shadow-xl transition-all duration-200 text-base">Start over</button>
                 </>
               )}
             </div>
@@ -303,23 +313,24 @@ export function TriagePage() {
 
       {/* Input */}
       {!result && (
-        <div className="px-4 sm:px-6 py-3 border-t border-[#D3D1C7] bg-white flex-shrink-0">
-          <div className="flex gap-2 items-end">
+        <div className="px-4 sm:px-6 py-4 border-t-2 border-gray-200 bg-white shadow-lg flex-shrink-0">
+          <div className="flex gap-3 items-end">
             <textarea value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleSend() } }}
               placeholder="Type your answer…" rows={1} disabled={loading}
-              className="input-field resize-none flex-1 min-h-[44px] disabled:opacity-50"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none min-h-[50px] disabled:opacity-50 text-base"
               aria-label="Your answer" />
-            <button type="button" className="p-2.5 rounded-xl border border-[#D3D1C7] text-[#5F5E5A] hover:bg-teal-50 hover:text-teal-600 transition-all" aria-label="Voice input">
-              <Mic size={17} />
+            <button type="button" className="p-3 rounded-xl border-2 border-gray-300 text-gray-600 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-300 transition-all" aria-label="Voice input">
+              <Mic size={20} />
             </button>
             <button type="button" onClick={() => void handleSend()} disabled={!input.trim() || loading}
-              className="btn-primary p-2.5 rounded-xl disabled:opacity-40" aria-label="Send">
-              {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
+              className="bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white font-bold p-3 rounded-xl hover:shadow-xl transition-all duration-200 disabled:opacity-40" aria-label="Send">
+              {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
             </button>
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

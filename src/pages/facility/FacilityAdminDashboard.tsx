@@ -197,41 +197,46 @@ export function FacilityAdminDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-[calc(100vh-4rem)]">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[#2C2C2A] flex items-center gap-3">
-            {t('facilityAdministrator')}
-            {pendingCount > 0 && (
-              <span className="flex items-center gap-1 text-base font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full animate-pulse">
-                <Bell size={14} />
-                {pendingCount} {t('pendingReferrals')}
-              </span>
-            )}
-          </h1>
-          <p className="text-[#5F5E5A] mt-1">
-            {facilityInfo?.name || 'PHC Beed'} · {t('manageFacilityOps')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => { setRefreshing(true); loadData() }}
-            disabled={refreshing}
-            className="btn-secondary"
-          >
-            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
-            {t('refresh')}
-          </button>
-          <button className="btn-secondary">
-            <Settings size={18} />
-            {t('settings')}
-          </button>
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-3">
+                {t('facilityAdministrator')}
+                {pendingCount > 0 && (
+                  <span className="flex items-center gap-2 text-base font-bold bg-red-500 text-white px-4 py-2 rounded-xl animate-pulse shadow-lg">
+                    <Bell size={18} />
+                    {pendingCount} {t('pendingReferrals')}
+                  </span>
+                )}
+              </h1>
+              <p className="text-blue-100 mt-2 text-sm">
+                {facilityInfo?.name || 'PHC Beed'} · {t('manageFacilityOps')}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => { setRefreshing(true); loadData() }}
+                disabled={refreshing}
+                className="px-5 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 border border-white/20"
+              >
+                <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                {t('refresh')}
+              </button>
+              <button className="px-5 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 border border-white/20">
+                <Settings size={18} />
+                {t('settings')}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           icon={<Bed size={24} className="text-indigo-600" />}
           title={t('bedsAvailable')}
@@ -264,10 +269,10 @@ export function FacilityAdminDashboard() {
           trend="up"
           bgColor="bg-blue-50"
         />
-      </div>
+        </div>
 
-      {/* BACHAO BACHAO Emergency Alerts - Priority Display */}
-      {activeEmergencies > 0 && (
+        {/* BACHAO BACHAO Emergency Alerts - Priority Display */}
+        {activeEmergencies > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -663,6 +668,7 @@ export function FacilityAdminDashboard() {
             <p className="text-sm text-[#5F5E5A] text-center py-4">No recent activities</p>
           )}
         </div>
+        </div>
       </div>
     </div>
   )
@@ -674,16 +680,16 @@ function MetricCard({ icon, title, value, subtitle, trend, bgColor }: any) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`card p-6 ${bgColor} border-2 border-transparent hover:border-teal-300 transition-all`}
+      className={`bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 hover:shadow-2xl hover:border-[#E85D04] transition-all`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className={`p-2 rounded-lg ${bgColor}`}>{icon}</div>
-        {trend === 'up' && <TrendingUp size={16} className="text-green-600" />}
-        {trend === 'urgent' && <AlertTriangle size={16} className="text-red-600" />}
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-3 rounded-xl shadow-md ${bgColor}`}>{icon}</div>
+        {trend === 'up' && <TrendingUp size={20} className="text-green-600" />}
+        {trend === 'urgent' && <AlertTriangle size={20} className="text-red-600 animate-pulse" />}
       </div>
-      <h3 className="text-2xl font-bold text-[#2C2C2A] mb-1">{value}</h3>
-      <p className="text-xs font-medium text-[#5F5E5A] mb-1">{title}</p>
-      <p className="text-xs text-[#5F5E5A]">{subtitle}</p>
+      <h3 className="text-3xl font-bold text-[#123B6D] mb-2">{value}</h3>
+      <p className="text-sm font-bold text-gray-600 mb-1 uppercase tracking-wide">{title}</p>
+      <p className="text-sm text-gray-500">{subtitle}</p>
     </motion.div>
   )
 }

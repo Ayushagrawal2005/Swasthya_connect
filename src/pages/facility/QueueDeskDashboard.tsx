@@ -70,27 +70,32 @@ export function QueueDeskDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-teal-50 via-white to-blue-50 min-h-[calc(100vh-4rem)]">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[#2C2C2A]">Queue Management</h1>
-          <p className="text-[#5F5E5A] mt-1">Patient registration and queue control</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleCallNext} className="btn-secondary">
-            <Users size={18} />
-            Call Next
-          </button>
-          <button onClick={handleRegisterNew} className="btn-primary">
-            <UserPlus size={18} />
-            Register Patient
-          </button>
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Queue Management</h1>
+              <p className="text-blue-100 mt-1 text-sm">Patient registration and queue control</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={handleCallNext} className="px-5 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 border border-white/20">
+                <Users size={18} />
+                Call Next
+              </button>
+              <button onClick={handleRegisterNew} className="px-6 py-3 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-lg flex items-center gap-2">
+                <UserPlus size={18} />
+                Register Patient
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatsCard
           icon={<Clock size={24} className="text-amber-600" />}
           title="Waiting"
@@ -115,27 +120,27 @@ export function QueueDeskDashboard() {
           value={`${queueStats.avgWaitTime} min`}
           bgColor="bg-teal-50"
         />
-      </div>
+        </div>
 
-      {/* Search & Filter */}
-      <div className="card p-4">
+        {/* Search & Filter */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-gray-100">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5F5E5A]" />
+            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name or token number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
+              className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] text-base"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Filter size={18} className="text-[#5F5E5A]" />
+          <div className="flex items-center gap-3">
+            <Filter size={20} className="text-gray-600" />
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="input-field"
+              className="px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] text-base font-medium"
             >
               <option value="all">All Priorities</option>
               <option value="emergency">Emergency</option>
@@ -144,12 +149,12 @@ export function QueueDeskDashboard() {
             </select>
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* Queue List */}
-      <div className="card p-6">
-        <h2 className="text-xl font-bold text-[#2C2C2A] mb-6 flex items-center gap-2">
-          <Users size={20} className="text-teal-600" />
+        {/* Queue List */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100">
+        <h2 className="text-2xl font-bold text-[#123B6D] mb-6 flex items-center gap-3">
+          <Users size={24} className="text-[#E85D04]" />
           Current Queue ({filteredQueue.length})
         </h2>
 
@@ -166,11 +171,11 @@ export function QueueDeskDashboard() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="flex items-center justify-between p-4 rounded-xl border-2 border-[#D3D1C7] hover:border-teal-300 hover:bg-teal-50/30 transition-all"
+                className="flex items-center justify-between p-5 rounded-2xl border-2 border-gray-200 hover:border-[#E85D04] hover:bg-orange-50/30 transition-all shadow-md hover:shadow-xl"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5">
                   {/* Token */}
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white ${
+                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center font-bold text-white text-sm shadow-lg ${
                     patient.priority === 'emergency' ? 'bg-red-500' :
                     patient.priority === 'urgent' ? 'bg-amber-500' : 'bg-teal-500'
                   }`}>
@@ -179,18 +184,18 @@ export function QueueDeskDashboard() {
 
                   {/* Patient Info */}
                   <div>
-                    <p className="font-bold text-[#2C2C2A]">{patient.name}</p>
-                    <p className="text-sm text-[#5F5E5A]">
+                    <p className="font-bold text-lg text-[#123B6D]">{patient.name}</p>
+                    <p className="text-sm text-gray-600">
                       {patient.age} yrs • {patient.gender === 'M' ? 'Male' : 'Female'} • Arrived: {patient.arrivalTime}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5">
                   {/* Wait Time */}
                   <div className="text-right">
-                    <p className="text-sm font-medium text-[#5F5E5A]">Wait Time</p>
-                    <p className="text-lg font-bold text-[#2C2C2A]">{patient.waitTime} min</p>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Wait Time</p>
+                    <p className="text-xl font-bold text-[#123B6D]">{patient.waitTime} min</p>
                   </div>
 
                   {/* Priority Badge */}
@@ -200,13 +205,14 @@ export function QueueDeskDashboard() {
                   <StatusBadge status={patient.status} />
 
                   {/* Actions */}
-                  <button className="btn-secondary py-2 px-4">
+                  <button className="px-5 py-2.5 bg-white border-2 border-[#123B6D] text-[#123B6D] rounded-xl font-bold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg text-sm">
                     View Details
                   </button>
                 </div>
               </motion.div>
             ))
           )}
+        </div>
         </div>
       </div>
     </div>
@@ -219,11 +225,11 @@ function StatsCard({ icon, title, value, bgColor }: any) {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`card p-6 ${bgColor} border-2 border-transparent hover:border-teal-300 transition-all`}
+      className={`bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 hover:shadow-2xl hover:border-[#E85D04] transition-all`}
     >
-      <div className="mb-3">{icon}</div>
-      <h3 className="text-3xl font-bold text-[#2C2C2A] mb-1">{value}</h3>
-      <p className="text-sm font-medium text-[#5F5E5A]">{title}</p>
+      <div className={`mb-4 p-3 rounded-xl ${bgColor} inline-block`}>{icon}</div>
+      <h3 className="text-3xl font-bold text-[#123B6D] mb-2">{value}</h3>
+      <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">{title}</p>
     </motion.div>
   )
 }

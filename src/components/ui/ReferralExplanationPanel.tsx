@@ -26,7 +26,7 @@ const categoryIcons = {
   vital: <Activity size={14} className="text-blue-600" />,
   history: <FileText size={14} className="text-purple-600" />,
   risk: <AlertTriangle size={14} className="text-amber-600" />,
-  resource: <Building2 size={14} className="text-teal-600" />,
+  resource: <Building2 size={14} className="text-[#E85D04]" />,
   policy: <Shield size={14} className="text-indigo-600" />
 }
 
@@ -119,7 +119,7 @@ export function ReferralExplanationPanel({ explanation, onClose }: Props) {
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
                   explanation.urgencyLevel === 'emergency' ? 'bg-red-200 border-red-400 text-red-900' :
                   explanation.urgencyLevel === 'urgent' ? 'bg-amber-200 border-amber-400 text-amber-900' :
-                  'bg-teal-200 border-teal-400 text-teal-900'
+                  'bg-orange-200 border-[#E85D04] text-[#123B6D]'
                 }`}>
                   {explanation.urgencyLevel.toUpperCase()}
                 </span>
@@ -204,13 +204,13 @@ export function ReferralExplanationPanel({ explanation, onClose }: Props) {
           </div>
 
           {/* Facility Recommendation */}
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+          <div className="bg-orange-50 border border-[#E85D04] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Building2 size={18} className="text-teal-600" />
+              <Building2 size={18} className="text-[#E85D04]" />
               <h3 className="font-bold text-gray-800">Recommended Facility</h3>
             </div>
             <div className="mb-3">
-              <p className="font-bold text-lg text-teal-900 mb-1">
+              <p className="font-bold text-lg text-[#123B6D] mb-1">
                 {explanation.facilityRecommendation.suggested}
               </p>
               <p className="text-sm text-gray-700">{explanation.facilityRecommendation.reason}</p>
@@ -222,7 +222,7 @@ export function ReferralExplanationPanel({ explanation, onClose }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {explanation.facilityRecommendation.capabilities.map((cap, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                    <CheckCircle size={14} className="text-teal-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle size={14} className="text-[#E85D04] mt-0.5 flex-shrink-0" />
                     <span>{cap}</span>
                   </div>
                 ))}

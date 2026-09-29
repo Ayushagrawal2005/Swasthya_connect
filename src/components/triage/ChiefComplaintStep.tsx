@@ -157,7 +157,6 @@ export function ChiefComplaintStep({
           placeholder="e.g. I have had a headache and high blood pressure for 3 days..."
           className="input-field min-h-[110px] resize-none"
           maxLength={500}
-          autoFocus
         />
         <div className="flex justify-between mt-1">
           <p className="text-xs text-[#5F5E5A] flex items-center gap-1">
@@ -171,11 +170,11 @@ export function ChiefComplaintStep({
       {/* Auto-detected conditions badge */}
       {autoDetected.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-teal-700 font-medium">Auto-detected:</span>
+          <span className="text-xs text-[#123B6D] font-medium">Auto-detected:</span>
           {autoDetected.map(c => {
             const cond = medicalConditions.find(m => m.id === c)
             return cond ? (
-              <span key={c} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-teal-50 border border-teal-300 text-teal-800 rounded-full">
+              <span key={c} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-orange-50 border border-[#E85D04] text-[#123B6D] rounded-full">
                 <CheckCircle2 size={10} />
                 {cond.name.split(' / ')[0]}
               </span>
@@ -216,14 +215,14 @@ export function ChiefComplaintStep({
       {/* Manual condition override (collapsed by default if auto-detected) */}
       <details open={autoDetected.length === 0} className="group">
         <summary className="text-sm font-medium text-[#2C2C2A] cursor-pointer select-none flex items-center gap-2 list-none">
-          <span className="w-4 h-4 border-2 border-[#D3D1C7] rounded flex items-center justify-center text-[10px] group-open:border-teal-500 group-open:bg-teal-50">
+          <span className="w-4 h-4 border-2 border-[#D3D1C7] rounded flex items-center justify-center text-[10px] group-open:border-[#E85D04] group-open:bg-orange-50">
             ▾
           </span>
           {autoDetected.length > 0
             ? 'Override / add more conditions (optional)'
             : 'Select related condition'}
           {selectedConditions.length > 0 && (
-            <span className="ml-auto text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">
+            <span className="ml-auto text-xs bg-orange-100 text-[#123B6D] px-2 py-0.5 rounded-full border border-[#E85D04]">
               {selectedConditions.length} selected
             </span>
           )}
@@ -235,8 +234,8 @@ export function ChiefComplaintStep({
               onClick={() => toggleCondition(c.id)}
               className={`text-left px-4 py-3 rounded-xl border-2 transition-all text-sm
                 ${selectedConditions.includes(c.id)
-                  ? 'border-teal-500 bg-teal-50 text-teal-900'
-                  : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'}
+                  ? 'border-[#E85D04] bg-orange-50 text-[#123B6D] font-semibold'
+                  : 'border-[#123B6D] hover:border-[#E85D04] text-[#2C2C2A]'}
               `}
             >
               <div className="font-medium">{c.name}</div>

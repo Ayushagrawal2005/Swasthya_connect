@@ -9,14 +9,14 @@ import {
   Video, Mic, MicOff, VideoOff, Phone, MessageSquare,
   CheckCircle, Wifi, WifiOff, Volume2, User, FileText,
   Pill, Activity, AlertCircle, X, Download, Play, Loader2,
-  Clock, TrendingUp, Heart
+  Clock, TrendingUp, Heart, Brain, AlertTriangle
 } from 'lucide-react'
 import { teleconsultApi, type Doctor } from '../../services/api'
 import { AIPill } from '../../components/ui/AIPill'
 import { useApp } from '../../context/AppContext'
 import { meena } from '../../data/meenaPatient'
 import { webrtcService, type ConnectionQuality } from '../../services/webrtc'
-import { getPatientSummaryForTeleconsult, type PatientSummary } from '../../services/patientDataApi'
+import { getPatientSummaryForTeleconsult, saveTriageToPatientRecord, type PatientSummary } from '../../services/patientDataApi'
 
 type CallState = 'assessment' | 'setup' | 'waiting' | 'connecting' | 'live' | 'ended'
 type AssessmentStep = 1 | 2 | 3 | 4 | 5
@@ -56,14 +56,48 @@ export function AshaTeleconsultPage() {
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
-  // Get triage data from navigation state
-  const { triageData, patientId: routePatientId } = (location.state || {}) as any
+  // Get triage data and skip assessment flag from navigation state
+  const { triageData, patientId: routePatientId, skipAssessment } = (location.state || {}) as any
   const patientId = routePatientId || meena.id
 
   const [availableDoctors, setAvailableDoctors] = useState<(Doctor & { facility: string })[]>([])
   const [selectedDoctor, setSelectedDoctor] = useState<(Doctor & { facility: string }) | null>(null)
   const [sessionId, setSessionId] = useState(`asha-session-${Date.now()}`)
-  const [callState, setCallState] = useState<CallState>('assessment') // Start with health assessment
+  const assessmentCompletedRef = useRef(false) // Persistent flag across re-renders
+  const [assessmentCompleted, setAssessmentCompleted] = useState(() => {
+    // Check if assessment was already completed or should be skipped
+    if (skipAssessment) {
+      assessmentCompletedRef.current = true
+      return true
+    }
+    const completed = sessionStorage.getItem('ashaTeleconsultAssessmentCompleted')
+    if (completed === 'true') {
+      assessmentCompletedRef.current = true
+      return true
+    }
+    return false
+  })
+  const [callState, setCallState] = useState<CallState>(() => {
+    // If skipAssessment flag is set, go directly to waiting (start call immediately)
+    if (skipAssessment) {
+      assessmentCompletedRef.current = true
+      sessionStorage.setItem('ashaTeleconsultAssessmentCompleted', 'true')
+      return 'waiting'
+    }
+    // If triageData exists, skip assessment and go to setup
+    if (triageData) {
+      assessmentCompletedRef.current = true
+      sessionStorage.setItem('ashaTeleconsultAssessmentCompleted', 'true')
+      return 'setup'
+    }
+    // If assessment was completed in this session, go to setup
+    const completed = sessionStorage.getItem('ashaTeleconsultAssessmentCompleted')
+    if (completed === 'true') {
+      assessmentCompletedRef.current = true
+      return 'setup'
+    }
+    return 'assessment'
+  })
   const [assessmentStep, setAssessmentStep] = useState<AssessmentStep>(1)
   
   // Health Assessment Data
@@ -179,6 +213,30 @@ export function AshaTeleconsultPage() {
       medicines: ['Amlodipine 5mg', 'Metformin 500mg']
     }))
   }
+
+  // Skip assessment if triageData was provided (coming from triage page)
+  useEffect(() => {
+    if (triageData) {
+      console.log('✅ Triage data provided, skipping assessment and going to setup')
+      // Pre-fill assessment data from triage if available
+      if (triageData.chiefComplaint) setChiefComplaint(triageData.chiefComplaint)
+      setCallState('setup')
+      setAssessmentCompleted(true)
+      sessionStorage.setItem('ashaTeleconsultAssessmentCompleted', 'true')
+    }
+  }, [triageData])
+
+  // Auto-start call if skipAssessment flag is set (coming from queue after completed assessment)
+  useEffect(() => {
+    if (skipAssessment && callState === 'waiting') {
+      console.log('✅ Skip assessment flag set, auto-starting call')
+      // Call startCall after a brief delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        startCall()
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [skipAssessment, callState])
 
   // Fetch patient summary from database
   useEffect(() => {
@@ -346,8 +404,13 @@ export function AshaTeleconsultPage() {
     if (assessmentStep < 5) {
       setAssessmentStep((assessmentStep + 1) as AssessmentStep)
     } else {
-      // Assessment complete, move to setup
-      setCallState('setup')
+      // Assessment complete, mark as completed and start call directly
+      console.log('✅ Assessment completed, saving to sessionStorage and starting call')
+      assessmentCompletedRef.current = true
+      setAssessmentCompleted(true)
+      sessionStorage.setItem('ashaTeleconsultAssessmentCompleted', 'true')
+      // Start call directly instead of going to setup
+      startCall()
     }
   }
 
@@ -366,6 +429,19 @@ export function AshaTeleconsultPage() {
       // Use existing sessionId or create new one
       const currentSessionId = sessionId || `asha-session-${Date.now()}`
       setSessionId(currentSessionId)
+
+      // Save triage data to patient record if available
+      if (triageData && patientId) {
+        console.log('💾 Saving triage assessment to patient record...')
+        await saveTriageToPatientRecord(patientId, {
+          chiefComplaint: triageData.chiefComplaint || 'Not specified',
+          riskScore: triageData.riskScore || 0,
+          riskLevel: triageData.riskLevel || 'low',
+          flags: triageData.flags,
+          answers: triageData.answers,
+          sessionId: triageData.sessionId
+        })
+      }
 
       // Prepare health assessment data
       const healthAssessment = {
@@ -421,6 +497,9 @@ export function AshaTeleconsultPage() {
     setPatientPanelOpen(false)
     webrtcService.leaveRoom()
     webrtcService.stopLocalStream()
+
+    // Clear assessment completion flag
+    sessionStorage.removeItem('ashaTeleconsultAssessmentCompleted')
 
     // Save notes if session exists
     if (sessionId) {
@@ -521,30 +600,51 @@ ASHA Worker: ${userName}
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Video size={28} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">ASHA Teleconsult</h1>
+              <p className="text-blue-100 text-sm mt-1">Facilitate video consultation between patient and doctor</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <AnimatePresence mode="wait">
 
         {/* Error banner */}
         {error && (
-          <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-center gap-2 text-red-800 text-sm">
-            <AlertCircle size={16} />
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-800">✕</button>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-red-50 to-red-100 border-4 border-red-300 rounded-2xl mx-6 mt-6 px-8 py-5 flex items-center gap-4 text-red-800 shadow-2xl"
+          >
+            <AlertCircle size={24} className="flex-shrink-0" />
+            <span className="flex-1 font-semibold text-base">{error}</span>
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-900 hover:bg-red-200 p-3 rounded-xl transition-all">
+              <X size={20} />
+            </button>
+          </motion.div>
         )}
 
         {/* ── Health Assessment (5 Steps) ── */}
         {callState === 'assessment' && (
           <motion.div key="assessment" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col p-6 max-w-2xl mx-auto w-full">
+            className="flex-1 flex flex-col p-8 max-w-3xl mx-auto w-full">
             
             {/* Language selector */}
-            <div className="mb-4">
-              <label className="text-xs text-[#5F5E5A] mb-1 block">Voice Input Language</label>
+            <div className="mb-6">
+              <label className="text-sm font-bold text-gray-700 mb-3 block uppercase tracking-wide">Voice Input Language</label>
               <select
                 value={assessmentLanguage}
                 onChange={(e) => setAssessmentLanguage(e.target.value)}
-                className="input-field text-sm py-2 w-full"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] text-base"
               >
                 <option value="en-IN">English (India)</option>
                 <option value="hi-IN">हिन्दी (Hindi)</option>
@@ -560,40 +660,40 @@ ASHA Worker: ${userName}
             </div>
             
             {/* Progress indicator */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3 flex-1 mr-4">
                 {[1, 2, 3, 4, 5].map(step => (
-                  <div key={step} className={`w-8 h-1 rounded-full transition-colors ${step <= assessmentStep ? 'bg-teal-500' : 'bg-gray-200'}`} />
+                  <div key={step} className={`h-2 rounded-full transition-all duration-300 flex-1 ${step <= assessmentStep ? 'bg-gradient-to-r from-[#E85D04] to-[#d94f03]' : 'bg-gray-200'}`} />
                 ))}
               </div>
-              <span className="text-xs text-[#5F5E5A]">Step {assessmentStep}/5</span>
+              <span className="text-base font-bold text-[#123B6D]">Step {assessmentStep}/5</span>
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
               {/* Step 1: Chief Complaint */}
               {assessmentStep === 1 && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-[#123B6D] space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">What is the main health concern?</h2>
-                    <p className="text-sm text-[#5F5E5A]">Describe the primary reason for this consultation</p>
+                    <h2 className="text-2xl font-bold text-[#123B6D] mb-3">What is the main health concern?</h2>
+                    <p className="text-base text-gray-600">Describe the primary reason for this consultation</p>
                   </div>
                   <div className="relative">
                     <textarea
                       value={chiefComplaint}
                       onChange={(e) => setChiefComplaint(e.target.value)}
                       placeholder="e.g., Persistent fever for 3 days, chest pain..."
-                      rows={4}
-                      className="input-field w-full resize-none"
+                      rows={5}
+                      className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none text-base"
                     />
                     <button
                       onClick={() => isListening && currentField === 'chiefComplaint' ? stopListening() : startListening('chiefComplaint')}
-                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                      className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all shadow-lg ${
                         isListening && currentField === 'chiefComplaint'
                           ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                          : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white hover:shadow-xl'
                       }`}
                     >
-                      <Mic size={18} />
+                      <Mic size={22} />
                     </button>
                   </div>
                 </div>
@@ -601,28 +701,28 @@ ASHA Worker: ${userName}
 
               {/* Step 2: Symptoms */}
               {assessmentStep === 2 && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-[#123B6D] space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">What symptoms are present?</h2>
-                    <p className="text-sm text-[#5F5E5A]">List all current symptoms the patient is experiencing</p>
+                    <h2 className="text-2xl font-bold text-[#123B6D] mb-3">What symptoms are present?</h2>
+                    <p className="text-base text-gray-600">List all current symptoms the patient is experiencing</p>
                   </div>
                   <div className="relative">
                     <textarea
                       value={symptoms}
                       onChange={(e) => setSymptoms(e.target.value)}
                       placeholder="e.g., High fever, body ache, headache, fatigue, cough..."
-                      rows={4}
-                      className="input-field w-full resize-none"
+                      rows={5}
+                      className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none text-base"
                     />
                     <button
                       onClick={() => isListening && currentField === 'symptoms' ? stopListening() : startListening('symptoms')}
-                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                      className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all shadow-lg ${
                         isListening && currentField === 'symptoms'
                           ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                          : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white hover:shadow-xl'
                       }`}
                     >
-                      <Mic size={18} />
+                      <Mic size={22} />
                     </button>
                   </div>
                 </div>
@@ -630,28 +730,28 @@ ASHA Worker: ${userName}
 
               {/* Step 3: Medical History */}
               {assessmentStep === 3 && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-[#123B6D] space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Any relevant medical history?</h2>
-                    <p className="text-sm text-[#5F5E5A]">Previous conditions, surgeries, or chronic illnesses</p>
+                    <h2 className="text-2xl font-bold text-[#123B6D] mb-3">Any relevant medical history?</h2>
+                    <p className="text-base text-gray-600">Previous conditions, surgeries, or chronic illnesses</p>
                   </div>
                   <div className="relative">
                     <textarea
                       value={medicalHistory}
                       onChange={(e) => setMedicalHistory(e.target.value)}
                       placeholder="e.g., Diabetes for 5 years, hypertension, previous surgery..."
-                      rows={4}
-                      className="input-field w-full resize-none"
+                      rows={5}
+                      className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none text-base"
                     />
                     <button
                       onClick={() => isListening && currentField === 'medicalHistory' ? stopListening() : startListening('medicalHistory')}
-                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                      className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all shadow-lg ${
                         isListening && currentField === 'medicalHistory'
                           ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                          : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white hover:shadow-xl'
                       }`}
                     >
-                      <Mic size={18} />
+                      <Mic size={22} />
                     </button>
                   </div>
                 </div>
@@ -659,28 +759,28 @@ ASHA Worker: ${userName}
 
               {/* Step 4: Allergies */}
               {assessmentStep === 4 && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-[#123B6D] space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Any known allergies?</h2>
-                    <p className="text-sm text-[#5F5E5A]">Drug allergies, food allergies, or other sensitivities</p>
+                    <h2 className="text-2xl font-bold text-[#123B6D] mb-3">Any known allergies?</h2>
+                    <p className="text-base text-gray-600">Drug allergies, food allergies, or other sensitivities</p>
                   </div>
                   <div className="relative">
                     <textarea
                       value={allergies}
                       onChange={(e) => setAllergies(e.target.value)}
                       placeholder="e.g., Penicillin allergy, peanut allergy... (or 'None known')"
-                      rows={4}
-                      className="input-field w-full resize-none"
+                      rows={5}
+                      className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none text-base"
                     />
                     <button
                       onClick={() => isListening && currentField === 'allergies' ? stopListening() : startListening('allergies')}
-                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                      className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all shadow-lg ${
                         isListening && currentField === 'allergies'
                           ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                          : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white hover:shadow-xl'
                       }`}
                     >
-                      <Mic size={18} />
+                      <Mic size={22} />
                     </button>
                   </div>
                 </div>
@@ -688,28 +788,28 @@ ASHA Worker: ${userName}
 
               {/* Step 5: Current Medications */}
               {assessmentStep === 5 && (
-                <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-[#123B6D] space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#2C2C2A] mb-2">Currently taking any medications?</h2>
-                    <p className="text-sm text-[#5F5E5A]">List all medicines, supplements, or treatments</p>
+                    <h2 className="text-2xl font-bold text-[#123B6D] mb-3">Currently taking any medications?</h2>
+                    <p className="text-base text-gray-600">List all medicines, supplements, or treatments</p>
                   </div>
                   <div className="relative">
                     <textarea
                       value={currentMedications}
                       onChange={(e) => setCurrentMedications(e.target.value)}
                       placeholder="e.g., Metformin 500mg twice daily, Aspirin 75mg... (or 'None')"
-                      rows={4}
-                      className="input-field w-full resize-none"
+                      rows={5}
+                      className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#123B6D] focus:border-[#123B6D] resize-none text-base"
                     />
                     <button
                       onClick={() => isListening && currentField === 'currentMedications' ? stopListening() : startListening('currentMedications')}
-                      className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                      className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all shadow-lg ${
                         isListening && currentField === 'currentMedications'
                           ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-gray-100 text-[#5F5E5A] hover:bg-teal-50'
+                          : 'bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white hover:shadow-xl'
                       }`}
                     >
-                      <Mic size={18} />
+                      <Mic size={22} />
                     </button>
                   </div>
                 </div>
@@ -717,33 +817,33 @@ ASHA Worker: ${userName}
             </div>
 
             {/* Navigation buttons */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-4 mt-8">
               {assessmentStep > 1 && (
                 <button
                   onClick={prevAssessmentStep}
-                  className="btn-secondary flex-1 justify-center py-3"
+                  className="flex-1 px-8 py-4 bg-white border-2 border-[#123B6D] text-[#123B6D] rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl text-base"
                 >
-                  Previous
+                  ← Previous
                 </button>
               )}
               <button
                 onClick={nextAssessmentStep}
-                className="btn-primary flex-1 justify-center py-3"
+                className="flex-1 px-8 py-4 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl text-base"
                 disabled={
                   (assessmentStep === 1 && !chiefComplaint.trim()) ||
                   (assessmentStep === 2 && !symptoms.trim())
                 }
               >
-                {assessmentStep === 5 ? 'Complete Assessment' : 'Next'}
+                {assessmentStep === 5 ? 'Complete Assessment ✓' : 'Next →'}
               </button>
             </div>
 
             {/* Skip button */}
             <button
               onClick={() => setCallState('setup')}
-              className="text-sm text-center text-[#5F5E5A] hover:text-teal-600 mt-3"
+              className="text-base text-center text-gray-600 hover:text-[#123B6D] mt-4 font-medium hover:underline"
             >
-              Skip assessment
+              Skip assessment and proceed to call
             </button>
           </motion.div>
         )}
@@ -751,63 +851,65 @@ ASHA Worker: ${userName}
         {/* ── Setup ── */}
         {callState === 'setup' && (
           <motion.div key="setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full space-y-5 animate-fade-in">
-            <div className="text-center">
-              <h1 className="text-xl font-semibold text-[#2C2C2A]">Assisted teleconsult</h1>
-              <p className="text-sm text-[#5F5E5A] mt-1">Connect patient with PHC doctor</p>
+            className="flex-1 flex flex-col items-center justify-center p-8 max-w-2xl mx-auto w-full space-y-6">
+            <div className="text-center mb-2">
+              <h1 className="text-3xl font-bold text-[#123B6D] mb-2">Assisted Teleconsult</h1>
+              <p className="text-base text-gray-600">Connect patient with PHC doctor via video call</p>
             </div>
 
             {/* Patient card */}
-            <div className="card p-4 w-full flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center font-semibold text-teal-700 flex-shrink-0">MP</div>
-              <div>
-                <p className="font-semibold text-sm text-[#2C2C2A]">{prescription.patientName}</p>
-                <p className="text-xs text-[#5F5E5A]">{meena.age}y · {meena.conditions.join(', ')}</p>
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full flex items-center gap-4 border-2 border-gray-100 hover:shadow-2xl transition-all">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-bold text-[#123B6D] flex-shrink-0 text-xl shadow-md">MP</div>
+              <div className="flex-1">
+                <p className="font-bold text-lg text-[#123B6D]">{prescription.patientName}</p>
+                <p className="text-sm text-gray-600 mt-1">{meena.age}y · {meena.conditions.join(', ')}</p>
               </div>
-              <span className="ml-auto badge-amber text-[10px]">Risk: 52/100</span>
+              <span className="px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 rounded-xl text-sm font-bold shadow-md">Risk: 52/100</span>
             </div>
 
             {/* Health Assessment Summary - Show if completed */}
             {(chiefComplaint || symptoms || medicalHistory || allergies || currentMedications) && (
-              <div className="card p-4 w-full space-y-3">
+              <div className="bg-white rounded-2xl shadow-xl p-6 w-full border-2 border-gray-100 space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide">Health Assessment</p>
+                  <p className="text-sm font-bold text-[#123B6D] uppercase tracking-wide flex items-center gap-2">
+                    <CheckCircle size={18} className="text-green-600" /> Health Assessment Completed
+                  </p>
                   <button
                     onClick={() => setCallState('assessment')}
-                    className="text-xs text-teal-600 hover:text-teal-700"
+                    className="text-sm text-[#E85D04] hover:text-[#d94f03] font-semibold hover:underline"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {chiefComplaint && (
-                    <div>
-                      <p className="text-xs text-[#5F5E5A] font-medium">Chief Complaint:</p>
-                      <p className="text-[#2C2C2A]">{chiefComplaint}</p>
+                    <div className="border-l-4 border-[#123B6D] pl-4">
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Chief Complaint:</p>
+                      <p className="text-gray-800">{chiefComplaint}</p>
                     </div>
                   )}
                   {symptoms && (
-                    <div>
-                      <p className="text-xs text-[#5F5E5A] font-medium">Symptoms:</p>
-                      <p className="text-[#2C2C2A]">{symptoms}</p>
+                    <div className="border-l-4 border-[#123B6D] pl-4">
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Symptoms:</p>
+                      <p className="text-gray-800">{symptoms}</p>
                     </div>
                   )}
                   {medicalHistory && (
-                    <div>
-                      <p className="text-xs text-[#5F5E5A] font-medium">Medical History:</p>
-                      <p className="text-[#2C2C2A]">{medicalHistory}</p>
+                    <div className="border-l-4 border-[#123B6D] pl-4">
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Medical History:</p>
+                      <p className="text-gray-800">{medicalHistory}</p>
                     </div>
                   )}
                   {allergies && (
-                    <div>
-                      <p className="text-xs text-[#5F5E5A] font-medium">Allergies:</p>
-                      <p className="text-[#2C2C2A]">{allergies}</p>
+                    <div className="border-l-4 border-[#123B6D] pl-4">
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Allergies:</p>
+                      <p className="text-gray-800">{allergies}</p>
                     </div>
                   )}
                   {currentMedications && (
-                    <div>
-                      <p className="text-xs text-[#5F5E5A] font-medium">Current Medications:</p>
-                      <p className="text-[#2C2C2A]">{currentMedications}</p>
+                    <div className="border-l-4 border-[#123B6D] pl-4">
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Current Medications:</p>
+                      <p className="text-gray-800">{currentMedications}</p>
                     </div>
                   )}
                 </div>
@@ -815,45 +917,45 @@ ASHA Worker: ${userName}
             )}
 
             {/* Doctor available */}
-            <div className="card p-4 w-full flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-700 flex-shrink-0">RP</div>
-              <div>
-                <p className="font-semibold text-sm text-[#2C2C2A]">{selectedDoctor?.name ?? "Dr. Patil"}</p>
-                <p className="text-xs text-[#5F5E5A]">PHC Beed · General Medicine</p>
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full flex items-center gap-4 border-2 border-gray-100 hover:shadow-2xl transition-all">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center font-bold text-indigo-700 flex-shrink-0 text-xl shadow-md">RP</div>
+              <div className="flex-1">
+                <p className="font-bold text-lg text-[#123B6D]">{selectedDoctor?.name ?? "Dr. Patil"}</p>
+                <p className="text-sm text-gray-600 mt-1">PHC Beed · General Medicine</p>
               </div>
-              <span className="ml-auto badge-green text-[10px] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 status-dot-live" aria-hidden="true" /> Available
+              <span className="px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-xl text-sm font-bold shadow-md flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 status-dot-live" aria-hidden="true" /> Available
               </span>
             </div>
 
             {/* Offline warning */}
             {!isOnline && (
-              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 w-full">
-                <WifiOff size={13} /> No internet — teleconsult requires connectivity. Please connect to proceed.
+              <div className="flex items-center gap-3 text-sm text-amber-800 bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl px-6 py-4 w-full shadow-lg">
+                <WifiOff size={20} /> <span className="font-semibold">No internet — teleconsult requires connectivity. Please connect to proceed.</span>
               </div>
             )}
 
             {/* Pre-call checklist */}
-            <div className="card p-4 w-full">
-              <p className="text-xs font-semibold text-[#5F5E5A] mb-3 uppercase tracking-wide">Pre-call checklist</p>
-              <div className="space-y-2">
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full border-2 border-gray-100">
+              <p className="text-sm font-bold text-[#123B6D] mb-4 uppercase tracking-wide">Pre-call Checklist</p>
+              <div className="space-y-3">
                 {preChecks.map(c => (
-                  <div key={c.label} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-[#5F5E5A]">
-                      <span aria-hidden="true">{c.icon}</span> {c.label}
+                  <div key={c.label} className="flex items-center justify-between text-base">
+                    <div className="flex items-center gap-3 text-gray-700">
+                      <span aria-hidden="true" className="text-lg">{c.icon}</span> <span className="font-medium">{c.label}</span>
                     </div>
-                    <CheckCircle size={15} className="text-green-500" aria-label="OK" />
+                    <CheckCircle size={20} className="text-green-600" aria-label="OK" />
                   </div>
                 ))}
               </div>
             </div>
 
-            <p className="text-xs text-center text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 w-full">
-              Real-time WebRTC video calling with adaptive quality for rural connectivity.
+            <p className="text-sm text-center text-indigo-800 bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-200 rounded-xl px-6 py-3 w-full shadow-md font-medium">
+              ℹ️ Real-time WebRTC video calling with adaptive quality for rural connectivity.
             </p>
 
-            <button onClick={() => startCall()} className="btn-primary w-full justify-center text-base py-3.5" disabled={!isOnline}>
-              <Video size={18} aria-hidden="true" /> Start teleconsult
+            <button onClick={() => startCall()} className="w-full px-8 py-4 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl text-lg flex items-center justify-center gap-3" disabled={!isOnline}>
+              <Video size={22} aria-hidden="true" /> Start Teleconsult
             </button>
           </motion.div>
         )}
@@ -861,33 +963,33 @@ ASHA Worker: ${userName}
         {/* ── Waiting / Connecting ── */}
         {(callState === 'waiting' || callState === 'connecting') && (
           <motion.div key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full space-y-5">
+            className="flex-1 flex flex-col items-center justify-center p-8 max-w-2xl mx-auto w-full space-y-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-xl font-semibold text-indigo-700">RP</div>
-              <span className="absolute inset-0 rounded-full border-2 border-teal-400 animate-ping opacity-30" aria-hidden="true" />
-              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white" aria-label="Doctor online" />
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-3xl font-bold text-indigo-700 shadow-2xl">RP</div>
+              <span className="absolute inset-0 rounded-full border-4 border-[#E85D04] animate-ping opacity-40" aria-hidden="true" />
+              <span className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-green-500 border-4 border-white shadow-lg" aria-label="Doctor online" />
             </div>
             <div className="text-center">
-              <p className="font-semibold text-[#2C2C2A]">
+              <p className="font-bold text-2xl text-[#123B6D] mb-2">
                 {callState === 'waiting' ? 'Connecting to Dr. Patil…' : 'Setting up video call...'}
               </p>
-              <p className="text-sm text-[#5F5E5A] mt-1">PHC Beed · Est. wait: ~1 min</p>
+              <p className="text-base text-gray-600">PHC Beed · Est. wait: ~1 min</p>
             </div>
-            <p className="text-xs text-center text-[#5F5E5A] max-w-xs">
-              Doctor is receiving {meena.name}'s full record: 4 visit history, BP trend, OCR prescription, and today's triage score (52/100).
+            <p className="text-sm text-center text-gray-700 max-w-md bg-white rounded-xl p-5 shadow-lg border-2 border-gray-100">
+              Doctor is receiving <span className="font-bold text-[#123B6D]">{meena.name}'s</span> full record: 4 visit history, BP trend, OCR prescription, and today's triage score (52/100).
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {[0, 1, 2].map(i => (
                 <motion.div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-teal-500"
+                  className="w-3 h-3 rounded-full bg-gradient-to-r from-[#E85D04] to-[#d94f03]"
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                 />
               ))}
             </div>
-            <button onClick={() => setCallState('setup')} className="text-sm text-[#5F5E5A] hover:text-teal-600">
-              Cancel
+            <button onClick={() => setCallState('setup')} className="text-base text-gray-600 hover:text-[#123B6D] font-semibold hover:underline">
+              Cancel Connection
             </button>
           </motion.div>
         )}
@@ -985,6 +1087,70 @@ ASHA Worker: ${userName}
                         ))}
                       </div>
                     </div>
+
+                    {/* Triage Summary - Show if triageData exists */}
+                    {triageData && (
+                      <div className="mb-4 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-orange-300 rounded-lg p-4">
+                        <h4 className="text-xs font-bold text-orange-800 uppercase mb-3 flex items-center gap-1">
+                          <Brain size={14} />
+                          AI Triage Assessment
+                        </h4>
+                        
+                        {/* Risk Score */}
+                        <div className="bg-white rounded-lg p-3 mb-3 border border-orange-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-gray-700">Risk Score</span>
+                            <span className={`text-lg font-bold ${
+                              triageData.riskLevel === 'low' ? 'text-green-600' :
+                              triageData.riskLevel === 'medium' ? 'text-amber-600' :
+                              triageData.riskLevel === 'high' ? 'text-orange-600' :
+                              'text-red-600'
+                            }`}>
+                              {triageData.riskScore}/100
+                            </span>
+                          </div>
+                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                triageData.riskLevel === 'low' ? 'bg-green-500' :
+                                triageData.riskLevel === 'medium' ? 'bg-amber-400' :
+                                triageData.riskLevel === 'high' ? 'bg-orange-500' :
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${triageData.riskScore}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 capitalize font-semibold">
+                            Level: {triageData.riskLevel} Risk
+                          </p>
+                        </div>
+
+                        {/* Chief Complaint */}
+                        {triageData.chiefComplaint && (
+                          <div className="mb-3">
+                            <p className="text-xs font-bold text-gray-700 mb-1">Chief Complaint:</p>
+                            <p className="text-sm text-gray-800 bg-white rounded p-2 border border-orange-100">
+                              {triageData.chiefComplaint}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Risk Flags */}
+                        {triageData.flags && triageData.flags.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-700 mb-2">Risk Factors:</p>
+                            <div className="space-y-1">
+                              {triageData.flags.map((flag: string, i: number) => (
+                                <div key={i} className="flex items-start gap-2 text-xs bg-white rounded p-2 border border-orange-100">
+                                  <AlertTriangle size={12} className="text-orange-600 flex-shrink-0 mt-0.5" />
+                                  <span className="text-gray-700">{flag}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Current Medications */}
                     <div className="mb-4">

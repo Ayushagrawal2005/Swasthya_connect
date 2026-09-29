@@ -114,7 +114,7 @@ export function DynamicQuestionsStep({
   if (loading) {
     return (
       <div className="card p-12 text-center space-y-4">
-        <Loader2 size={36} className="animate-spin text-teal-600 mx-auto" />
+        <Loader2 size={36} className="animate-spin text-[#E85D04] mx-auto" />
         <div>
           <p className="font-semibold text-[#2C2C2A]">Generating personalized questions...</p>
           <p className="text-sm text-[#5F5E5A] mt-1 italic">
@@ -155,7 +155,7 @@ export function DynamicQuestionsStep({
           <div>
             <h2 className="text-xl font-semibold text-[#2C2C2A]">Health Assessment Questions</h2>
             <p className="text-sm text-[#5F5E5A] mt-1">
-              Based on: <span className="font-medium text-teal-700 italic">
+              Based on: <span className="font-medium text-[#E85D04] italic">
                 "{chiefComplaint.slice(0, 80)}{chiefComplaint.length > 80 ? '…' : ''}"
               </span>
             </p>
@@ -174,14 +174,14 @@ export function DynamicQuestionsStep({
                 }}
                 className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full transition-colors
                   ${voiceEnabled 
-                    ? 'bg-teal-100 text-teal-700 hover:bg-teal-200' 
+                    ? 'bg-orange-100 text-[#E85D04] hover:bg-orange-200' 
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                 title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
               >
                 {voiceEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
               </button>
               <button onClick={fetchQuestions}
-                className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700">
+                className="flex items-center gap-1 text-xs text-[#E85D04] hover:text-[#d94f03]">
                 <RefreshCw size={11} /> Regenerate
               </button>
             </div>
@@ -194,7 +194,7 @@ export function DynamicQuestionsStep({
           </div>
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-300"
+              className="h-full bg-[#E85D04] rounded-full transition-all duration-300"
               style={{ width: `${questions.length ? (answered / questions.length) * 100 : 0}%` }}
             />
           </div>
@@ -209,13 +209,13 @@ export function DynamicQuestionsStep({
         return (
           <div key={q.id}
             className={`card p-5 transition-all
-              ${isAnswered ? 'border-teal-300 bg-teal-50/30' : 'border-[#D3D1C7]'}
+              ${isAnswered ? 'border-[#E85D04] bg-orange-50/30' : 'border-[#D3D1C7]'}
               ${q.redFlag ? 'border-l-4 border-l-red-500' : ''}`}
           >
             {/* Question */}
             <div className="flex items-start gap-3 mb-4">
               <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
-                ${isAnswered ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                ${isAnswered ? 'bg-[#E85D04] text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {isAnswered ? <CheckCircle size={14} /> : idx + 1}
               </div>
               <div className="flex-1">
@@ -232,7 +232,7 @@ export function DynamicQuestionsStep({
                         utterance.rate = 0.9
                         window.speechSynthesis.speak(utterance)
                       }}
-                      className="flex-shrink-0 p-1.5 rounded-full hover:bg-teal-50 text-teal-600 transition-colors"
+                      className="flex-shrink-0 p-1.5 rounded-full hover:bg-orange-50 text-[#E85D04] transition-colors"
                       title="Speak question"
                     >
                       <Volume2 size={14} />
@@ -256,8 +256,8 @@ export function DynamicQuestionsStep({
                       onClick={() => handleAnswer(q.id, opt === 'Yes')}
                       className={`flex-1 py-2.5 rounded-lg border-2 font-medium text-sm transition-all
                         ${answer === (opt === 'Yes')
-                          ? 'border-teal-500 bg-teal-500 text-white'
-                          : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'}`}
+                          ? 'border-[#E85D04] bg-[#E85D04] text-white'
+                          : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'}`}
                     >{opt}</button>
                   ))}
                 </div>
@@ -270,8 +270,8 @@ export function DynamicQuestionsStep({
                       onClick={() => handleAnswer(q.id, opt)}
                       className={`w-full text-left py-2.5 px-4 rounded-lg border-2 text-sm transition-all
                         ${answer === opt
-                          ? 'border-teal-500 bg-teal-50 text-teal-900 font-medium'
-                          : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'}`}
+                          ? 'border-[#E85D04] bg-orange-50 text-[#123B6D] font-medium'
+                          : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'}`}
                     >{opt}</button>
                   ))}
                 </div>
@@ -289,11 +289,11 @@ export function DynamicQuestionsStep({
                         }}
                         className={`w-full text-left py-2.5 px-4 rounded-lg border-2 text-sm flex items-center gap-2 transition-all
                           ${sel
-                            ? 'border-teal-500 bg-teal-50 text-teal-900 font-medium'
-                            : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'}`}
+                            ? 'border-[#E85D04] bg-orange-50 text-[#123B6D] font-medium'
+                            : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'}`}
                       >
                         <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0
-                          ${sel ? 'bg-teal-500 border-teal-500' : 'border-gray-400'}`}>
+                          ${sel ? 'bg-[#E85D04] border-[#E85D04]' : 'border-gray-400'}`}>
                           {sel && <CheckCircle size={11} className="text-white" />}
                         </div>
                         {opt}
@@ -332,8 +332,8 @@ export function DynamicQuestionsStep({
                         onClick={() => handleAnswer(q.id, v)}
                         className={`flex-1 aspect-square rounded-lg border-2 font-semibold text-xs transition-all
                           ${answer === v
-                            ? 'border-teal-500 bg-teal-500 text-white scale-110'
-                            : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'}`}
+                            ? 'border-[#E85D04] bg-[#E85D04] text-white scale-110'
+                            : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'}`}
                       >{v}</button>
                     ))}
                   </div>

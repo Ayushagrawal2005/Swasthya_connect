@@ -57,10 +57,10 @@ const VITAL_FIELDS = [
 ] as const
 
 const RISK_CFG: Record<RiskLevel, { label: string; textColor: string; bgColor: string; border: string; barColor: string; badgeBg: string }> = {
-  low:       { label: 'Low Risk',      textColor: 'text-emerald-800', bgColor: 'bg-emerald-50', border: 'border-emerald-200',      barColor: 'bg-emerald-500', badgeBg: 'bg-emerald-100 text-emerald-800' },
-  medium:    { label: 'Moderate Risk', textColor: 'text-amber-800',   bgColor: 'bg-amber-50',   border: 'border-amber-200',        barColor: 'bg-amber-400',   badgeBg: 'bg-amber-100 text-amber-800' },
-  high:      { label: 'High Risk',     textColor: 'text-orange-800',  bgColor: 'bg-orange-50',  border: 'border-orange-300',       barColor: 'bg-orange-500',  badgeBg: 'bg-orange-100 text-orange-800' },
-  emergency: { label: 'Emergency',     textColor: 'text-red-900',     bgColor: 'bg-red-50',     border: 'border-red-400 border-2', barColor: 'bg-red-600',     badgeBg: 'bg-red-100 text-red-900' },
+  low:       { label: 'Low Risk',      textColor: 'text-emerald-800', bgColor: 'bg-gradient-to-br from-emerald-50 to-emerald-100', border: 'border-l-4 border-emerald-500',      barColor: 'bg-emerald-500', badgeBg: 'bg-emerald-100 text-emerald-800 border border-emerald-200' },
+  medium:    { label: 'Moderate Risk', textColor: 'text-amber-800',   bgColor: 'bg-gradient-to-br from-amber-50 to-amber-100',   border: 'border-l-4 border-amber-500',        barColor: 'bg-amber-500',   badgeBg: 'bg-amber-100 text-amber-800 border border-amber-200' },
+  high:      { label: 'High Risk',     textColor: 'text-[#E85D04]',  bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100',  border: 'border-l-4 border-[#E85D04]',       barColor: 'bg-[#E85D04]',  badgeBg: 'bg-orange-100 text-[#E85D04] border border-orange-200' },
+  emergency: { label: 'Emergency',     textColor: 'text-red-900',     bgColor: 'bg-gradient-to-br from-red-50 to-red-100',     border: 'border-l-4 border-red-600', barColor: 'bg-red-600',     badgeBg: 'bg-red-100 text-red-900 border border-red-300' },
 }
 
 const NEXT_STEP: Record<RiskLevel, { advice: string; cta: string }> = {
@@ -72,13 +72,13 @@ const NEXT_STEP: Record<RiskLevel, { advice: string; cta: string }> = {
 
 function ProbBar({ label, pct, color }: { label: string; pct: number; color: string }) {
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="w-20 text-right text-[#5F5E5A] shrink-0">{label}</span>
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
+    <div className="flex items-center gap-3 text-sm">
+      <span className="w-28 text-right text-[#123B6D] shrink-0 font-medium">{label}</span>
+      <div className="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }}
           className={`h-full rounded-full ${color}`} />
       </div>
-      <span className="w-10 tabular-nums font-medium text-[#2C2C2A]">{pct.toFixed(1)}%</span>
+      <span className="w-14 tabular-nums font-bold text-[#123B6D]">{pct.toFixed(1)}%</span>
     </div>
   )
 }
@@ -159,7 +159,19 @@ export function AshaTriage() {
     window.history.replaceState({}, '')
   }, [])   // runs once on mount only
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+  // Removed auto-scroll - let user control their scroll position
+  // Only scroll on explicit user action in chat mode if needed
+  const prevMessagesLength = useRef(messages.length)
+  useEffect(() => { 
+    // Only scroll if user is actively chatting (in symptoms step) and they sent a message
+    if (step === 'symptoms' && messages.length > prevMessagesLength.current && messages.length > 0) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      }, 100)
+    }
+    prevMessagesLength.current = messages.length
+  }, [messages.length, step])
 
   // ── Web Speech API setup ──
   useEffect(() => {
@@ -526,117 +538,144 @@ export function AshaTriage() {
   const showTeleconsult = result !== null && result.score >= 40 && result.score < 75
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100">
+      <div className="max-w-5xl mx-auto">
 
       {/* Header */}
-      <div className="px-4 sm:px-6 py-3 border-b border-[#D3D1C7] bg-white flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="font-semibold text-[#2C2C2A] text-sm">ASHA Patient Triage</h1>
-          <p className="text-[11px] text-[#5F5E5A] flex items-center gap-1.5 mt-0.5">
-            <Brain size={11} className="text-teal-500" />
-            Groq adaptive questions · XGBoost ML scoring
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <LanguageSelector value={language} onChange={setLanguage} />
-          {step === 'symptoms' && (
-            <span className="text-[10px] text-[#9E9C94] bg-gray-100 px-2 py-0.5 rounded-full">Q{qCount}</span>
-          )}
-          <AIPill />
-          <button onClick={reset} className="p-1.5 rounded-lg text-[#5F5E5A] hover:bg-gray-100" aria-label="Restart">
-            <RotateCcw size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Step tabs */}
-      <div className="flex border-b border-[#D3D1C7] bg-gray-50 flex-shrink-0">
-        {STEPS.map((s, i) => {
-          const curIdx = STEPS.indexOf(step)
-          return (
-            <div key={s} className={`flex-1 py-2 text-center text-[11px] font-medium flex items-center justify-center gap-1 ${step === s ? 'text-teal-600 border-b-2 border-teal-500 bg-white' : 'text-[#9E9C94]'}`}>
-              <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ${step === s ? 'bg-teal-500 text-white' : i < curIdx ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>{i + 1}</span>
-              {stepLabels[s]}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 m-4 sm:m-6 overflow-hidden"
+      >
+        <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="font-bold text-white text-xl">ASHA Patient Triage</h1>
+                <p className="text-xs text-gray-200 flex items-center gap-1.5 mt-0.5">
+                  AI-Powered Assessment · Groq + XGBoost ML
+                </p>
+              </div>
             </div>
-          )
-        })}
-      </div>
+            <div className="flex items-center gap-3">
+              <LanguageSelector value={language} onChange={setLanguage} />
+              {step === 'symptoms' && (
+                <span className="text-xs font-bold text-white bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30">Q{qCount}</span>
+              )}
+              <AIPill />
+              <button onClick={reset} className="p-2 rounded-lg text-white hover:bg-white/20 backdrop-blur-sm transition-colors" aria-label="Restart">
+                <RotateCcw size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
 
-      <div className="flex-1 overflow-y-auto">
+        {/* Step tabs */}
+        <div className="flex border-b-2 border-gray-200 bg-gray-50">
+          {STEPS.map((s, i) => {
+            const curIdx = STEPS.indexOf(step)
+            const isActive = step === s
+            const isCompleted = i < curIdx
+            return (
+              <div key={s} className={`flex-1 py-3 text-center text-sm font-semibold flex items-center justify-center gap-2 transition-all ${isActive ? 'text-[#E85D04] border-b-4 border-[#E85D04] bg-white' : 'text-gray-500'}`}>
+                <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all ${isActive ? 'bg-[#E85D04] text-white scale-110' : isCompleted ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                  {isCompleted ? <CheckCircle size={14} /> : i + 1}
+                </span>
+                <span className="hidden sm:inline">{stepLabels[s]}</span>
+              </div>
+            )
+          })}
+        </div>
+      </motion.div>
+
+      <div className="px-4 sm:px-6 pb-6">
 
         {/* ── Language Selection step ── */}
         {step === 'language' && (
-          <div className="p-4 sm:p-6 max-w-md mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center space-y-6"
-            >
-              <div className="w-20 h-20 mx-auto bg-teal-100 rounded-full flex items-center justify-center">
-                <Globe size={40} className="text-teal-600" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-6 sm:p-8 max-w-lg mx-auto"
+          >
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#E85D04] to-[#d94f03] rounded-2xl shadow-lg flex items-center justify-center">
+                <Globe size={40} className="text-white" />
               </div>
               
               <div>
-                <h2 className="text-2xl font-bold text-[#2C2C2A] mb-2">Select Language</h2>
-                <p className="text-sm text-[#5F5E5A]">Choose your preferred language for voice-guided triage</p>
+                <h2 className="text-2xl font-bold text-[#123B6D] mb-2">Select Language</h2>
+                <p className="text-sm text-gray-600">Choose your preferred language for voice-guided triage assessment</p>
               </div>
 
               <div className="space-y-3">
                 {(['en', 'hi', 'mr'] as const).map((lang) => (
-                  <button
+                  <motion.button
                     key={lang}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setLanguage(lang)
                       setStep('vitals')
                     }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between ${
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between shadow-sm hover:shadow-md ${
                       language === lang
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-[#D3D1C7] hover:border-teal-300 hover:bg-teal-50/50'
+                        ? 'border-[#E85D04] bg-gradient-to-r from-orange-50 to-amber-50 shadow-md'
+                        : 'border-gray-200 hover:border-[#E85D04] bg-white'
                     }`}
                   >
                     <div>
-                      <p className="font-semibold text-[#2C2C2A]">
+                      <p className="font-bold text-[#123B6D]">
                         {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी (Hindi)' : 'मराठी (Marathi)'}
                       </p>
-                      <p className="text-xs text-[#5F5E5A] mt-0.5">
+                      <p className="text-xs text-gray-600 mt-0.5">
                         {lang === 'en' ? 'Voice and text support' : lang === 'hi' ? 'आवाज और टेक्स्ट समर्थन' : 'आवाज आणि मजकूर समर्थन'}
                       </p>
                     </div>
                     {language === lang && (
-                      <CheckCircle size={24} className="text-teal-600" />
+                      <div className="w-8 h-8 rounded-full bg-[#E85D04] flex items-center justify-center">
+                        <CheckCircle size={20} className="text-white" />
+                      </div>
                     )}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
 
               <button
                 onClick={() => setStep('vitals')}
-                className="btn-primary w-full py-3 justify-center text-sm flex items-center gap-1.5"
+                className="w-full bg-gradient-to-r from-[#E85D04] to-[#d94f03] hover:from-[#d94f03] hover:to-[#c44803] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
               >
-                Continue <ChevronRight size={16} />
+                Continue <ChevronRight size={20} />
               </button>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
 
         {/* ── Vitals step ── */}
         {step === 'vitals' && (
-          <div className="p-4 sm:p-5 space-y-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-6 sm:p-8 space-y-5"
+          >
 
             {/* Pre-fill banner — shown when vitals were loaded from a previous visit */}
             {prefillBanner && (
               <motion.div
-                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-3 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="flex items-start gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl px-4 py-3.5 shadow-sm"
               >
-                <ClipboardCheck size={16} className="text-teal-600 flex-shrink-0 mt-0.5" />
+                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0">
+                  <ClipboardCheck size={20} className="text-white" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-teal-800">
-                    Vitals auto-filled from last visit
+                  <p className="text-sm font-bold text-green-900">
+                    Vitals Auto-Filled from Previous Visit
                   </p>
-                  <p className="text-[11px] text-teal-700 mt-0.5">
-                    Recorded: {prefillBanner.vitalsDate}
+                  <p className="text-xs text-green-700 mt-1">
+                    Recorded: <span className="font-semibold">{prefillBanner.vitalsDate}</span>
                     {prefillBanner.expiresAt && (
                       <> · Valid until{' '}
                         <span className="font-semibold">
@@ -645,13 +684,13 @@ export function AshaTriage() {
                       </>
                     )}
                   </p>
-                  <p className="text-[11px] text-teal-600 mt-1">
+                  <p className="text-xs text-green-600 mt-1.5">
                     Review and edit if anything has changed before continuing.
                   </p>
                 </div>
                 <button
                   onClick={() => { setVitals({}); setPrefillBanner(null) }}
-                  className="text-[10px] text-teal-700 hover:text-red-600 font-medium flex-shrink-0 mt-0.5 transition-colors"
+                  className="text-xs bg-white text-red-600 hover:bg-red-50 font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors shadow-sm border border-red-200"
                   title="Clear pre-filled vitals"
                 >
                   Clear
@@ -659,14 +698,27 @@ export function AshaTriage() {
               </motion.div>
             )}
 
-            <p className="text-xs text-[#5F5E5A]">Record available vitals. Leave blank if unavailable.</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div>
+              <h3 className="text-lg font-bold text-[#123B6D] mb-1">Record Vital Signs</h3>
+              <p className="text-sm text-gray-600">Record available vitals. Leave blank if unavailable.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {VITAL_FIELDS.map(f => {
                 const Icon = f.icon
                 return (
-                  <div key={f.id}>
-                    <label htmlFor={`v-${f.id}`} className="flex items-center gap-1.5 text-xs font-medium text-[#2C2C2A] mb-1">
-                      <span className="text-teal-500"><Icon size={14} /></span>{f.label}
+                  <motion.div 
+                    key={f.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: VITAL_FIELDS.indexOf(f) * 0.05 }}
+                    className="bg-gradient-to-br from-gray-50 to-blue-50 p-4 rounded-xl border-2 border-gray-200 hover:border-[#E85D04] transition-colors"
+                  >
+                    <label htmlFor={`v-${f.id}`} className="flex items-center gap-2 text-sm font-bold text-[#123B6D] mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#E85D04]/10 flex items-center justify-center">
+                        <Icon size={16} className="text-[#E85D04]" />
+                      </div>
+                      {f.label}
                     </label>
                     <div className="relative">
                       <input 
@@ -680,12 +732,14 @@ export function AshaTriage() {
                           if (guidance) speakText(guidance)
                         }}
                         placeholder={f.placeholder} 
-                        className="input-field text-sm pr-10 w-full" 
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04] transition-colors font-medium text-[#123B6D] pr-16" 
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#9E9C94] pointer-events-none">{f.unit}</span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-300">{f.unit}</span>
                     </div>
-                    <p className="text-[10px] text-[#9E9C94] mt-0.5">Normal: {f.normal}</p>
-                  </div>
+                    <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                      <span className="font-medium">Normal:</span> {f.normal}
+                    </p>
+                  </motion.div>
                 )
               })}
             </div>
@@ -758,7 +812,7 @@ export function AshaTriage() {
             >
               Continue to symptom check <ChevronRight size={14} />
             </button>
-          </div>
+          </motion.div>
         )}
 
         {/* ── Symptoms + Result step ── */}
@@ -1089,6 +1143,7 @@ export function AshaTriage() {
           </div>
         )}
       </div>
+    </div>
     </div>
   )
 }

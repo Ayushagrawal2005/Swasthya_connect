@@ -76,7 +76,7 @@ export function ReferralNotificationBell() {
   function getIcon(type: ReferralNotification['type']) {
     switch (type) {
       case 'new_referral':
-        return <Bell size={14} className="text-teal-600" />
+        return <Bell size={14} className="text-[#E85D04]" />
       case 'urgent_action':
         return <Clock size={14} className="text-red-600" />
       case 'arrival_alert':
@@ -129,7 +129,7 @@ export function ReferralNotificationBell() {
                   <button
                     onClick={markAllAsRead}
                     disabled={loading}
-                    className="text-xs text-teal-600 hover:text-teal-700 font-medium disabled:opacity-50"
+                    className="text-xs text-[#E85D04] hover:text-[#d94f03] font-medium disabled:opacity-50"
                   >
                     {loading ? 'Marking...' : 'Mark all read'}
                   </button>
@@ -204,7 +204,7 @@ export function ReferralNotificationBell() {
                       navigate('/doctor/referrals')
                       setIsOpen(false)
                     }}
-                    className="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center justify-center gap-1 mx-auto"
+                    className="text-sm text-[#E85D04] hover:text-[#d94f03] font-medium flex items-center justify-center gap-1 mx-auto"
                   >
                     View all referrals
                     <ArrowRight size={14} />

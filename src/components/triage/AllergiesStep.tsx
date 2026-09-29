@@ -119,7 +119,7 @@ export function AllergiesStep({ allergies, setAllergies }: Props) {
 
       {/* Add Allergy Form */}
       {showForm ? (
-        <div className="bg-gray-50 p-4 rounded-xl space-y-4 border-2 border-teal-300">
+        <div className="bg-gray-50 p-4 rounded-xl space-y-4 border-2 border-[#E85D04]">
           <div>
             <label className="block text-sm font-medium text-[#2C2C2A] mb-2">
               Allergy Name <span className="text-red-500">*</span>
@@ -145,8 +145,8 @@ export function AllergiesStep({ allergies, setAllergies }: Props) {
                   className={`
                     flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-all capitalize
                     ${newAllergy.severity === sev
-                      ? 'border-teal-500 bg-teal-500 text-white'
-                      : 'border-[#D3D1C7] hover:border-teal-300'
+                      ? 'border-[#E85D04] bg-[#E85D04] text-white'
+                      : 'border-[#D3D1C7] hover:border-[#E85D04]'
                     }
                   `}
                 >
@@ -175,7 +175,7 @@ export function AllergiesStep({ allergies, setAllergies }: Props) {
                   type="checkbox"
                   checked={newAllergy.stillExists}
                   onChange={(e) => setNewAllergy({ ...newAllergy, stillExists: e.target.checked })}
-                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  className="w-4 h-4 rounded border-gray-300 text-[#E85D04] focus:ring-[#E85D04]"
                 />
                 Still exists
               </label>

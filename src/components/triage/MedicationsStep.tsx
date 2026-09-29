@@ -119,7 +119,7 @@ export function MedicationsStep({ medications, setMedications }: Props) {
 
       {/* Add Medication Form */}
       {showForm ? (
-        <div className="bg-gray-50 p-4 rounded-xl space-y-4 border-2 border-teal-300">
+        <div className="bg-gray-50 p-4 rounded-xl space-y-4 border-2 border-[#E85D04]">
           <div>
             <label className="block text-sm font-medium text-[#2C2C2A] mb-2">
               Medicine Name <span className="text-red-500">*</span>
@@ -172,8 +172,8 @@ export function MedicationsStep({ medications, setMedications }: Props) {
                   className={`
                     py-2 rounded-lg border-2 text-xs font-medium transition-all capitalize
                     ${newMed.type === type
-                      ? 'border-teal-500 bg-teal-500 text-white'
-                      : 'border-[#D3D1C7] hover:border-teal-300'
+                      ? 'border-[#E85D04] bg-[#E85D04] text-white'
+                      : 'border-[#D3D1C7] hover:border-[#E85D04]'
                     }
                   `}
                 >

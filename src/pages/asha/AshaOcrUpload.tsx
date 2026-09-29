@@ -361,64 +361,79 @@ export function AshaOcrUploadPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-xl font-semibold text-[#2C2C2A]">Upload medical records</h1>
-        <p className="text-sm text-[#5F5E5A] mt-0.5">
-          Add previous prescriptions, lab reports, or discharge summaries to patient records
-        </p>
-      </div>
-
-      {/* Selected Patient Banner */}
-      {selectedPatient && step !== 'done' && (
-        <div className="card p-4 bg-teal-50 border-teal-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center font-semibold">
-                {selectedPatient.name.charAt(0)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#2C2C2A]">{selectedPatient.name}</p>
-                <p className="text-xs text-[#5F5E5A]">{selectedPatient.age}Y {selectedPatient.gender} • {selectedPatient.healthId}</p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
+              <Upload className="w-8 h-8" />
             </div>
-            <button
-              onClick={() => { setSelectedPatient(null); setStep('search') }}
-              className="text-xs text-teal-700 hover:text-teal-900 font-medium"
-            >
-              Change patient
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold">Upload Medical Records</h1>
+              <p className="text-blue-100 mt-1">
+                Add previous prescriptions, lab reports, or discharge summaries to patient records
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Selected Patient Banner */}
+        {selectedPatient && step !== 'done' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl shadow-xl p-5 border-l-4 border-l-[#123B6D]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] text-white flex items-center justify-center font-bold text-xl shadow-lg">
+                  {selectedPatient.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-[#123B6D]">{selectedPatient.name}</p>
+                  <p className="text-sm text-gray-600">{selectedPatient.age}Y {selectedPatient.gender} • {selectedPatient.healthId}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setSelectedPatient(null); setStep('search') }}
+                className="px-4 py-2 bg-gray-100 text-[#123B6D] rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200"
+              >
+                Change Patient
+              </button>
+            </div>
+          </motion.div>
+        )}
 
       <AnimatePresence mode="wait">
         {/* STEP 1: Patient Search or Quick Scan */}
         {step === 'search' && (
           <motion.div
             key="search"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
           >
             {/* Quick Scan Option */}
-            <div className="card p-5 bg-gradient-to-br from-indigo-50 to-teal-50 border-indigo-200">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-500 text-white flex items-center justify-center flex-shrink-0">
-                  <Zap size={24} />
+            <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-indigo-200">
+              <div className="flex items-start gap-5">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Zap size={32} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#2C2C2A] mb-1">Quick Scan Mode</h3>
-                  <p className="text-xs text-[#5F5E5A] mb-3">
+                  <h3 className="text-xl font-bold text-[#123B6D] mb-2">Quick Scan Mode</h3>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
                     Upload any medical report and get an instant AI summary to print and take to your doctor appointment. 
                     No patient account needed.
                   </p>
                   <button
                     onClick={startQuickScan}
-                    className="btn-primary text-sm px-4 py-2"
+                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
                   >
-                    <Zap size={14} />
+                    <Zap size={18} />
                     Start Quick Scan
                   </button>
                 </div>
@@ -426,58 +441,60 @@ export function AshaOcrUploadPage() {
             </div>
 
             {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-[#D3D1C7]" />
-              <span className="text-xs text-[#5F5E5A] font-medium">OR</span>
-              <div className="flex-1 h-px bg-[#D3D1C7]" />
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+              <span className="text-sm text-gray-500 font-semibold px-4 py-2 bg-white rounded-full border-2 border-gray-200">OR</span>
+              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
             </div>
 
-            <div className="card p-5 space-y-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-[#2C2C2A] mb-2">
-                  Search patient by name, phone number, or Health ID
+                <label className="block text-lg font-bold text-[#123B6D] mb-3">
+                  Search Patient by Name, Phone Number, or Health ID
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     placeholder="e.g. Meena Patil, 9876543210, 91-XXXX..."
-                    className="input-field flex-1"
+                    className="flex-1 px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-[#123B6D] focus:ring-4 focus:ring-[#123B6D]/10 outline-none transition-all font-medium"
                     inputMode="text"
                   />
                   <button
                     onClick={handleSearch}
                     disabled={searching || !searchQuery.trim()}
-                    className="btn-primary px-6"
+                    className="px-6 py-3.5 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 inline-flex items-center gap-2"
                   >
-                    {searching ? <Loader size={18} className="animate-spin" /> : <Search size={18} />}
+                    {searching ? <Loader size={20} className="animate-spin" /> : <Search size={20} />}
+                    {searching ? 'Searching...' : 'Search'}
                   </button>
                 </div>
-                <p className="text-xs text-[#9E9C94] mt-1.5">Search by full/partial name, 10-digit mobile number, or Health ID</p>
+                <p className="text-sm text-gray-500 mt-2">Search by full/partial name, 10-digit mobile number, or Health ID</p>
               </div>
 
               {/* Search Results */}
               {searchResults.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase">Search Results</p>
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-[#123B6D] uppercase tracking-wide">Search Results</p>
                   {searchResults.map((patient) => (
                     <button
                       key={patient.id}
                       onClick={() => selectPatient(patient)}
-                      className="w-full text-left p-3 border border-[#D3D1C7] rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all"
+                      className="w-full text-left p-4 border-2 border-gray-200 rounded-xl hover:border-[#123B6D] hover:bg-blue-50 transition-all duration-200 hover:shadow-lg"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-[#2C2C2A]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center font-bold text-[#123B6D] text-xl shadow-md">
                           {patient.name.charAt(0)}
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-[#2C2C2A]">{patient.name}</p>
-                          <p className="text-xs text-[#5F5E5A]">
+                          <p className="text-base font-bold text-[#123B6D]">{patient.name}</p>
+                          <p className="text-sm text-gray-600 mt-1">
                             {patient.age}Y {patient.gender} • {patient.village} • {patient.healthId}
                           </p>
                         </div>
+                        <ArrowRight size={20} className="text-[#E85D04]" />
                       </div>
                     </button>
                   ))}
@@ -485,9 +502,12 @@ export function AshaOcrUploadPage() {
               )}
 
               {searchQuery && !searching && searchResults.length === 0 && (
-                <div className="text-center py-8 text-sm text-[#5F5E5A]">
-                  <AlertCircle size={32} className="mx-auto mb-2 text-amber-500" />
-                  No patients found matching "{searchQuery}"
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle size={32} className="text-amber-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#123B6D] mb-2">No Patients Found</h3>
+                  <p className="text-gray-600">No results matching "{searchQuery}"</p>
                 </div>
               )}
             </div>
@@ -498,13 +518,13 @@ export function AshaOcrUploadPage() {
         {step === 'upload' && (
           <motion.div
             key="upload"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
           >
             {/* Upload Area */}
-            <div className="border-2 border-dashed border-[#D3D1C7] rounded-lg p-8 text-center hover:border-teal-400 transition-colors">
+            <div className="border-4 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-[#123B6D] hover:bg-blue-50 transition-all duration-200 bg-white shadow-xl">
               <input
                 type="file"
                 id="records-upload"
@@ -513,21 +533,30 @@ export function AshaOcrUploadPage() {
                 onChange={(e) => handleFileUpload(e.target.files)}
                 className="hidden"
               />
-              <label htmlFor="records-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center">
-                  <Upload size={28} className="text-teal-600" />
+              <label htmlFor="records-upload" className="cursor-pointer flex flex-col items-center gap-4">
+                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] flex items-center justify-center shadow-xl">
+                  <Upload size={40} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#2C2C2A]">Click to upload medical documents</p>
-                  <p className="text-xs text-[#5F5E5A] mt-1">Photos of prescriptions, lab reports, discharge summaries</p>
+                  <p className="text-xl font-bold text-[#123B6D] mb-2">Click to Upload Medical Documents</p>
+                  <p className="text-gray-600">Photos of prescriptions, lab reports, discharge summaries</p>
+                  <p className="text-sm text-gray-500 mt-2">Supports JPG, PNG • Multiple files allowed</p>
                 </div>
               </label>
             </div>
 
-            <div className="card p-4 bg-indigo-50 border-indigo-100">
-              <p className="text-xs text-indigo-700">
-                💡 AI will automatically extract medicines, test results, and create a summary for the doctor to review
-              </p>
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-5 border-2 border-indigo-200 shadow-lg">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Scan size={20} className="text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-indigo-900 mb-1">AI-Powered Document Processing</p>
+                  <p className="text-sm text-indigo-700">
+                    Our AI will automatically extract medicines, test results, and create a summary for the doctor to review
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -539,21 +568,24 @@ export function AshaOcrUploadPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-16 space-y-5"
+            className="flex flex-col items-center justify-center py-20 space-y-6 bg-white rounded-2xl shadow-xl"
           >
-            <div className="w-20 h-20 rounded-2xl bg-teal-50 flex items-center justify-center">
-              <Scan size={36} className="text-teal-500 animate-pulse" />
+            <div className="relative">
+              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] flex items-center justify-center shadow-2xl">
+                <Scan size={56} className="text-white animate-pulse" />
+              </div>
+              <div className="absolute inset-0 rounded-3xl border-4 border-[#E85D04] animate-ping opacity-20"></div>
             </div>
             <div className="text-center">
-              <p className="font-semibold text-[#2C2C2A]">Processing documents...</p>
-              <p className="text-sm text-[#5F5E5A] mt-1">Extracting text and structuring data</p>
+              <p className="text-2xl font-bold text-[#123B6D] mb-2">Processing Documents...</p>
+              <p className="text-gray-600">Extracting text and structuring medical data</p>
             </div>
-            <div className="w-full max-w-xs bg-gray-100 h-2 rounded-full overflow-hidden">
+            <div className="w-full max-w-md bg-gray-200 h-3 rounded-full overflow-hidden shadow-inner">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: '100%' }}
                 transition={{ duration: 2.5, ease: 'easeInOut' }}
-                className="h-full bg-teal-500 rounded-full"
+                className="h-full bg-gradient-to-r from-[#123B6D] via-[#E85D04] to-[#123B6D] rounded-full"
               />
             </div>
           </motion.div>
@@ -563,22 +595,28 @@ export function AshaOcrUploadPage() {
         {step === 'review' && (
           <motion.div
             key="review"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
           >
-            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-              <CheckCircle size={16} /> {ocrResults.length} document(s) processed successfully
+            <div className="flex items-center gap-3 bg-green-50 border-2 border-green-300 rounded-xl px-6 py-4 shadow-lg">
+              <CheckCircle size={24} className="text-green-600" />
+              <div>
+                <p className="font-bold text-green-800">Processing Complete</p>
+                <p className="text-sm text-green-700">{ocrResults.length} document{ocrResults.length !== 1 ? 's' : ''} processed successfully</p>
+              </div>
             </div>
 
             {quickScanMode && (
-              <div className="card p-4 bg-indigo-50 border-indigo-200">
-                <div className="flex items-start gap-3">
-                  <Zap size={20} className="text-indigo-600 flex-shrink-0 mt-0.5" />
+              <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-indigo-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Zap size={24} className="text-white" />
+                  </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#2C2C2A] mb-1">Quick Scan Mode Active</p>
-                    <p className="text-xs text-[#5F5E5A]">
+                    <p className="text-lg font-bold text-[#123B6D] mb-2">Quick Scan Mode Active</p>
+                    <p className="text-gray-600 leading-relaxed">
                       Click "Download Summary PDF" below to get a formatted summary you can print and take to your doctor. 
                       This summary includes all extracted information in an easy-to-read format.
                     </p>
@@ -588,44 +626,52 @@ export function AshaOcrUploadPage() {
             )}
 
             {/* Uploaded Files with OCR Results */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {uploadedFiles.map((file, index) => (
-                <div key={index} className="card p-4">
-                  <div className="flex items-start gap-3">
-                    <FileText size={20} className="text-teal-600 flex-shrink-0 mt-0.5" />
+                <div key={index} className="bg-white rounded-2xl shadow-xl p-6 border-2 border-gray-100 hover:border-[#123B6D] transition-all duration-200">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#E85D04] to-[#ff7518] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                      <FileText size={24} className="text-white" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#2C2C2A] truncate">{file.name}</p>
+                      <p className="text-lg font-bold text-[#123B6D] truncate mb-2">{file.name}</p>
                       {ocrResults[index] && (
-                        <div className="mt-2 space-y-2">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded font-medium capitalize">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-lg text-xs font-bold uppercase">
                               {ocrResults[index].document_type}
                             </span>
                             {ocrResults[index].medicines.length > 0 && (
-                              <span className="text-[#5F5E5A]">• {ocrResults[index].medicines.length} medicine(s)</span>
+                              <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold border border-green-300">
+                                <Pill size={12} className="inline mr-1" />
+                                {ocrResults[index].medicines.length} medicine{ocrResults[index].medicines.length !== 1 ? 's' : ''}
+                              </span>
                             )}
                             {ocrResults[index].test_values.length > 0 && (
-                              <span className="text-[#5F5E5A]">• {ocrResults[index].test_values.length} test(s)</span>
+                              <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-300">
+                                <Activity size={12} className="inline mr-1" />
+                                {ocrResults[index].test_values.length} test{ocrResults[index].test_values.length !== 1 ? 's' : ''}
+                              </span>
                             )}
                           </div>
-                          <p className="text-xs text-[#5F5E5A] line-clamp-2">{ocrResults[index].summary}</p>
+                          <p className="text-sm text-gray-700 line-clamp-2 bg-gray-50 p-3 rounded-lg">{ocrResults[index].summary}</p>
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowPreview(index)}
-                        className="p-2 text-[#5F5E5A] hover:text-teal-600 transition-colors rounded"
+                        className="p-3 bg-blue-100 text-[#123B6D] hover:bg-blue-200 transition-all rounded-xl"
                         title="View details"
                       >
-                        <Eye size={16} />
+                        <Eye size={20} />
                       </button>
                       <button
                         onClick={() => removeFile(index)}
-                        className="p-2 text-[#5F5E5A] hover:text-red-600 transition-colors rounded"
+                        className="p-3 bg-red-100 text-red-600 hover:bg-red-200 transition-all rounded-xl"
                         title="Remove"
                       >
-                        <X size={16} />
+                        <X size={20} />
                       </button>
                     </div>
                   </div>
@@ -634,22 +680,22 @@ export function AshaOcrUploadPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               {quickScanMode ? (
                 <>
                   <button
                     onClick={exportQuickScanPDF}
                     disabled={ocrResults.length === 0}
-                    className="btn-primary flex-1 justify-center"
+                    className="flex-1 px-6 py-4 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 inline-flex items-center justify-center gap-2 text-lg"
                   >
-                    <Download size={18} />
+                    <Download size={22} />
                     Download Summary PDF
                   </button>
                   <button
                     onClick={() => setStep('upload')}
-                    className="btn-secondary px-6"
+                    className="px-8 py-4 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 text-lg"
                   >
-                    Scan more
+                    Scan More
                   </button>
                 </>
               ) : (
@@ -657,25 +703,25 @@ export function AshaOcrUploadPage() {
                   <button
                     onClick={saveRecords}
                     disabled={saving || ocrResults.length === 0}
-                    className="btn-primary flex-1 justify-center"
+                    className="flex-1 px-6 py-4 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 inline-flex items-center justify-center gap-2 text-lg"
                   >
                     {saving ? (
                       <>
-                        <Loader size={18} className="animate-spin" />
+                        <Loader size={22} className="animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <CheckCircle size={18} />
-                        Save to patient record
+                        <CheckCircle size={22} />
+                        Save to Patient Record
                       </>
                     )}
                   </button>
                   <button
                     onClick={() => setStep('upload')}
-                    className="btn-secondary px-6"
+                    className="px-8 py-4 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 text-lg"
                   >
-                    Add more
+                    Add More
                   </button>
                 </>
               )}
@@ -690,41 +736,48 @@ export function AshaOcrUploadPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-col items-center justify-center py-12 space-y-5 text-center"
+            className="flex flex-col items-center justify-center py-16 space-y-6 text-center bg-white rounded-2xl shadow-xl"
           >
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle size={40} className="text-green-600" />
+            <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-2xl">
+              <CheckCircle size={64} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[#2C2C2A]">Records saved successfully!</h2>
-              <p className="text-sm text-[#5F5E5A] mt-2">
+              <h2 className="text-3xl font-bold text-[#123B6D] mb-3">Records Saved Successfully!</h2>
+              <p className="text-lg text-gray-600">
                 {savedCount} document{savedCount !== 1 ? 's' : ''} added to {selectedPatient?.name}'s medical history
               </p>
             </div>
 
-            <div className="card p-4 bg-teal-50 border-teal-200 max-w-md">
-              <p className="text-sm text-teal-800">
-                ✓ Doctors can now view these records along with prescriptions and consultations in the unified patient summary
-              </p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 max-w-lg border-2 border-green-300 shadow-lg">
+              <div className="flex items-start gap-3">
+                <CheckCircle size={24} className="text-green-600 flex-shrink-0" />
+                <p className="text-green-800 font-medium leading-relaxed text-left">
+                  Doctors can now view these records along with prescriptions and consultations in the unified patient summary
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 w-full max-w-sm">
+            <div className="flex flex-col gap-4 w-full max-w-md pt-4">
               {selectedPatient && (
                 <button
                   onClick={() => navigate(`/asha/record?id=${selectedPatient.id}`)}
-                  className="btn-primary justify-center"
+                  className="px-8 py-4 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 inline-flex items-center justify-center gap-2 text-lg"
                 >
-                  <ArrowRight size={16} />
-                  View {selectedPatient.name}'s full record
+                  <User size={22} />
+                  View {selectedPatient.name}'s Full Record
                 </button>
               )}
-              <button onClick={reset} className="btn-secondary justify-center">
-                Upload for another patient
+              <button 
+                onClick={reset} 
+                className="px-8 py-4 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 text-lg"
+              >
+                Upload for Another Patient
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* OCR Preview Modal */}
       <AnimatePresence>
@@ -733,7 +786,7 @@ export function AshaOcrUploadPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setShowPreview(null)}
           >
             <motion.div
@@ -741,45 +794,52 @@ export function AshaOcrUploadPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg p-5 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              className="bg-white rounded-2xl p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-gray-200">
                 <div>
-                  <h3 className="text-lg font-semibold text-[#2C2C2A]">Extracted Data</h3>
-                  <p className="text-sm text-[#5F5E5A] mt-0.5">{uploadedFiles[showPreview]?.name}</p>
+                  <h3 className="text-2xl font-bold text-[#123B6D]">Extracted Data</h3>
+                  <p className="text-gray-600 mt-1">{uploadedFiles[showPreview]?.name}</p>
                 </div>
                 <button
                   onClick={() => setShowPreview(null)}
-                  className="p-1 text-[#5F5E5A] hover:text-[#2C2C2A] transition-colors rounded"
+                  className="p-2 text-gray-400 hover:text-[#123B6D] hover:bg-gray-100 transition-all rounded-xl"
                 >
-                  <X size={20} />
+                  <X size={24} />
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Document Type & Summary */}
                 <div>
-                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Document Type</p>
-                  <p className="text-sm text-[#2C2C2A] capitalize">{ocrResults[showPreview].document_type}</p>
+                  <p className="text-sm font-bold text-[#123B6D] mb-2 uppercase tracking-wide">Document Type</p>
+                  <p className="text-base font-semibold text-gray-800 capitalize bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+                    {ocrResults[showPreview].document_type}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Summary</p>
-                  <p className="text-sm text-[#2C2C2A]">{ocrResults[showPreview].summary}</p>
+                  <p className="text-sm font-bold text-[#123B6D] mb-2 uppercase tracking-wide">Summary</p>
+                  <p className="text-base text-gray-800 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    {ocrResults[showPreview].summary}
+                  </p>
                 </div>
 
                 {/* Medicines */}
                 {ocrResults[showPreview].medicines.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-[#5F5E5A] mb-2">Medicines</p>
-                    <div className="space-y-2">
+                    <p className="text-sm font-bold text-[#123B6D] mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <Pill size={18} />
+                      Medicines
+                    </p>
+                    <div className="space-y-3">
                       {ocrResults[showPreview].medicines.map((med, i) => (
-                        <div key={i} className="bg-teal-50 border border-teal-200 rounded-lg p-3">
-                          <p className="text-sm font-semibold text-[#2C2C2A]">{med.name}</p>
-                          <div className="text-xs text-[#5F5E5A] mt-1 space-y-0.5">
-                            {med.dosage && <p>Dosage: {med.dosage}</p>}
-                            {med.frequency && <p>Frequency: {med.frequency}</p>}
-                            <p className="text-teal-700">Confidence: {(med.confidence * 100).toFixed(0)}%</p>
+                        <div key={i} className="bg-green-50 border-2 border-green-200 rounded-xl p-4 hover:border-green-300 transition-all">
+                          <p className="text-base font-bold text-green-900">{med.name}</p>
+                          <div className="text-sm text-green-700 mt-2 space-y-1">
+                            {med.dosage && <p><span className="font-semibold">Dosage:</span> {med.dosage}</p>}
+                            {med.frequency && <p><span className="font-semibold">Frequency:</span> {med.frequency}</p>}
+                            <p className="text-green-600"><span className="font-semibold">Confidence:</span> {(med.confidence * 100).toFixed(0)}%</p>
                           </div>
                         </div>
                       ))}
@@ -790,14 +850,22 @@ export function AshaOcrUploadPage() {
                 {/* Test Values */}
                 {ocrResults[showPreview].test_values.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-[#5F5E5A] mb-2">Lab Results</p>
-                    <div className="space-y-2">
+                    <p className="text-sm font-bold text-[#123B6D] mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <Activity size={18} />
+                      Lab Results
+                    </p>
+                    <div className="space-y-3">
                       {ocrResults[showPreview].test_values.map((test, i) => (
-                        <div key={i} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <p className="text-sm font-semibold text-[#2C2C2A]">{test.test_name}</p>
-                          <div className="text-xs text-[#5F5E5A] mt-1">
-                            {test.value && <p>Value: {test.value} {test.unit || ''}</p>}
-                            {test.is_abnormal && <p className="text-red-600 font-semibold">⚠ Abnormal</p>}
+                        <div key={i} className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 hover:border-blue-300 transition-all">
+                          <p className="text-base font-bold text-blue-900">{test.test_name}</p>
+                          <div className="text-sm text-blue-700 mt-2 space-y-1">
+                            {test.value && <p><span className="font-semibold">Value:</span> {test.value} {test.unit || ''}</p>}
+                            {test.is_abnormal && (
+                              <div className="flex items-center gap-2 text-red-600 font-bold mt-2">
+                                <AlertCircle size={16} />
+                                <span>ABNORMAL</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -807,8 +875,8 @@ export function AshaOcrUploadPage() {
 
                 {/* Raw Text */}
                 <div>
-                  <p className="text-xs font-semibold text-[#5F5E5A] mb-1">Raw Text</p>
-                  <div className="bg-gray-50 border border-[#D3D1C7] rounded-lg p-3 text-xs text-[#2C2C2A] whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+                  <p className="text-sm font-bold text-[#123B6D] mb-2 uppercase tracking-wide">Raw Text</p>
+                  <div className="bg-gray-100 border-2 border-gray-300 rounded-xl p-4 text-sm text-gray-800 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
                     {ocrResults[showPreview].raw_text}
                   </div>
                 </div>

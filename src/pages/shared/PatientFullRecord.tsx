@@ -30,7 +30,7 @@ interface FullRecord extends VisitRecord {
 }
 
 const typeIcon: Record<string, React.ReactNode> = {
-  visit:        <Stethoscope size={14} className="text-teal-500" />,
+  visit:        <Stethoscope size={14} className="text-[#E85D04]" />,
   lab:          <FlaskConical size={14} className="text-indigo-500" />,
   prescription: <Pill size={14} className="text-green-500" />,
   diagnosis:    <FileText size={14} className="text-amber-500" />,
@@ -100,7 +100,7 @@ export function PatientFullRecord() {
   }, [role, ctxPatientId, searchParams])
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-teal-400" size={28} /></div>
+    return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-[#E85D04]" size={28} /></div>
   }
   if (!patient) {
     return (
@@ -137,7 +137,7 @@ export function PatientFullRecord() {
       {/* Identity card */}
       <div className="card p-5">
         <div className="flex items-start gap-4 flex-wrap">
-          <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-lg font-semibold text-teal-700 flex-shrink-0">
+          <div className="w-14 h-14 rounded-full bg-[#123B6D]/10 flex items-center justify-center text-lg font-semibold text-[#123B6D] flex-shrink-0">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ export function PatientFullRecord() {
               <span className="text-sm text-[#5F5E5A]">{patient.age}{t('patientAge')} · {patient.gender} · {patient.dob || '—'}</span>
             </div>
             <p className="text-xs text-[#5F5E5A] mb-1">{L.village(patient.village)} · 📞 {patient.phone} · 🗣 {patient.language}</p>
-            <p className="text-xs font-mono text-teal-600 mb-2">ABDM ID: {patient.healthId}</p>
+            <p className="text-xs font-mono text-[#E85D04] mb-2">ABDM ID: {patient.healthId}</p>
             <div className="flex flex-wrap gap-1.5">
               {patient.bloodGroup && (
                 <span className="badge-teal text-[10px] flex items-center gap-1">
@@ -170,9 +170,9 @@ export function PatientFullRecord() {
           </div>
         </div>
         {/* ABDM badge */}
-        <div className="mt-3 flex items-center gap-2 text-xs text-teal-700 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">
+        <div className="mt-3 flex items-center gap-2 text-xs text-[#123B6D] bg-[#123B6D]/10 border border-[#123B6D]/20 rounded-lg px-3 py-2">
           <Shield size={12} /> {t('abdmCompliant')}
-          {role === 'asha' && <span className="ml-auto text-[10px] bg-teal-100 px-2 py-0.5 rounded-full">ASHA view</span>}
+          {role === 'asha' && <span className="ml-auto text-[10px] bg-orange-100 text-[#E85D04] px-2 py-0.5 rounded-full">ASHA view</span>}
           {role === 'doctor' && <span className="ml-auto text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Doctor view</span>}
         </div>
       </div>
@@ -183,11 +183,11 @@ export function PatientFullRecord() {
           <button key={t.id} role="tab" aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={`flex-shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5
-              ${tab === t.id ? 'border-teal-500 text-teal-600' : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'}`}>
+              ${tab === t.id ? 'border-[#E85D04] text-[#E85D04]' : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'}`}>
             {t.label}
             {t.count !== undefined && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full
-                ${tab === t.id ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-[#5F5E5A]'}`}>
+                ${tab === t.id ? 'bg-orange-100 text-[#E85D04]' : 'bg-gray-100 text-[#5F5E5A]'}`}>
                 {t.count}
               </span>
             )}
@@ -246,7 +246,7 @@ export function PatientFullRecord() {
                         }
                       })}
                       className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
-                        bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition-colors"
+                        bg-[#E85D04] hover:bg-[#d94f03] text-white text-sm font-semibold transition-colors"
                     >
                       <Activity size={15} />
                       Triage with these vitals
@@ -279,7 +279,7 @@ export function PatientFullRecord() {
                 {(['all', 'visit', 'ocr-upload', 'lab', 'prescription', 'diagnosis'] as const).map(f => (
                   <button key={f} onClick={() => setFilterType(f as any)} aria-pressed={filterType === f}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize
-                      ${filterType === f ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-teal-300'}`}>
+                      ${filterType === f ? 'bg-[#E85D04] text-white border-[#E85D04]' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-[#E85D04]'}`}>
                     {f === 'all' ? 'All' : f === 'ocr-upload' ? 'Uploads' : f}
                   </button>
                 ))}
@@ -352,7 +352,7 @@ export function PatientFullRecord() {
                               </div>
                             )}
                             {v.reportFile && (
-                              <button className="flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700 mt-1">
+                              <button className="flex items-center gap-1.5 text-xs text-[#E85D04] hover:text-[#d94f03] mt-1">
                                 <Download size={12} /> Download {v.reportFile}
                               </button>
                             )}
@@ -507,7 +507,7 @@ export function PatientFullRecord() {
 
                     {/* Download link for file-backed records */}
                     {v.reportFile && (
-                      <button className="flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700">
+                      <button className="flex items-center gap-1.5 text-xs text-[#E85D04] hover:text-[#d94f03]">
                         <Download size={12} /> Download {v.reportFile}
                       </button>
                     )}

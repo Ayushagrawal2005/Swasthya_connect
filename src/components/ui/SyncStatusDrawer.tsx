@@ -27,7 +27,7 @@ const demoQueue: SyncEntry[] = [
 ]
 
 const typeIcon = {
-  visit: <Activity size={13} className="text-teal-500" />,
+  visit: <Activity size={13} className="text-[#E85D04]" />,
   triage: <FileText size={13} className="text-amber-500" />,
   referral: <ArrowRight size={13} className="text-coral-500" />,
   registration: <FileText size={13} className="text-indigo-500" />,
@@ -58,7 +58,7 @@ export function SyncStatusDrawer() {
         onClick={() => setOpen(true)}
         className={`fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-modal text-sm font-medium transition-all
           ${isOnline
-            ? pending.length > 0 ? 'bg-amber-500 text-white' : 'bg-teal-500 text-white'
+            ? pending.length > 0 ? 'bg-amber-500 text-white' : 'bg-[#E85D04] text-white'
             : 'bg-gray-700 text-white'}`}
         aria-label={`Sync status: ${pending.length} pending`}
       >
@@ -104,8 +104,8 @@ export function SyncStatusDrawer() {
                     <p className={`text-2xl font-bold tabular-nums ${pending.length > 0 ? 'text-amber-700' : 'text-green-700'}`}>{pending.length}</p>
                     <p className="text-xs text-[#5F5E5A] mt-0.5">Pending upload</p>
                   </div>
-                  <div className="rounded-xl p-3 text-center bg-teal-50">
-                    <p className="text-2xl font-bold tabular-nums text-teal-700">{synced.length}</p>
+                  <div className="rounded-xl p-3 text-center bg-orange-50">
+                    <p className="text-2xl font-bold tabular-nums text-[#E85D04]">{synced.length}</p>
                     <p className="text-xs text-[#5F5E5A] mt-0.5">Synced to cloud</p>
                   </div>
                 </div>

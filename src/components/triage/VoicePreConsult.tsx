@@ -386,7 +386,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
         <div>
           <h1 className="font-semibold text-[#2C2C2A] text-sm">Voice Health Assessment</h1>
           <p className="text-[11px] text-[#5F5E5A] flex items-center gap-1.5 mt-0.5">
-            <Brain size={11} className="text-teal-500" />
+            <Brain size={11} className="text-[#E85D04]" />
             Pre-consultation check · AI-powered triage
           </p>
         </div>
@@ -407,8 +407,8 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
         {STEPS.map((s, i) => {
           const curIdx = STEPS.indexOf(step)
           return (
-            <div key={s} className={`flex-1 py-2 text-center text-[11px] font-medium flex items-center justify-center gap-1 ${step === s ? 'text-teal-600 border-b-2 border-teal-500 bg-white' : 'text-[#9E9C94]'}`}>
-              <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ${step === s ? 'bg-teal-500 text-white' : i < curIdx ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>{i + 1}</span>
+            <div key={s} className={`flex-1 py-2 text-center text-[11px] font-medium flex items-center justify-center gap-1 ${step === s ? 'text-[#E85D04] border-b-2 border-[#E85D04] bg-white' : 'text-[#9E9C94]'}`}>
+              <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ${step === s ? 'bg-[#E85D04] text-white' : i < curIdx ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>{i + 1}</span>
               {stepLabels[s]}
             </div>
           )
@@ -425,8 +425,8 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="text-center space-y-6"
             >
-              <div className="w-20 h-20 mx-auto bg-teal-100 rounded-full flex items-center justify-center">
-                <Globe size={40} className="text-teal-600" />
+              <div className="w-20 h-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
+                <Globe size={40} className="text-[#E85D04]" />
               </div>
               
               <div>
@@ -444,8 +444,8 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
                     }}
                     className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between ${
                       language === lang
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-[#D3D1C7] hover:border-teal-300 hover:bg-teal-50/50'
+                        ? 'border-[#E85D04] bg-orange-50'
+                        : 'border-[#D3D1C7] hover:border-[#E85D04] hover:bg-orange-50/50'
                     }`}
                   >
                     <div>
@@ -457,7 +457,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
                       </p>
                     </div>
                     {language === lang && (
-                      <CheckCircle size={24} className="text-teal-600" />
+                      <CheckCircle size={24} className="text-[#E85D04]" />
                     )}
                   </button>
                 ))}
@@ -476,7 +476,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
                 return (
                   <div key={f.id}>
                     <label htmlFor={`v-${f.id}`} className="flex items-center gap-1.5 text-xs font-medium text-[#2C2C2A] mb-1">
-                      <span className="text-teal-500"><Icon size={14} /></span>{f.label}
+                      <span className="text-[#E85D04]"><Icon size={14} /></span>{f.label}
                     </label>
                     <div className="relative">
                       <input 
@@ -512,7 +512,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
                     className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
                       ${m.role === 'user'
-                        ? 'bg-teal-500 text-white rounded-br-sm'
+                        ? 'bg-[#E85D04] text-white rounded-br-sm'
                         : 'bg-white border border-[#D3D1C7] text-[#2C2C2A] rounded-bl-sm shadow-sm'}`}>
                       {m.text}
                     </div>
@@ -523,7 +523,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-[#D3D1C7] rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2 text-sm text-[#5F5E5A]">
-                    <Loader2 size={14} className="animate-spin text-teal-500" />
+                    <Loader2 size={14} className="animate-spin text-[#E85D04]" />
                     Processing...
                   </div>
                 </div>
@@ -551,7 +551,7 @@ export function VoicePreConsult({ patientId, onComplete, onCancel }: Props) {
                     className={`p-2.5 rounded-xl transition-all ${
                       isListening 
                         ? 'bg-red-500 text-white animate-pulse' 
-                        : 'border border-[#D3D1C7] text-teal-600 hover:bg-teal-50'
+                        : 'border border-[#D3D1C7] text-[#E85D04] hover:bg-orange-50'
                     }`}
                     disabled={loading}
                   >

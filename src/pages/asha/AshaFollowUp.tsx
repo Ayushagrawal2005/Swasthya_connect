@@ -1,7 +1,7 @@
 // ASHA — Follow-up board (Module 8, frontline view)
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Clock, CheckCircle, Phone, ChevronDown, Video, Loader2, ArrowUpCircle } from 'lucide-react'
+import { AlertTriangle, Clock, CheckCircle, Phone, ChevronDown, Video, Loader2, ArrowUpCircle, Calendar } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { AIPill } from '../../components/ui/AIPill'
 import { followupsApi, type FollowUp } from '../../services/api'
@@ -75,14 +75,17 @@ const cases: Case[] = [
 ]
 
 const statusStyle: Record<string, string> = {
-  overdue:    'bg-red-50 border-l-4 border-l-red-500',
-  'due-today':'bg-amber-50 border-l-4 border-l-amber-400',
-  upcoming:   'bg-white border-l-4 border-l-teal-300',
-  completed:  'bg-gray-50 border-l-4 border-l-gray-300 opacity-60',
+  overdue:    'bg-gradient-to-br from-red-50 to-red-100 border-l-4 border-l-red-500',
+  'due-today':'bg-gradient-to-br from-amber-50 to-amber-100 border-l-4 border-l-[#E85D04]',
+  upcoming:   'bg-white border-l-4 border-l-[#123B6D]',
+  completed:  'bg-gradient-to-br from-gray-50 to-gray-100 border-l-4 border-l-gray-300 opacity-60',
 }
 
 const riskBadge: Record<string, string> = {
-  high: 'badge-red', medium: 'badge-amber', low: 'badge-green', emergency: 'badge-red',
+  high: 'bg-red-100 text-red-700 border border-red-200',
+  medium: 'bg-amber-100 text-amber-700 border border-amber-200',
+  low: 'bg-green-100 text-green-700 border border-green-200',
+  emergency: 'bg-red-100 text-red-700 border border-red-200',
 }
 
 export function AshaFollowUpPage() {
@@ -191,36 +194,82 @@ export function AshaFollowUpPage() {
   const dueTodayCount  = grouped['due-today'].length
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-[#2C2C2A]">{t('followUpBoard')}</h1>
-          <p className="text-sm text-[#5F5E5A] mt-0.5">
-            {overdueCount > 0 && <span className="text-red-600 font-medium">{overdueCount} {t('colOverdue')} · </span>}
-            {dueTodayCount > 0 && <span className="text-amber-600 font-medium">{dueTodayCount} {t('colDueToday')}</span>}
-          </p>
-        </div>
-        <AIPill />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 p-6 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header Card */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg p-6 border-2 border-gray-100"
+        >
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-[#123B6D] mb-2">{t('followUpBoard')}</h1>
+              <div className="flex flex-wrap items-center gap-3">
+                {overdueCount > 0 && (
+                  <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1">
+                    <AlertTriangle size={14} className="text-red-600" />
+                    <span className="text-sm font-semibold text-red-700">{overdueCount} {t('colOverdue')}</span>
+                  </div>
+                )}
+                {dueTodayCount > 0 && (
+                  <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+                    <Calendar size={14} className="text-[#E85D04]" />
+                    <span className="text-sm font-semibold text-[#E85D04]">{dueTodayCount} {t('colDueToday')}</span>
+                  </div>
+                )}
+                {overdueCount === 0 && dueTodayCount === 0 && (
+                  <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1">
+                    <CheckCircle size={14} className="text-green-600" />
+                    <span className="text-sm font-semibold text-green-700">All up to date</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <AIPill />
+          </div>
+        </motion.div>
 
-      {loading && <div className="flex justify-center py-8"><Loader2 className="animate-spin text-teal-400" /></div>}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-center py-12"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-[#E85D04]" />
+        </motion.div>
+      )}
 
       {!loading && error && (
-        <div className="card p-4 flex items-center gap-3 border-l-4 border-l-red-400 bg-red-50">
-          <AlertTriangle size={16} className="text-red-500 flex-shrink-0" />
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-lg p-6 border-2 border-red-200"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} className="text-red-600" />
+            </div>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </motion.div>
       )}
 
       {!loading && !error && cases.length === 0 && (
-        <div className="text-center py-16 space-y-2">
-          <CheckCircle size={36} className="mx-auto text-teal-300" />
-          <p className="text-sm font-medium text-[#2C2C2A]">All caught up!</p>
-          <p className="text-xs text-[#5F5E5A]">No follow-up cases assigned to you right now.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-gray-100"
+        >
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-green-600" />
+          </div>
+          <p className="text-lg font-semibold text-[#123B6D] mb-2">All caught up!</p>
+          <p className="text-sm text-gray-600">No follow-up cases assigned to you right now.</p>
+        </motion.div>
       )}
 
-      {/* Overdue */}
+      {/* Status Sections */}
       {!loading && (['overdue', 'due-today', 'upcoming', 'completed'] as Status[]).map(status => {
         const list = grouped[status]
         if (list.length === 0) return null
@@ -232,20 +281,22 @@ export function AshaFollowUpPage() {
         }
 
         const sourceLabels: Record<string, { label: string; color: string }> = {
-          doctor: { label: 'Doctor', color: 'bg-blue-100 text-blue-700' },
-          asha: { label: 'ASHA', color: 'bg-green-100 text-green-700' },
-          referral: { label: 'Referral', color: 'bg-purple-100 text-purple-700' },
-          appointment: { label: 'Appointment', color: 'bg-amber-100 text-amber-700' },
-          teleconsultation: { label: 'Teleconsult', color: 'bg-indigo-100 text-indigo-700' },
-          system: { label: 'System', color: 'bg-gray-100 text-gray-600' },
+          doctor: { label: 'Doctor', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+          asha: { label: 'ASHA', color: 'bg-green-100 text-green-700 border-green-200' },
+          referral: { label: 'Referral', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+          appointment: { label: 'Appointment', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+          teleconsultation: { label: 'Teleconsult', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+          system: { label: 'System', color: 'bg-gray-100 text-gray-600 border-gray-200' },
         }
 
         return (
           <section key={status} aria-labelledby={`section-${status}`}>
-            <h2 id={`section-${status}`} className="text-xs font-semibold text-[#5F5E5A] uppercase tracking-wide mb-2">
-              {labels[status]} ({list.length})
-            </h2>
-            <div className="space-y-2">
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-3 border-2 border-gray-100">
+              <h2 id={`section-${status}`} className="text-sm font-bold text-[#123B6D] uppercase tracking-wide">
+                {labels[status]} <span className="text-[#E85D04]">({list.length})</span>
+              </h2>
+            </div>
+            <div className="space-y-3">
               {list.map((c, i) => {
                 const isOpen = expanded === c.id
                 const isCompleting = completing.has(c.id)
@@ -253,89 +304,123 @@ export function AshaFollowUpPage() {
                 const localCondition = L.condition(c.condition)
                 const sourceInfo = sourceLabels[c.sourcePortal] || sourceLabels.system
                 return (
-                  <motion.article key={c.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                    className={`rounded-card border overflow-hidden ${statusStyle[c.status]}`}>
-                    <button onClick={() => setExpanded(isOpen ? null : c.id)}
-                      className="w-full p-4 flex items-start gap-3 text-left"
-                      aria-expanded={isOpen} aria-controls={`detail-${c.id}`}>
-                      <div className="w-10 h-10 rounded-full bg-white border border-[#D3D1C7] flex items-center justify-center text-sm font-semibold text-[#5F5E5A] flex-shrink-0" aria-hidden="true">
+                  <motion.article 
+                    key={c.id} 
+                    initial={{ opacity: 0, x: -20 }} 
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className={`rounded-2xl border-2 overflow-hidden shadow-lg hover:shadow-xl transition-shadow ${statusStyle[c.status]}`}
+                  >
+                    <button 
+                      onClick={() => setExpanded(isOpen ? null : c.id)}
+                      className="w-full p-5 flex items-start gap-4 text-left hover:bg-white/50 transition-colors"
+                      aria-expanded={isOpen} 
+                      aria-controls={`detail-${c.id}`}
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] flex items-center justify-center text-white text-base font-bold flex-shrink-0 shadow-md" aria-hidden="true">
                         {localName.split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <p className="font-semibold text-sm text-[#2C2C2A]">{localName}</p>
-                          <span className="text-[10px] text-[#5F5E5A]">{c.age}{t('patientAge')}</span>
-                          <span className={`${riskBadge[c.risk]} text-[10px]`}>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <p className="font-bold text-base text-[#123B6D]">{localName}</p>
+                          <span className="text-xs px-2 py-0.5 bg-white rounded-full text-gray-600 border border-gray-200">
+                            {c.age}{t('patientAge')}
+                          </span>
+                          <span className={`${riskBadge[c.risk]} text-xs px-2 py-0.5 rounded-full font-semibold`}>
                             {c.risk === 'high' ? t('highRisk') : c.risk === 'medium' ? t('mediumRisk') : t('stable')}
                           </span>
-                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${sourceInfo.color}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${sourceInfo.color}`}>
                             {sourceInfo.label}
                           </span>
                           {c.status === 'overdue' && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] text-red-600 font-semibold">
-                              <AlertTriangle size={10} /> {t('colOverdue')}
+                            <span className="inline-flex items-center gap-1 text-xs text-white bg-red-500 px-2 py-0.5 rounded-full font-bold">
+                              <AlertTriangle size={12} /> {t('colOverdue')}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#5F5E5A] truncate">{localCondition}</p>
-                        <p className={`text-xs mt-0.5 font-medium ${c.status === 'overdue' ? 'text-red-600' : 'text-teal-600'}`}>
-                          → {c.nextStep}
-                        </p>
+                        <p className="text-sm text-gray-700 mb-2 line-clamp-1">{localCondition}</p>
+                        <div className="flex items-start gap-1.5 bg-white rounded-lg px-3 py-2 border border-gray-200">
+                          <span className="text-[#E85D04] font-bold text-sm">→</span>
+                          <p className="text-xs font-medium text-[#123B6D] flex-1">{c.nextStep}</p>
+                        </div>
                         {c.createdByName && (
-                          <p className="text-[10px] text-[#5F5E5A] mt-1">Created by {c.createdByName}</p>
+                          <p className="text-xs text-gray-600 mt-2">Created by <span className="font-medium">{c.createdByName}</span></p>
                         )}
                       </div>
-                      <ChevronDown size={14} className={`text-[#5F5E5A] transition-transform flex-shrink-0 mt-1 ${isOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown 
+                        size={18} 
+                        className={`text-[#123B6D] transition-transform flex-shrink-0 mt-1 ${isOpen ? 'rotate-180' : ''}`} 
+                      />
                     </button>
 
                     {isOpen && (
-                      <div id={`detail-${c.id}`} className="px-4 pb-4 space-y-3 border-t border-[#D3D1C7]/50">
-                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                          <div className="bg-white rounded-lg p-2.5">
-                            <p className="text-[#5F5E5A]">{t('lastVisit')}</p>
-                            <p className="font-medium text-[#2C2C2A]">{c.lastVisit}</p>
+                      <div id={`detail-${c.id}`} className="px-5 pb-5 space-y-4 bg-white/70 backdrop-blur-sm">
+                        <div className="pt-4 grid grid-cols-2 gap-3">
+                          <div className="bg-white rounded-xl p-4 border-2 border-gray-100 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1 font-medium">{t('lastVisit')}</p>
+                            <p className="font-bold text-sm text-[#123B6D] flex items-center gap-1.5">
+                              <Clock size={14} className="text-[#E85D04]" />
+                              {c.lastVisit}
+                            </p>
                           </div>
-                          <div className="bg-white rounded-lg p-2.5">
-                            <p className="text-[#5F5E5A]">{t('due')}</p>
-                            <p className={`font-medium ${c.status === 'overdue' ? 'text-red-600' : 'text-[#2C2C2A]'}`}>
+                          <div className="bg-white rounded-xl p-4 border-2 border-gray-100 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1 font-medium">{t('due')}</p>
+                            <p className={`font-bold text-sm flex items-center gap-1.5 ${c.status === 'overdue' ? 'text-red-600' : 'text-[#123B6D]'}`}>
+                              <Calendar size={14} className={c.status === 'overdue' ? 'text-red-600' : 'text-[#E85D04]'} />
                               {c.dueDate}
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-[#5F5E5A] leading-relaxed bg-white rounded-xl px-3 py-2">{c.notes}</p>
+                        
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-100">
+                          <p className="text-xs font-bold text-[#123B6D] mb-2">Clinical Notes</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{c.notes}</p>
+                        </div>
 
                         <div className="flex gap-2 flex-wrap">
-                          <a href={`tel:${c.phone}`}
-                            className="flex items-center gap-1.5 text-xs bg-white border border-[#D3D1C7] text-[#2C2C2A] px-3 py-2 rounded-full hover:border-teal-300 hover:text-teal-600 transition-colors font-medium"
-                            aria-label={`Call ${localName}`}>
-                            <Phone size={12} /> {t('phone')}
+                          <a 
+                            href={`tel:${c.phone}`}
+                            className="flex items-center gap-2 text-sm bg-white border-2 border-[#123B6D] text-[#123B6D] px-4 py-2.5 rounded-xl hover:bg-[#123B6D] hover:text-white transition-all font-semibold shadow-sm hover:shadow-md"
+                            aria-label={`Call ${localName}`}
+                          >
+                            <Phone size={16} /> {t('phone')}
                           </a>
                           {c.risk !== 'low' && (
-                            <button onClick={() => navigate('/asha/triage')}
-                              className="flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-2 rounded-full hover:bg-indigo-100 transition-colors font-medium">
-                              <Video size={12} /> {t('teleconsult')}
+                            <button 
+                              onClick={() => navigate('/asha/triage')}
+                              className="flex items-center gap-2 text-sm bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2.5 rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all font-semibold shadow-sm hover:shadow-md"
+                            >
+                              <Video size={16} /> {t('teleconsult')}
                             </button>
                           )}
                           {c.status !== 'completed' && (
                             <>
-                              <button onClick={() => { markDone(c.id); setExpanded(null) }}
+                              <button 
+                                onClick={() => { markDone(c.id); setExpanded(null) }}
                                 disabled={isCompleting}
-                                className="flex items-center gap-1.5 text-xs bg-green-50 border border-green-200 text-green-600 px-3 py-2 rounded-full hover:bg-green-100 transition-colors font-medium disabled:opacity-50"
-                                aria-label={`Mark ${localName} follow-up done`}>
-                                <CheckCircle size={12} /> {isCompleting ? 'Completing...' : t('markDone')}
+                                className="flex items-center gap-2 text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2.5 rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all font-semibold shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={`Mark ${localName} follow-up done`}
+                              >
+                                {isCompleting ? (
+                                  <>
+                                    <Loader2 size={16} className="animate-spin" /> Completing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle size={16} /> {t('markDone')}
+                                  </>
+                                )}
                               </button>
                               {(c.risk === 'high' || c.risk === 'emergency') && (
-                                <button onClick={() => setEscalating(c.id)}
-                                  className="flex items-center gap-1.5 text-xs bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-full hover:bg-red-100 transition-colors font-medium">
-                                  <ArrowUpCircle size={12} /> Escalate to Doctor
+                                <button 
+                                  onClick={() => setEscalating(c.id)}
+                                  className="flex items-center gap-2 text-sm bg-gradient-to-r from-[#E85D04] to-red-500 text-white px-4 py-2.5 rounded-xl hover:from-[#d94f03] hover:to-red-600 transition-all font-semibold shadow-sm hover:shadow-md"
+                                >
+                                  <ArrowUpCircle size={16} /> Escalate to Doctor
                                 </button>
                               )}
                             </>
                           )}
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-[#5F5E5A]">
-                          <Clock size={10} /> {t('lastVisit')}: {c.lastVisit}
                         </div>
                       </div>
                     )}
@@ -346,6 +431,7 @@ export function AshaFollowUpPage() {
           </section>
         )
       })}
+      </div>
     </div>
   )
 }

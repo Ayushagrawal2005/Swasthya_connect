@@ -26,15 +26,15 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
   const [queueData, setQueueData]   = useState<any>(null)
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState<string | null>(null)
-  const [countdown, setCountdown]   = useState(30)
+  const [countdown, setCountdown]   = useState(5)
   const [demoReady, setDemoReady]   = useState(false)
   const mountedAt                   = useRef(Date.now())
 
-  // 30-second countdown → auto-ready
+  // 5-second countdown → auto-ready
   useEffect(() => {
     const timer = setInterval(() => {
       const elapsed    = Math.floor((Date.now() - mountedAt.current) / 1000)
-      const remaining  = Math.max(0, 30 - elapsed)
+      const remaining  = Math.max(0, 5 - elapsed)
       setCountdown(remaining)
       if (remaining === 0) {
         setDemoReady(true)
@@ -70,7 +70,7 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <Loader2 size={32} className="animate-spin text-teal-600 mx-auto" />
+          <Loader2 size={32} className="animate-spin text-[#E85D04] mx-auto" />
           <p className="text-sm text-[#5F5E5A]">Joining teleconsultation queue...</p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
   const priority     = queueEntry?.priority || 'standard'
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -104,12 +104,12 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
                 <CheckCircle2 size={48} className="text-green-600" />
               </motion.div>
             ) : (
-              <div className="w-24 h-24 rounded-full bg-teal-100 flex items-center justify-center relative">
-                <Users size={48} className="text-teal-600" />
+              <div className="w-24 h-24 rounded-full bg-[#123B6D]/10 flex items-center justify-center relative">
+                <Users size={48} className="text-[#123B6D]" />
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-teal-500 text-white flex items-center justify-center text-xl font-bold"
+                  className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-[#E85D04] text-white flex items-center justify-center text-xl font-bold"
                 >
                   #{position}
                 </motion.div>
@@ -137,7 +137,7 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
           {/* Token */}
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-xs text-[#5F5E5A] mb-1">Your Queue Token</p>
-            <p className="text-3xl font-bold text-teal-600 font-mono">{token}</p>
+            <p className="text-3xl font-bold text-[#E85D04] font-mono">{token}</p>
           </div>
 
           {/* Countdown / ready info */}
@@ -158,8 +158,8 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
               {/* Progress bar */}
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-teal-500 rounded-full"
-                  animate={{ width: `${(countdown / 30) * 100}%` }}
+                  className="h-full bg-[#E85D04] rounded-full"
+                  animate={{ width: `${(countdown / 5) * 100}%` }}
                   transition={{ duration: 0.8, ease: 'linear' }}
                 />
               </div>
@@ -204,7 +204,7 @@ export function QueueStatusCard({ triageSessionId, patientId, onConsultationStar
                 {[0, 1, 2].map(i => (
                   <motion.div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-teal-500"
+                    className="w-2 h-2 rounded-full bg-[#E85D04]"
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
                   />

@@ -80,7 +80,7 @@ export function MedicineInventoryPage() {
                   <tr key={item.name} className={`border-b border-[#D3D1C7]/60 hover:bg-gray-50 transition-colors ${item.critical && !ordered ? 'bg-red-50/30' : ''}`}>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <Package size={14} className={item.critical ? 'text-red-500' : 'text-teal-500'} aria-hidden="true" />
+                        <Package size={14} className={item.critical ? 'text-red-500' : 'text-[#E85D04]'} aria-hidden="true" />
                         <span className="font-medium text-[#2C2C2A]">{item.name}</span>
                       </div>
                     </td>
@@ -96,7 +96,7 @@ export function MedicineInventoryPage() {
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"
                           role="progressbar" aria-valuenow={item.current} aria-valuemin={0} aria-valuemax={item.threshold}
                           aria-label={`${item.name}: ${pct}% of threshold`}>
-                          <div className={`h-full rounded-full ${status === 'critical' ? 'bg-red-500' : status === 'low' ? 'bg-amber-400' : 'bg-teal-500'}`}
+                          <div className={`h-full rounded-full ${status === 'critical' ? 'bg-red-500' : status === 'low' ? 'bg-amber-400' : 'bg-[#E85D04]'}`}
                             style={{ width: `${pct}%` }} />
                         </div>
                         <p className="text-[10px] text-[#5F5E5A] mt-0.5 tabular-nums">{pct}%</p>
@@ -114,7 +114,7 @@ export function MedicineInventoryPage() {
                         className={`text-[10px] font-medium px-2.5 py-1.5 rounded-full border transition-all
                           ${ordered ? 'bg-green-50 text-green-600 border-green-200 cursor-default'
                             : status === 'ok' ? 'opacity-30 cursor-not-allowed bg-gray-50 border-gray-200 text-[#5F5E5A]'
-                            : 'bg-teal-50 text-teal-600 border-teal-200 hover:bg-teal-100 cursor-pointer'}`}
+                            : 'bg-orange-50 text-[#E85D04] border-[#E85D04] hover:bg-orange-100 cursor-pointer'}`}
                         aria-label={`Reorder ${item.name}`}
                       >
                         {ordered ? <><CheckCircle size={9} className="inline mr-0.5" />Ordered</> : 'Reorder'}

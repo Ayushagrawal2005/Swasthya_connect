@@ -76,7 +76,7 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
           className={`
             flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors
             ${activeTab === 'medical'
-              ? 'border-teal-500 text-teal-600'
+              ? 'border-[#E85D04] text-[#E85D04]'
               : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'
             }
           `}
@@ -89,7 +89,7 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
           className={`
             flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors
             ${activeTab === 'personal'
-              ? 'border-teal-500 text-teal-600'
+              ? 'border-[#E85D04] text-[#E85D04]'
               : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'
             }
           `}
@@ -102,7 +102,7 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
           className={`
             flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors
             ${activeTab === 'family'
-              ? 'border-teal-500 text-teal-600'
+              ? 'border-[#E85D04] text-[#E85D04]'
               : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'
             }
           `}
@@ -127,8 +127,8 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
                   className={`
                     px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all
                     ${history.medical?.includes(condition)
-                      ? 'border-teal-500 bg-teal-50 text-teal-900'
-                      : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'
+                      ? 'border-[#E85D04] bg-orange-50 text-[#123B6D]'
+                      : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'
                     }
                   `}
                 >
@@ -171,8 +171,8 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
                   className={`
                     px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all
                     ${history.personal?.includes(factor)
-                      ? 'border-teal-500 bg-teal-50 text-teal-900'
-                      : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'
+                      ? 'border-[#E85D04] bg-orange-50 text-[#123B6D]'
+                      : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'
                     }
                   `}
                 >
@@ -215,8 +215,8 @@ export function HistoryTabsStep({ history, setHistory }: Props) {
                   className={`
                     px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all
                     ${history.family?.includes(condition)
-                      ? 'border-teal-500 bg-teal-50 text-teal-900'
-                      : 'border-[#D3D1C7] hover:border-teal-300 text-[#2C2C2A]'
+                      ? 'border-[#E85D04] bg-orange-50 text-[#123B6D]'
+                      : 'border-[#D3D1C7] hover:border-[#E85D04] text-[#2C2C2A]'
                     }
                   `}
                 >

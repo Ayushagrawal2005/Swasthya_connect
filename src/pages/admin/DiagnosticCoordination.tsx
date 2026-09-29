@@ -15,10 +15,10 @@ const orders: DiagOrder[] = [
 ]
 
 const statusStyle: Record<DiagStatus, string> = {
-  ordered: 'badge-teal',
+  ordered: 'badge-orange',
   'sample-done': 'badge-amber',
   'result-ready': 'badge-green',
-  reviewed: 'badge-teal',
+  reviewed: 'badge-navy',
   'not-available': 'badge-red',
 }
 
@@ -75,7 +75,7 @@ export function DiagnosticCoordinationPage() {
             <button key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-full text-[10px] font-medium border transition-all capitalize
-                ${statusFilter === s ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-teal-300'}`}
+                ${statusFilter === s ? 'bg-[#E85D04] text-white border-[#E85D04]' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-[#E85D04]'}`}
               aria-pressed={statusFilter === s}>
               {s === 'all' ? 'All' : statusLabel[s as DiagStatus]}
             </button>
@@ -104,7 +104,7 @@ export function DiagnosticCoordinationPage() {
                 <p className="text-xs text-[#5F5E5A]">{order.patientName} · {order.orderedBy} · {order.date}</p>
 
                 {order.result && (
-                  <p className={`text-xs mt-1.5 font-medium ${order.flagged ? 'text-amber-700' : 'text-teal-700'}`}>
+                  <p className={`text-xs mt-1.5 font-medium ${order.flagged ? 'text-amber-700' : 'text-[#123B6D]'}`}>
                     Result: {order.result}
                   </p>
                 )}
@@ -122,10 +122,10 @@ export function DiagnosticCoordinationPage() {
                       const done = statusOrder.indexOf(order.status as DiagStatus) >= i
                       return (
                         <div key={s} className="flex items-center gap-1">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${done ? 'bg-teal-500' : 'bg-gray-100'}`}>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${done ? 'bg-[#E85D04]' : 'bg-gray-100'}`}>
                             {done ? <CheckCircle size={11} className="text-white" /> : <Clock size={9} className="text-gray-400" />}
                           </div>
-                          {i < statusOrder.length - 1 && <div className={`w-4 h-0.5 ${done ? 'bg-teal-300' : 'bg-gray-200'}`} />}
+                          {i < statusOrder.length - 1 && <div className={`w-4 h-0.5 ${done ? 'bg-[#E85D04]/50' : 'bg-gray-200'}`} />}
                         </div>
                       )
                     })}

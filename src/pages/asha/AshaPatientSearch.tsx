@@ -16,7 +16,7 @@ import { useApp, useT } from '../../context/AppContext'
 import { createLocalizer } from '../../lib/localize'
 
 const typeIcon: Record<VisitRecord['type'], React.ReactNode> = {
-  visit:       <Stethoscope size={14} className="text-teal-500" />,
+  visit:       <Stethoscope size={14} className="text-[#E85D04]" />,
   lab:         <FlaskConical size={14} className="text-indigo-500" />,
   prescription:<Pill size={14} className="text-green-500" />,
   diagnosis:   <FileText size={14} className="text-amber-500" />,
@@ -125,273 +125,511 @@ export function AshaPatientSearchPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-xl font-semibold text-[#2C2C2A]">Patient search</h1>
-        <p className="text-sm text-[#5F5E5A] mt-0.5">Search by name, phone number, or Health ID</p>
-      </div>
-
-      {/* Search bar */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5F5E5A] pointer-events-none z-10" aria-hidden="true" />
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && doSearch()}
-            placeholder="Name, mobile number, or 91-XXXX health ID…"
-            className="input-field !pl-9 text-sm" aria-label="Search patient"
-            inputMode="text" />
-        </div>
-        <button onClick={doSearch} className="btn-primary text-sm py-2.5 px-4">Search</button>
-        <button onClick={() => navigate('/asha/register')} className="btn-secondary text-sm py-2.5 px-4 flex items-center gap-1.5">
-          <UserPlus size={15} aria-hidden="true" /> New
-        </button>
-      </div>
-
-      {/* Searching indicator */}
-      {searching && (
-        <div className="flex justify-center py-4">
-          <Loader2 className="animate-spin text-teal-400" />
-        </div>
-      )}
-
-      {/* No results */}
-      {!searching && query && !found && (
-        <p className="text-sm text-[#5F5E5A] py-4 text-center">No patients found for "{query}". <button onClick={() => navigate('/asha/register')} className="text-teal-600 underline">Register new patient</button></p>
-      )}
-
-      {/* Patient record */}
-      {found && patient && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="space-y-5">
-          {/* Identity card */}
-          <div className="card p-5">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-lg font-semibold text-teal-700 flex-shrink-0">
-                {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-semibold text-[#2C2C2A]">{L.name(patient.name)}</h2>
-                  <span className="text-xs text-[#5F5E5A]">{patient.age}{t('patientAge')} · {patient.gender} · {L.village(patient.village)}</span>
-                </div>
-                <p className="text-xs text-[#5F5E5A] mt-0.5 font-mono">ABDM: {patient.healthId}</p>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {patient.conditions.map(c => (
-                    <span key={c} className="badge-amber text-[10px]">{L.condition(c)}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs text-[#5F5E5A]">{visits.length} visits total</p>
-                <p className="text-xs font-medium text-teal-600 mt-0.5">{visits[0]?.date || '—'}</p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
+              <Search className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Patient Search</h1>
+              <p className="text-blue-100 text-sm mt-1">Search by name, phone number, or Health ID</p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* BP Trend flag */}
-          {trendFlag && (
-            <div className="card p-4 flex items-start gap-3 border-l-4 border-l-coral-500">
-              <TrendingUp size={18} className="text-coral-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <p className="text-sm font-semibold text-[#2C2C2A]">BP — Worsening trend</p>
-                  <AIPill />
-                </div>
-                <p className="text-xs text-[#5F5E5A]">{trendFlag}</p>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Search Bar Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-xl p-6"
+        >
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#123B6D]/50 pointer-events-none z-10" aria-hidden="true" />
+              <input 
+                type="search" 
+                value={query} 
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && doSearch()}
+                placeholder="Enter patient name, mobile number, or Health ID..."
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-[#123B6D] focus:ring-4 focus:ring-[#123B6D]/10 outline-none transition-all text-sm font-medium"
+                aria-label="Search patient"
+                inputMode="text" 
+              />
             </div>
-          )}
-
-          {/* No-show risk */}
-          {noShow && (
-            <div className="card p-4 flex items-start gap-3 border-l-4 border-l-amber-400">
-              <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-[#2C2C2A]">No-show risk</p>
-                <p className="text-xs text-[#5F5E5A] leading-relaxed">{explain}</p>
-              </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={doSearch} 
+                className="px-6 py-3.5 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
+              >
+                <Search size={18} />
+                Search
+              </button>
+              <button 
+                onClick={() => navigate('/asha/register')} 
+                className="px-6 py-3.5 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
+              >
+                <UserPlus size={18} aria-hidden="true" />
+                New Patient
+              </button>
             </div>
-          )}
-
-          {/* Log today's visit */}
-          <div>
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <h3 className="section-header mb-0">Visit history ({visits.length} total)</h3>
-              <div className="flex gap-2">
-                <button onClick={() => navigate(`/asha/record?id=${patient.id}`)}
-                  className="btn-secondary text-sm py-2 px-4">
-                  View full record
-                </button>
-                <button onClick={() => setShowLogForm(p => !p)}
-                  className={showLogForm ? 'btn-secondary text-sm py-2 px-4' : 'btn-primary text-sm py-2 px-4'}>
-                  {showLogForm ? 'Cancel' : '+ Log today\'s visit'}
-                </button>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {logSaved && (
-                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-3">
-                  <CheckCircle size={16} /> {t('completed')} — {patient ? L.name(patient.name) : ''} · {visits.length} {t('visitHistory').toLowerCase()}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Visit log form — Step 2 */}
-            <AnimatePresence>
-              {showLogForm && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  className="card p-5 space-y-4 mb-4 overflow-hidden">
-                  <p className="text-xs font-semibold text-teal-700 uppercase tracking-wide">Log visit — 23 Aug 2026</p>
-
-                  <div>
-                    <label htmlFor="log-chief" className="block text-sm font-medium text-[#2C2C2A] mb-1.5">Chief complaint</label>
-                    <input id="log-chief" type="text" value={chief} onChange={e => setChief(e.target.value)}
-                      placeholder="e.g. Headache and dizziness for 2 days" className="input-field text-sm" />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'log-bp', label: 'BP', val: bp, set: setBp, placeholder: '168/104', unit: 'mmHg', icon: <Activity size={13} /> },
-                      { id: 'log-temp', label: 'Temp', val: temp, set: setTemp, placeholder: '98.4', unit: '°F', icon: <Thermometer size={13} /> },
-                      { id: 'log-pulse', label: 'Pulse', val: pulse, set: setPulse, placeholder: '88', unit: 'bpm', icon: <Heart size={13} /> },
-                    ].map(f => (
-                      <div key={f.id}>
-                        <label htmlFor={f.id} className="block text-xs font-medium text-[#2C2C2A] mb-1 flex items-center gap-1">
-                          <span className="text-teal-500">{f.icon}</span>{f.label}
-                        </label>
-                        <div className="relative">
-                          <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)}
-                            placeholder={f.placeholder} className="input-field text-xs pr-10" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#5F5E5A] pointer-events-none">{f.unit}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <label htmlFor="log-notes" className="block text-sm font-medium text-[#2C2C2A] mb-1.5">Notes</label>
-                    <textarea id="log-notes" rows={2} value={notes} onChange={e => setNotes(e.target.value)}
-                      placeholder="Clinical observations, advice given…" className="input-field resize-none text-sm" />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button onClick={saveVisit} disabled={!chief.trim()}
-                      className="btn-primary text-sm py-2.5 flex-1 justify-center disabled:opacity-40">
-                      Save visit to record
-                    </button>
-                    <button onClick={() => navigate('/asha/triage')}
-                      className="btn-secondary text-sm py-2.5 px-4">
-                      Continue to triage →
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Visit timeline */}
-            <div className="relative space-y-3">
-              <div className="absolute left-[17px] top-4 bottom-0 w-0.5 bg-[#D3D1C7]" aria-hidden="true" />
-              {visits.map((v, i) => {
-                const isOpen = expanded === v.id
-                return (
-                  <motion.div key={v.id} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }} className="relative pl-10">
-                    <div className={`absolute left-0 top-3 w-9 h-9 rounded-full border flex items-center justify-center flex-shrink-0
-                      ${v.riskLevel === 'high' || v.riskLevel === 'emergency' ? 'bg-coral-50 border-coral-200' : 'bg-white border-[#D3D1C7]'}`}
-                      aria-hidden="true">
-                      {typeIcon[v.type]}
-                    </div>
-                    <button onClick={() => setExpanded(isOpen ? null : v.id)}
-                      className="card w-full text-left p-4 hover:shadow-card-hover transition-all"
-                      aria-expanded={isOpen} aria-controls={`visit-${v.id}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className={`${typeBadge[v.type]} text-[10px]`}>
-                              {v.type === 'ocr-upload' ? 'OCR Upload' : v.type.charAt(0).toUpperCase() + v.type.slice(1)}
-                            </span>
-                            <span className="text-[10px] text-[#5F5E5A]">{v.date}</span>
-                            {v.riskScore !== undefined && (
-                              <span className={`${riskBadge[v.riskLevel ?? 'low']} text-[10px]`}>
-                                Score {v.riskScore}
-                              </span>
-                            )}
-                          </div>
-                          <p className="font-semibold text-sm text-[#2C2C2A]">{v.title}</p>
-                          <p className="text-xs text-[#5F5E5A] mt-0.5">{L.facility(v.facility)} · {L.name(v.worker)}</p>
-                        </div>
-                        {isOpen ? <ChevronDown size={14} className="text-[#5F5E5A] flex-shrink-0 mt-1" /> : <ChevronRight size={14} className="text-[#5F5E5A] flex-shrink-0 mt-1" />}
-                      </div>
-                      {isOpen && (
-                        <div id={`visit-${v.id}`} className="mt-3 pt-3 border-t border-[#D3D1C7] space-y-2">
-                          {/* Summary / detail */}
-                          {(v as any).detail && (
-                            <p className="text-sm text-[#5F5E5A] leading-relaxed">{(v as any).detail}</p>
-                          )}
-                          {/* Vitals (for visit records) */}
-                          {v.vitals && (
-                            <div className="flex gap-3 flex-wrap text-xs">
-                              {v.vitals.bp    && <span className="badge-teal">BP {v.vitals.bp}</span>}
-                              {v.vitals.temp  && <span className="badge-teal">Temp {v.vitals.temp}°F</span>}
-                              {v.vitals.pulse && <span className="badge-teal">Pulse {v.vitals.pulse}</span>}
-                            </div>
-                          )}
-                          {/* Medicines (for OCR records) */}
-                          {(v as any).medicines && (v as any).medicines.length > 0 && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1">Medicines</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {(v as any).medicines.map((m: any, mi: number) => (
-                                  <div key={mi} className="bg-green-50 border border-green-200 rounded-lg px-2 py-1 text-xs">
-                                    <span className="font-semibold text-green-800">{m.name}</span>
-                                    {m.dosage && <span className="text-green-700"> · {m.dosage}</span>}
-                                    {m.frequency && <span className="text-green-600"> · {m.frequency}</span>}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {/* Test values (for OCR records) */}
-                          {(v as any).testValues && (v as any).testValues.length > 0 && (
-                            <div>
-                              <p className="text-[10px] font-semibold text-[#5F5E5A] uppercase mb-1">Lab results</p>
-                              <div className="space-y-1">
-                                {(v as any).testValues.map((t: any, ti: number) => (
-                                  <div key={ti} className={`flex items-center gap-2 px-2 py-1 rounded text-xs border
-                                    ${t.is_abnormal ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
-                                    <span className="font-semibold">{t.test_name}</span>
-                                    {t.value && <span>{t.value}{t.unit ? ` ${t.unit}` : ''}</span>}
-                                    {t.is_abnormal && <span className="ml-auto font-bold">⚠</span>}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </button>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Action row */}
-          <div className="flex gap-3 flex-wrap pt-2">
-            <button onClick={() => navigate(`/asha/record?id=${patient.id}`)} className="btn-primary text-sm flex-1 justify-center">
-              View full record →
-            </button>
-            <button onClick={() => navigate('/asha/triage')} className="btn-secondary text-sm px-5">
-              Run triage
-            </button>
-            <button onClick={() => navigate('/asha/referrals')} className="btn-secondary text-sm px-5">
-              Referral
-            </button>
           </div>
         </motion.div>
-      )}
+
+        {/* Searching indicator */}
+        {searching && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-2xl shadow-xl p-12"
+          >
+            <div className="flex flex-col items-center justify-center gap-4">
+              <Loader2 className="animate-spin text-[#123B6D] w-12 h-12" />
+              <p className="text-[#123B6D] font-semibold">Searching patient records...</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* No results */}
+        {!searching && query && !found && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl p-12 text-center"
+          >
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-[#E85D04]" />
+              </div>
+              <h3 className="text-xl font-bold text-[#123B6D] mb-2">No Patients Found</h3>
+              <p className="text-gray-600 mb-6">
+                No records match "{query}". Would you like to register a new patient?
+              </p>
+              <button 
+                onClick={() => navigate('/asha/register')} 
+                className="px-8 py-3 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+              >
+                <UserPlus size={20} />
+                Register New Patient
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Patient record */}
+        {found && patient && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Patient Identity Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 border-l-4 border-l-[#123B6D]">
+              <div className="flex items-start gap-5">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#123B6D] to-[#1a5490] flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 shadow-lg">
+                  {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <h2 className="text-2xl font-bold text-[#123B6D] mb-1">{L.name(patient.name)}</h2>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                        <span className="font-semibold">{patient.age} years</span>
+                        <span>•</span>
+                        <span>{patient.gender}</span>
+                        <span>•</span>
+                        <span>{L.village(patient.village)}</span>
+                      </div>
+                      <p className="text-sm font-mono bg-blue-50 text-[#123B6D] px-3 py-1.5 rounded-lg inline-block">
+                        ABDM ID: {patient.healthId}
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl px-4 py-3 text-right border border-orange-200">
+                      <p className="text-xs text-gray-600 mb-1">Total Visits</p>
+                      <p className="text-3xl font-bold text-[#E85D04]">{visits.length}</p>
+                      <p className="text-xs text-gray-600 mt-1">Last: {visits[0]?.date || '—'}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {patient.conditions.map(c => (
+                      <span key={c} className="px-3 py-1.5 bg-orange-100 text-[#E85D04] rounded-lg text-xs font-semibold border border-orange-200">
+                        {L.condition(c)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* BP Trend Alert */}
+            {trendFlag && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-white rounded-2xl shadow-xl p-5 border-l-4 border-l-red-500"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-red-100 rounded-xl">
+                    <TrendingUp size={24} className="text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-[#123B6D]">Blood Pressure Alert</h3>
+                      <AIPill />
+                    </div>
+                    <p className="text-gray-700">
+                      <span className="font-semibold text-red-600">Worsening trend detected:</span> {trendFlag}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* No-show Risk Alert */}
+            {noShow && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-white rounded-2xl shadow-xl p-5 border-l-4 border-l-amber-500"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-amber-100 rounded-xl">
+                    <Clock size={24} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#123B6D] mb-1">No-Show Risk</h3>
+                    <p className="text-gray-700">{explain}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Visit History Section */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <div>
+                  <h3 className="text-xl font-bold text-[#123B6D] mb-1">Visit History</h3>
+                  <p className="text-sm text-gray-600">{visits.length} total visits recorded</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => navigate(`/asha/record?id=${patient.id}`)}
+                    className="px-5 py-2.5 bg-gray-100 text-[#123B6D] rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 border border-gray-300"
+                  >
+                    View Full Record
+                  </button>
+                  <button 
+                    onClick={() => setShowLogForm(p => !p)}
+                    className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+                      showLogForm 
+                        ? 'bg-gray-100 text-[#123B6D] border border-gray-300 hover:bg-gray-200' 
+                        : 'bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white hover:shadow-lg hover:scale-105'
+                    }`}
+                  >
+                    {showLogForm ? 'Cancel' : '+ Log Today\'s Visit'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <AnimatePresence>
+                {logSaved && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-3 bg-green-50 border-2 border-green-200 rounded-xl px-5 py-4 mb-4"
+                  >
+                    <CheckCircle size={24} className="text-green-600" />
+                    <div>
+                      <p className="font-semibold text-green-800">Visit Logged Successfully</p>
+                      <p className="text-sm text-green-700">{patient ? L.name(patient.name) : ''} · {visits.length} {t('visitHistory').toLowerCase()}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Visit Log Form */}
+              <AnimatePresence>
+                {showLogForm && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    exit={{ opacity: 0, height: 0 }}
+                    className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-xl p-6 mb-6 space-y-5 overflow-hidden border-2 border-[#123B6D]/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="px-3 py-1 bg-[#123B6D] text-white rounded-lg text-xs font-bold uppercase tracking-wide">
+                        Log Visit
+                      </div>
+                      <span className="text-sm text-gray-600">23 August 2026</span>
+                    </div>
+
+                    <div>
+                      <label htmlFor="log-chief" className="block text-sm font-bold text-[#123B6D] mb-2">Chief Complaint</label>
+                      <input 
+                        id="log-chief" 
+                        type="text" 
+                        value={chief} 
+                        onChange={e => setChief(e.target.value)}
+                        placeholder="e.g. Headache and dizziness for 2 days" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#123B6D] focus:ring-4 focus:ring-[#123B6D]/10 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { id: 'log-bp', label: 'Blood Pressure', val: bp, set: setBp, placeholder: '120/80', unit: 'mmHg', icon: <Activity size={18} />, color: 'text-red-600', bg: 'bg-red-50' },
+                        { id: 'log-temp', label: 'Temperature', val: temp, set: setTemp, placeholder: '98.6', unit: '°F', icon: <Thermometer size={18} />, color: 'text-orange-600', bg: 'bg-orange-50' },
+                        { id: 'log-pulse', label: 'Pulse Rate', val: pulse, set: setPulse, placeholder: '72', unit: 'bpm', icon: <Heart size={18} />, color: 'text-pink-600', bg: 'bg-pink-50' },
+                      ].map(f => (
+                        <div key={f.id}>
+                          <label htmlFor={f.id} className="block text-sm font-bold text-[#123B6D] mb-2 flex items-center gap-2">
+                            <span className={f.color}>{f.icon}</span>{f.label}
+                          </label>
+                          <div className="relative">
+                            <input 
+                              id={f.id} 
+                              type="text" 
+                              value={f.val} 
+                              onChange={e => f.set(e.target.value)}
+                              placeholder={f.placeholder} 
+                              className="w-full px-4 py-3 pr-16 border-2 border-gray-200 rounded-xl focus:border-[#123B6D] focus:ring-4 focus:ring-[#123B6D]/10 outline-none transition-all"
+                            />
+                            <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${f.color} ${f.bg} px-2 py-1 rounded`}>
+                              {f.unit}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div>
+                      <label htmlFor="log-notes" className="block text-sm font-bold text-[#123B6D] mb-2">Clinical Notes</label>
+                      <textarea 
+                        id="log-notes" 
+                        rows={3} 
+                        value={notes} 
+                        onChange={e => setNotes(e.target.value)}
+                        placeholder="Clinical observations, advice given, follow-up instructions..." 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#123B6D] focus:ring-4 focus:ring-[#123B6D]/10 outline-none transition-all resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button 
+                        onClick={saveVisit} 
+                        disabled={!chief.trim()}
+                        className="flex-1 px-6 py-3.5 bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      >
+                        Save Visit to Record
+                      </button>
+                      <button 
+                        onClick={() => navigate('/asha/triage')}
+                        className="px-6 py-3.5 bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                      >
+                        Continue to Triage
+                        <ArrowRight size={18} />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Visit Timeline */}
+              <div className="relative space-y-4">
+                <div className="absolute left-[22px] top-8 bottom-0 w-1 bg-gradient-to-b from-[#123B6D] via-[#123B6D]/30 to-transparent" aria-hidden="true" />
+                {visits.map((v, i) => {
+                  const isOpen = expanded === v.id
+                  return (
+                    <motion.div 
+                      key={v.id} 
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }} 
+                      className="relative pl-16"
+                    >
+                      <div className={`absolute left-0 top-4 w-11 h-11 rounded-xl border-2 flex items-center justify-center flex-shrink-0 shadow-md
+                        ${v.riskLevel === 'high' || v.riskLevel === 'emergency' 
+                          ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300' 
+                          : 'bg-gradient-to-br from-blue-50 to-blue-100 border-[#123B6D]/30'}`}
+                        aria-hidden="true">
+                        {typeIcon[v.type]}
+                      </div>
+                      <button 
+                        onClick={() => setExpanded(isOpen ? null : v.id)}
+                        className="w-full text-left bg-white rounded-xl p-5 hover:shadow-lg transition-all duration-200 border-2 border-gray-100 hover:border-[#123B6D]/30"
+                        aria-expanded={isOpen} 
+                        aria-controls={`visit-${v.id}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                              <span className={`px-3 py-1 rounded-lg text-xs font-bold border-2 ${
+                                v.type === 'visit' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                v.type === 'lab' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                v.type === 'prescription' ? 'bg-green-50 text-green-700 border-green-200' :
+                                v.type === 'diagnosis' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                v.type === 'referral' ? 'bg-orange-50 text-[#E85D04] border-orange-200' :
+                                v.type === 'ocr-upload' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}>
+                                {v.type === 'ocr-upload' ? 'OCR Upload' : v.type.charAt(0).toUpperCase() + v.type.slice(1)}
+                              </span>
+                              <span className="text-xs text-gray-500 font-semibold">{v.date}</span>
+                              {v.riskScore !== undefined && (
+                                <span className={`px-3 py-1 rounded-lg text-xs font-bold border-2 ${
+                                  v.riskLevel === 'emergency' || v.riskLevel === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
+                                  v.riskLevel === 'medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                  'bg-green-50 text-green-700 border-green-200'
+                                }`}>
+                                  Risk Score: {v.riskScore}
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-bold text-[#123B6D] mb-1">{v.title}</p>
+                            <p className="text-sm text-gray-600">{L.facility(v.facility)} · {L.name(v.worker)}</p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {isOpen ? (
+                              <ChevronDown size={20} className="text-[#123B6D]" />
+                            ) : (
+                              <ChevronRight size={20} className="text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                        
+                        {isOpen && (
+                          <motion.div 
+                            id={`visit-${v.id}`} 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="mt-4 pt-4 border-t-2 border-gray-100 space-y-3"
+                          >
+                            {/* Summary / detail */}
+                            {(v as any).detail && (
+                              <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3">
+                                {(v as any).detail}
+                              </p>
+                            )}
+                            
+                            {/* Vitals (for visit records) */}
+                            {v.vitals && (
+                              <div className="flex gap-2 flex-wrap">
+                                {v.vitals.bp && (
+                                  <div className="flex items-center gap-2 bg-red-50 border-2 border-red-200 rounded-lg px-3 py-2">
+                                    <Activity size={16} className="text-red-600" />
+                                    <span className="text-sm font-bold text-red-700">BP: {v.vitals.bp}</span>
+                                  </div>
+                                )}
+                                {v.vitals.temp && (
+                                  <div className="flex items-center gap-2 bg-orange-50 border-2 border-orange-200 rounded-lg px-3 py-2">
+                                    <Thermometer size={16} className="text-orange-600" />
+                                    <span className="text-sm font-bold text-orange-700">Temp: {v.vitals.temp}°F</span>
+                                  </div>
+                                )}
+                                {v.vitals.pulse && (
+                                  <div className="flex items-center gap-2 bg-pink-50 border-2 border-pink-200 rounded-lg px-3 py-2">
+                                    <Heart size={16} className="text-pink-600" />
+                                    <span className="text-sm font-bold text-pink-700">Pulse: {v.vitals.pulse}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Medicines (for OCR records) */}
+                            {(v as any).medicines && (v as any).medicines.length > 0 && (
+                              <div>
+                                <p className="text-xs font-bold text-[#123B6D] uppercase mb-2 flex items-center gap-2">
+                                  <Pill size={14} />
+                                  Prescribed Medicines
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {(v as any).medicines.map((m: any, mi: number) => (
+                                    <div key={mi} className="bg-green-50 border-2 border-green-200 rounded-lg px-3 py-2">
+                                      <span className="font-bold text-green-800 block">{m.name}</span>
+                                      {m.dosage && <span className="text-xs text-green-700">{m.dosage}</span>}
+                                      {m.frequency && <span className="text-xs text-green-600"> · {m.frequency}</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Test values (for OCR records) */}
+                            {(v as any).testValues && (v as any).testValues.length > 0 && (
+                              <div>
+                                <p className="text-xs font-bold text-[#123B6D] uppercase mb-2 flex items-center gap-2">
+                                  <FlaskConical size={14} />
+                                  Laboratory Results
+                                </p>
+                                <div className="space-y-2">
+                                  {(v as any).testValues.map((t: any, ti: number) => (
+                                    <div key={ti} className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 font-semibold
+                                      ${t.is_abnormal 
+                                        ? 'bg-red-50 border-red-300 text-red-800' 
+                                        : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+                                      <span className="flex-1">{t.test_name}</span>
+                                      {t.value && (
+                                        <span className="font-bold">
+                                          {t.value}{t.unit ? ` ${t.unit}` : ''}
+                                        </span>
+                                      )}
+                                      {t.is_abnormal && (
+                                        <AlertTriangle size={18} className="text-red-600" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </button>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] rounded-2xl shadow-xl p-6">
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <Stethoscope size={20} />
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button 
+                  onClick={() => navigate(`/asha/record?id=${patient.id}`)} 
+                  className="bg-white text-[#123B6D] rounded-xl px-5 py-4 font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <FileText size={18} />
+                  Full Record
+                </button>
+                <button 
+                  onClick={() => navigate('/asha/triage')} 
+                  className="bg-gradient-to-r from-[#E85D04] to-[#ff7518] text-white rounded-xl px-5 py-4 font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Activity size={18} />
+                  Run Triage
+                </button>
+                <button 
+                  onClick={() => navigate('/asha/referrals')} 
+                  className="bg-white text-[#123B6D] rounded-xl px-5 py-4 font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <ArrowRight size={18} />
+                  Create Referral
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   )
 }

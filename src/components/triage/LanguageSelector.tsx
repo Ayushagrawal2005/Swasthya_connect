@@ -29,7 +29,7 @@ export function LanguageSelector({ value, onChange, className = '' }: Props) {
             className={`
               px-3 py-1.5 rounded-md text-sm font-medium transition-all
               ${value === lang.code
-                ? 'bg-teal-600 text-white shadow-sm'
+                ? 'bg-[#E85D04] text-white shadow-sm'
                 : 'text-[#5F5E5A] hover:bg-gray-50'
               }
             `}

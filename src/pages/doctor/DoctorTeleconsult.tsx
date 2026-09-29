@@ -308,40 +308,48 @@ Consulting Physician: ${consultationData.doctor}
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Error banner */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-2 text-red-800 text-sm">
-            <AlertCircle size={16} />
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-800">✕</button>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                <Video size={24} className="text-teal-600" />
+              <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+                <Video size={28} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Video Consultation</h1>
-                <p className="text-sm text-gray-600">Real-time WebRTC video calling</p>
+                <h1 className="text-2xl font-bold">Doctor Video Consultation</h1>
+                <p className="text-blue-100 text-sm mt-1">Real-time WebRTC teleconsultation with patient</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-800">Session ID: {sessionId.slice(-6)}</p>
-              <p className="text-xs text-gray-600">{consultationData.date}</p>
+              <p className="text-sm font-bold">Session: {sessionId.slice(-6)}</p>
+              <p className="text-xs text-blue-100">{consultationData.date}</p>
               {callActive && (
-                <p className="text-xs text-teal-600 font-medium mt-1">
-                  {formatDuration(callDuration)} · {getQualityLabel()}
+                <p className="text-xs text-orange-200 font-bold mt-1">
+                  ⏱ {formatDuration(callDuration)} · {getQualityLabel()}
                 </p>
               )}
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Error banner */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-red-50 to-red-100 border-4 border-red-300 rounded-2xl px-8 py-5 mb-6 flex items-center gap-4 text-red-800 shadow-2xl"
+          >
+            <AlertCircle size={24} className="flex-shrink-0" />
+            <span className="flex-1 font-semibold text-base">{error}</span>
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-900 hover:bg-red-200 p-3 rounded-xl transition-all">
+              <X size={20} />
+            </button>
+          </motion.div>
+        )}
 
         {/* Patient Information Sliding Panel */}
         <AnimatePresence>
@@ -351,12 +359,12 @@ Consulting Physician: ${consultationData.doctor}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -400, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-20 bottom-0 w-96 bg-white shadow-2xl border-r-2 border-teal-200 z-50 overflow-y-auto"
+              className="fixed left-0 top-20 bottom-0 w-96 bg-white shadow-2xl border-r-2 border-[#E85D04] z-50 overflow-y-auto"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-3 border-b border-gray-200">
                   <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <User size={18} className="text-teal-600" />
+                    <User size={18} className="text-[#E85D04]" />
                     Patient Information
                   </h3>
                   <button
@@ -368,9 +376,9 @@ Consulting Physician: ${consultationData.doctor}
                 </div>
 
                 {/* Patient Details */}
-                <div className="bg-teal-50 rounded-lg p-4 mb-4">
+                <div className="bg-orange-50 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-teal-200 rounded-full flex items-center justify-center text-teal-800 font-bold text-lg">
+                    <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center text-[#123B6D] font-bold text-lg">
                       {consultationData.patient.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
@@ -409,7 +417,7 @@ Consulting Physician: ${consultationData.doctor}
                   <div className="space-y-1">
                     {consultationData.patient.conditions.map((condition, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                        <div className="w-1.5 h-1.5 bg-teal-500 rounded-full" />
+                        <div className="w-1.5 h-1.5 bg-[#E85D04] rounded-full" />
                         {condition}
                       </div>
                     ))}
@@ -485,12 +493,12 @@ Consulting Physician: ${consultationData.doctor}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <Video size={20} className="text-teal-600" />
+                  <Video size={22} className="text-[#123B6D]" />
                   {isScreenSharing ? 'Screen Share' : 'Video Call'}
                 </h2>
                 {!callActive && (
-                  <button onClick={startCall} className="btn-primary text-sm py-2 px-4">
-                    <Play size={14} />
+                  <button onClick={startCall} className="px-6 py-3 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-lg text-sm flex items-center gap-2">
+                    <Play size={18} />
                     Start Call
                   </button>
                 )}
@@ -559,12 +567,12 @@ Consulting Physician: ${consultationData.doctor}
 
             {/* Call Controls */}
             {callActive && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-700">Call Controls</h3>
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-[#123B6D]">Call Controls</h3>
                   <button
                     onClick={() => setPatientPanelOpen(!patientPanelOpen)}
-                    className="text-xs text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
+                    className="text-sm text-[#E85D04] hover:text-[#d94f03] font-bold flex items-center gap-1 hover:underline"
                   >
                     {patientPanelOpen ? 'Hide' : 'Show'} Patient Info
                   </button>
@@ -572,47 +580,47 @@ Consulting Physician: ${consultationData.doctor}
                 <div className="flex items-center justify-center gap-4">
                   <button
                     onClick={toggleMic}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                      micOn ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-red-500 text-white'
+                    className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg ${
+                      micOn ? 'bg-gray-200 hover:bg-gray-300 text-gray-800 hover:shadow-xl' : 'bg-red-500 text-white hover:bg-red-600'
                     }`}
                     title={micOn ? 'Mute' : 'Unmute'}
                   >
-                    {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+                    {micOn ? <Mic size={22} /> : <MicOff size={22} />}
                   </button>
                   <button
                     onClick={toggleCamera}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                      camOn ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-red-500 text-white'
+                    className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg ${
+                      camOn ? 'bg-gray-200 hover:bg-gray-300 text-gray-800 hover:shadow-xl' : 'bg-red-500 text-white hover:bg-red-600'
                     }`}
                     title={camOn ? 'Camera Off' : 'Camera On'}
                   >
-                    {camOn ? <Video size={20} /> : <VideoOff size={20} />}
+                    {camOn ? <Video size={22} /> : <VideoOff size={22} />}
                   </button>
                   <button
                     onClick={() => setChatOpen(!chatOpen)}
-                    className="w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex items-center justify-center relative"
+                    className="w-14 h-14 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 flex items-center justify-center relative shadow-lg hover:shadow-xl transition-all"
                     title="Chat"
                   >
-                    <MessageSquare size={20} />
+                    <MessageSquare size={22} />
                     {chatMessages.length > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                      <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
                     )}
                   </button>
                   <button
                     onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                      isScreenSharing ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                    className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg ${
+                      isScreenSharing ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-200 hover:bg-gray-300 text-gray-800 hover:shadow-xl'
                     }`}
                     title={isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
                   >
-                    {isScreenSharing ? <Share2 size={20} /> : <Monitor size={20} />}
+                    {isScreenSharing ? <Share2 size={22} /> : <Monitor size={22} />}
                   </button>
                   <button
                     onClick={endCall}
-                    className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+                    className="w-16 h-16 rounded-xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-xl hover:shadow-2xl transition-all"
                     title="End Call"
                   >
-                    <Phone size={22} className="rotate-[135deg]" />
+                    <Phone size={24} className="rotate-[135deg]" />
                   </button>
                 </div>
               </div>
@@ -621,30 +629,30 @@ Consulting Physician: ${consultationData.doctor}
 
           {/* RIGHT: Prescription Panel */}
           <div className="space-y-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <FileText size={20} className="text-teal-600" />
+            <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[#123B6D] flex items-center gap-2">
+                  <FileText size={24} className="text-[#E85D04]" />
                   Consultation Notes
                 </h2>
-                <button onClick={exportPrescription} className="btn-secondary text-sm py-2 px-4">
-                  <Download size={14} />
+                <button onClick={exportPrescription} className="px-5 py-2.5 bg-white border-2 border-[#123B6D] text-[#123B6D] rounded-xl font-bold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                  <Download size={18} />
                   Export
                 </button>
               </div>
 
-              <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl border border-teal-200 p-6 min-h-[600px]">
+              <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-xl border border-[#E85D04] p-6 min-h-[600px]">
                 <div className="space-y-6">
                   {/* Header */}
-                  <div className="text-center border-b border-teal-300 pb-4">
-                    <h3 className="text-2xl font-bold text-teal-800">℞ Prescription</h3>
+                  <div className="text-center border-b border-[#E85D04] pb-4">
+                    <h3 className="text-2xl font-bold text-[#123B6D]">℞ Prescription</h3>
                     <p className="text-xs text-gray-600 mt-1">Teleconsultation Record</p>
                   </div>
 
                   {/* Patient Info */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-teal-200">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-[#E85D04]">
                     <div className="flex items-center gap-2 mb-3">
-                      <User size={16} className="text-teal-600" />
+                      <User size={16} className="text-[#E85D04]" />
                       <h4 className="font-bold text-sm text-gray-800">Patient Information</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
@@ -670,12 +678,12 @@ Consulting Physician: ${consultationData.doctor}
                   </div>
 
                   {/* Symptoms */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-teal-200">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-[#E85D04]">
                     <h4 className="font-bold text-sm text-gray-800 mb-2">Chief Complaints</h4>
                     <ul className="space-y-1.5">
                       {consultationData.symptoms.map((symptom, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <span className="text-teal-500 mt-1">•</span>
+                          <span className="text-[#E85D04] mt-1">•</span>
                           {symptom}
                         </li>
                       ))}
@@ -689,19 +697,19 @@ Consulting Physician: ${consultationData.doctor}
                   </div>
 
                   {/* Medicines */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-teal-200">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-[#E85D04]">
                     <div className="flex items-center gap-2 mb-3">
-                      <Pill size={16} className="text-teal-600" />
+                      <Pill size={16} className="text-[#E85D04]" />
                       <h4 className="font-bold text-sm text-gray-800">Prescribed Medicines</h4>
                     </div>
                     <div className="space-y-3">
                       {consultationData.medicines.map((med, i) => (
-                        <div key={i} className="bg-teal-50 rounded-lg p-3 border border-teal-200">
+                        <div key={i} className="bg-orange-50 rounded-lg p-3 border border-[#E85D04]">
                           <div className="flex items-start justify-between gap-2 mb-2">
-                            <p className="font-bold text-sm text-teal-900">
+                            <p className="font-bold text-sm text-[#123B6D]">
                               {i + 1}. {med.name}
                             </p>
-                            <span className="text-xs bg-teal-600 text-white px-2 py-0.5 rounded-full">
+                            <span className="text-xs bg-[#E85D04] text-white px-2 py-0.5 rounded-full">
                               {med.duration}
                             </span>
                           </div>
@@ -721,12 +729,12 @@ Consulting Physician: ${consultationData.doctor}
                   </div>
 
                   {/* Advice */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-teal-200">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-[#E85D04]">
                     <h4 className="font-bold text-sm text-gray-800 mb-2">Clinical Advice</h4>
                     <ul className="space-y-1.5">
                       {consultationData.advice.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <CheckCircle size={14} className="text-teal-500 mt-0.5 flex-shrink-0" />
+                          <CheckCircle size={14} className="text-[#E85D04] mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -734,7 +742,7 @@ Consulting Physician: ${consultationData.doctor}
                   </div>
 
                   {/* Signature */}
-                  <div className="border-t border-teal-300 pt-4 text-center">
+                  <div className="border-t border-[#E85D04] pt-4 text-center">
                     <p className="text-sm font-semibold text-gray-800">{consultationData.doctor}</p>
                     <p className="text-xs text-gray-600">Consulting Physician</p>
                   </div>

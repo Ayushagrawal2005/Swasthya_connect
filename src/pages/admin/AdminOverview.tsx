@@ -78,50 +78,62 @@ export function AdminOverview() {
   ]
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-[#2C2C2A]">{t('facilityOverview')}</h1>
-          <p className="text-sm text-[#5F5E5A] mt-0.5">PHC Beed, Maharashtra</p>
-          {lastUpdated && (
-            <p className="text-[10px] text-[#9E9C94] mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-              {t('live')} · {t('updated')} {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-[#123B6D] to-[#1a5490] text-white shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
+                <Activity className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Facility Overview</h1>
+                <p className="text-blue-100 mt-1">PHC Beed, Maharashtra</p>
+                {lastUpdated && (
+                  <p className="text-xs text-blue-200 mt-1 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse" />
+                    Live · Updated {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
+              </div>
+            </div>
+            <button onClick={() => { setLoading(true); fetchAll() }}
+              className="p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Refresh">
+              <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
-        <button onClick={() => { setLoading(true); fetchAll() }}
-          className="p-2 rounded-lg text-[#5F5E5A] hover:text-[#FF9933] hover:bg-orange-50 transition-colors" title="Refresh">
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-        </button>
       </div>
 
-      {/* KPIs */}
-      <section>
-        <dl className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* KPIs */}
+        <section>
+        <dl className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           {kpis.map((k, i) => (
-            <motion.div key={k.labelKey} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="stat-card">
-              <dt className="flex items-center gap-1.5 text-xs text-[#5F5E5A] mb-1">
-                <span className={k.color}>{k.icon}</span>{t(k.labelKey)}
+            <motion.div key={k.labelKey} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} 
+              className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-200">
+              <dt className="flex items-center gap-2 text-sm text-gray-600 mb-3 font-medium">
+                <span className={`${k.color} ${k.bg} p-2 rounded-xl`}>{k.icon}</span>
+                {t(k.labelKey)}
               </dt>
-              <dd className="text-xl font-semibold text-[#2C2C2A] tabular-nums">
-                {loading ? <Loader2 size={16} className="animate-spin text-[#FF9933] mt-1" /> : k.value}
+              <dd className="text-3xl font-bold text-[#123B6D] tabular-nums mb-2">
+                {loading ? <Loader2 size={20} className="animate-spin text-[#123B6D]" /> : k.value}
               </dd>
-              <p className={`text-xs flex items-center gap-0.5 ${k.up ? 'text-green-600' : 'text-red-500'}`}>
-                {k.up ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
+              <p className={`text-xs flex items-center gap-1 font-semibold ${k.up ? 'text-green-600' : 'text-red-600'}`}>
+                {k.up ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                 {(k as any).changeVal ? `${(k as any).changeVal} ` : ''}{t(k.changeKey as any)}
               </p>
             </motion.div>
           ))}
         </dl>
-      </section>
+        </section>
 
-      {/* Charts */}
-      <div className="grid lg:grid-cols-3 gap-5">
-        <section className="card p-5 lg:col-span-2">
-          <h2 className="section-header">{t('patientFootfall')}</h2>
-          <div style={{ height: 220 }}>
+        {/* Charts */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          <section className="bg-white rounded-2xl shadow-xl p-6 lg:col-span-2 border border-gray-100">
+          <h2 className="text-lg font-bold text-[#123B6D] mb-4">Patient Footfall Trends</h2>
+          <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={footfallData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
@@ -142,10 +154,10 @@ export function AdminOverview() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </section>
+          </section>
 
-        <section className="card p-5">
-          <h2 className="section-header">{t('referralDistribution')}</h2>
+          <section className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-bold text-[#123B6D] mb-4">Referral Distribution</h2>
           <div style={{ height: 160 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -167,14 +179,13 @@ export function AdminOverview() {
               </div>
             ))}
           </div>
-        </section>
-      </div>
+          </section>
+        </div>
 
-      {/* Referrals + stock + followups */}
-      <div className="grid lg:grid-cols-3 gap-5">
-
-        {/* Pending referrals */}
-        <section className="card p-5">
+        {/* Referrals + stock + followups */}
+        <div className="grid lg:grid-cols-3 gap-5">
+          {/* Pending referrals */}
+          <section className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header mb-0 flex items-center gap-2">
               {t('pendingReferrals')}
@@ -200,10 +211,10 @@ export function AdminOverview() {
                 ))
             }
           </div>
-        </section>
+          </section>
 
-        {/* Medicine stock */}
-        <section className="card p-5">
+          {/* Medicine stock */}
+          <section className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header mb-0 flex items-center gap-2">
               {t('stockAlerts')}
@@ -234,10 +245,10 @@ export function AdminOverview() {
                 })
             }
           </div>
-        </section>
+          </section>
 
-        {/* Overdue follow-ups */}
-        <section className="card p-5">
+          {/* Overdue follow-ups */}
+          <section className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header mb-0 flex items-center gap-2">
               {t('overdueFollowUps')}
@@ -263,7 +274,8 @@ export function AdminOverview() {
                 ))
             }
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   )

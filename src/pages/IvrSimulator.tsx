@@ -126,7 +126,7 @@ export function IvrSimulatorPage() {
               </motion.p>
             )}
             {state === 'done' && (
-              <motion.p key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-teal-300 text-xs">
+              <motion.p key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#E85D04] text-xs">
                 Service completed. Disconnecting.
               </motion.p>
             )}
@@ -138,8 +138,8 @@ export function IvrSimulatorPage() {
           <div className="space-y-1.5">
             {state === 'menu' && menuOptions.map(opt => (
               <button key={opt.key} onClick={() => press(opt.key)}
-                className="w-full flex items-center gap-2 text-left text-xs px-3 py-2 rounded-lg bg-gray-50 border border-[#D3D1C7] hover:bg-teal-50 hover:border-teal-300 transition-all">
-                <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{opt.key}</span>
+                className="w-full flex items-center gap-2 text-left text-xs px-3 py-2 rounded-lg bg-gray-50 border border-[#D3D1C7] hover:bg-orange-50 hover:border-[#E85D04] transition-all">
+                <span className="w-6 h-6 rounded-full bg-[#E85D04] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{opt.key}</span>
                 {opt.label}
               </button>
             ))}
@@ -147,7 +147,7 @@ export function IvrSimulatorPage() {
               <div className="grid grid-cols-3 gap-1.5">
                 {['1','2','3','4','5'].map(k => (
                   <button key={k} onClick={() => press(k)}
-                    className="py-3 rounded-xl bg-gray-50 border border-[#D3D1C7] text-sm font-semibold hover:bg-teal-50 hover:border-teal-400 transition-all">
+                    className="py-3 rounded-xl bg-gray-50 border border-[#D3D1C7] text-sm font-semibold hover:bg-orange-50 hover:border-[#E85D04] transition-all">
                     {k}
                   </button>
                 ))}
@@ -161,7 +161,7 @@ export function IvrSimulatorPage() {
           <div className="grid grid-cols-3 gap-2">
             {dialKeys.map(k => (
               <button key={k}
-                className="py-3 rounded-xl bg-gray-50 border border-[#D3D1C7] text-sm font-semibold hover:bg-teal-50 transition-all text-[#2C2C2A]">
+                className="py-3 rounded-xl bg-gray-50 border border-[#D3D1C7] text-sm font-semibold hover:bg-orange-50 transition-all text-[#2C2C2A]">
                 {k}
               </button>
             ))}
@@ -206,9 +206,9 @@ export function IvrSimulatorPage() {
               <p className="text-[#5F5E5A]">Risk level</p>
               <p className="font-semibold text-amber-700 mt-0.5">Moderate (Score 42)</p>
             </div>
-            <div className="bg-teal-50 rounded-xl p-3">
+            <div className="bg-orange-50 rounded-xl p-3">
               <p className="text-[#5F5E5A]">Action</p>
-              <p className="font-semibold text-teal-700 mt-0.5">Visit PHC in 24h</p>
+              <p className="font-semibold text-[#E85D04] mt-0.5">Visit PHC in 24h</p>
             </div>
           </div>
           <p className="text-xs text-[#5F5E5A] bg-gray-50 rounded-xl px-3 py-2">

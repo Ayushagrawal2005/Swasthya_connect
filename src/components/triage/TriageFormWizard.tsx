@@ -122,12 +122,16 @@ export function TriageFormWizard({ patientId, sourcePortal, visitId, onComplete,
     if (currentStep < totalSteps) {
       saveDraft()
       setCurrentStep(currentStep + 1)
+      // Scroll to top of content area smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   function prevStep() {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      // Scroll to top of content area smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -216,7 +220,7 @@ export function TriageFormWizard({ patientId, sourcePortal, visitId, onComplete,
           {/* Progress Bar */}
           <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
             <motion.div
-              className="absolute inset-y-0 left-0 bg-teal-500"
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#E85D04] to-[#d94f03]"
               initial={{ width: 0 }}
               animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
               transition={{ duration: 0.3 }}
@@ -230,10 +234,10 @@ export function TriageFormWizard({ patientId, sourcePortal, visitId, onComplete,
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             {currentStep === 1 && (
               <ChiefComplaintStep

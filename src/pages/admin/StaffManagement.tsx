@@ -39,7 +39,7 @@ export function StaffManagementPage() {
         {(['all', 'available', 'unavailable'] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize
-              ${filter === f ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-teal-300'}`}>
+              ${filter === f ? 'bg-[#E85D04] text-white border-[#E85D04]' : 'bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-[#E85D04]'}`}>
             {f}
           </button>
         ))}
@@ -50,7 +50,7 @@ export function StaffManagementPage() {
         {facilities.filter(f => f.tier !== 'sub-centre').map(f => (
           <div key={f.id} className="stat-card">
             <dt className="text-xs text-[#5F5E5A] flex items-center gap-1.5 mb-1">
-              <Building2 size={13} className="text-teal-500" aria-hidden="true" />
+              <Building2 size={13} className="text-[#E85D04]" aria-hidden="true" />
               <span className="truncate">{f.name}</span>
             </dt>
             <dd className="text-2xl font-semibold text-[#2C2C2A] tabular-nums">{f.doctors.filter(d => d.available).length}<span className="text-sm text-[#5F5E5A] font-normal">/{f.doctors.length}</span></dd>
@@ -81,7 +81,7 @@ export function StaffManagementPage() {
                   <p className="text-xs text-[#5F5E5A] mt-0.5">{f.address} · {f.phone}</p>
                 </div>
                 <div className="text-right flex-shrink-0 mr-3">
-                  <p className="text-sm font-semibold text-teal-600 tabular-nums">
+                  <p className="text-sm font-semibold text-[#E85D04] tabular-nums">
                     {f.doctors.filter(d => d.available).length}/{f.doctors.length}
                   </p>
                   <p className="text-[10px] text-[#5F5E5A]">available</p>
@@ -118,7 +118,7 @@ export function StaffManagementPage() {
                             </td>
                             <td className="py-3 px-5 text-[#5F5E5A]">
                               <div className="flex items-center gap-1.5">
-                                <Stethoscope size={12} className="text-teal-500" aria-hidden="true" />
+                                <Stethoscope size={12} className="text-[#E85D04]" aria-hidden="true" />
                                 {d.specialty}
                               </div>
                             </td>
@@ -132,7 +132,7 @@ export function StaffManagementPage() {
                             </td>
                             <td className="py-3 px-5">
                               <a href={`tel:${f.phone}`}
-                                className="flex items-center gap-1 text-[10px] text-teal-600 hover:text-teal-700 transition-colors"
+                                className="flex items-center gap-1 text-[10px] text-[#E85D04] hover:text-[#d94f03] transition-colors"
                                 aria-label={`Call ${f.name}`}>
                                 <Phone size={11} /> {f.phone}
                               </a>

@@ -77,7 +77,7 @@ export function DocumentsSummaryStep({
           </p>
         </div>
 
-        <div className="border-2 border-dashed border-[#D3D1C7] rounded-xl p-8 text-center hover:border-teal-300 transition-colors">
+        <div className="border-2 border-dashed border-[#D3D1C7] rounded-xl p-8 text-center hover:border-[#E85D04] transition-colors">
           <Upload size={32} className="mx-auto text-[#5F5E5A] mb-3" />
           <p className="text-sm text-[#2C2C2A] font-medium mb-1">
             Drag and drop files here
@@ -98,7 +98,7 @@ export function DocumentsSummaryStep({
             </p>
             {documentIds.map((docId, idx) => (
               <div key={docId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <FileText size={16} className="text-teal-600" />
+                <FileText size={16} className="text-[#E85D04]" />
                 <span className="text-sm flex-1">Document {idx + 1}</span>
                 <CheckCircle2 size={16} className="text-green-500" />
               </div>
@@ -164,11 +164,11 @@ export function DocumentsSummaryStep({
           Assessment Overview
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-teal-50 rounded-lg">
-            <p className="text-2xl font-bold text-teal-600">
+          <div className="text-center p-3 bg-orange-50 rounded-lg">
+            <p className="text-2xl font-bold text-[#E85D04]">
               {selectedConditions.length}
             </p>
-            <p className="text-xs text-teal-700">Conditions</p>
+            <p className="text-xs text-[#E85D04]">Conditions</p>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <p className="text-2xl font-bold text-blue-600">
@@ -198,9 +198,9 @@ export function DocumentsSummaryStep({
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            className="mt-1 w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+            className="mt-1 w-5 h-5 rounded border-gray-300 text-[#E85D04] focus:ring-[#E85D04]"
           />
-          <span className="text-sm text-[#2C2C2A] leading-relaxed group-hover:text-teal-600 transition-colors">
+          <span className="text-sm text-[#2C2C2A] leading-relaxed group-hover:text-[#E85D04] transition-colors">
             I confirm that the information provided is accurate and complete to the best of my knowledge.
             I understand this information will be shared with the doctor for my consultation.
           </span>

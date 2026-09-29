@@ -126,7 +126,7 @@ export function NotificationBell() {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 font-medium"
+                  className="flex items-center gap-1 text-xs text-[#E85D04] hover:text-[#d94f03] font-medium"
                 >
                   <CheckCheck size={12} />
                   Mark all read
@@ -148,7 +148,7 @@ export function NotificationBell() {
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif)}
                     className={`w-full p-3 text-left border-b border-[#D3D1C7]/50 hover:bg-gray-50 transition-colors ${
-                      !notif.read ? 'bg-teal-50/30' : ''
+                      !notif.read ? 'bg-orange-50/30' : ''
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -157,7 +157,7 @@ export function NotificationBell() {
                         <div className="flex items-center gap-2 mb-0.5">
                           <p className="font-medium text-xs text-[#2C2C2A] truncate">{notif.title}</p>
                           {!notif.read && (
-                            <span className="w-2 h-2 bg-teal-500 rounded-full flex-shrink-0" />
+                            <span className="w-2 h-2 bg-[#E85D04] rounded-full flex-shrink-0" />
                           )}
                         </div>
                         <p className="text-xs text-[#5F5E5A] line-clamp-2">{notif.message}</p>

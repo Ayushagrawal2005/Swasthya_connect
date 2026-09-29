@@ -66,19 +66,19 @@ export function AshaDirectTeleconsultPage() {
   // ─── STEP 1: Search ───────────────────────────────────────────
   if (step === 'search') {
     return (
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-orange-50 via-white to-teal-50 flex items-start justify-center p-4 pt-8">
+      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-start justify-center p-4 pt-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-xl"
         >
-          <div className="card p-8 space-y-6">
+          <div className="card p-8 space-y-6 border-2 border-[#123B6D]">
             {/* Header */}
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-orange-100">
-                <Video size={28} className="text-orange-600" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#E85D04] to-[#d94f03]">
+                <Video size={28} className="text-white" />
               </div>
-              <h1 className="text-xl font-bold text-[#2C2C2A]">Assisted Teleconsultation</h1>
+              <h1 className="text-xl font-bold text-[#123B6D]">Assisted Teleconsultation</h1>
               <p className="text-sm text-[#5F5E5A]">
                 Search for a patient to link before starting the health assessment
               </p>
@@ -86,12 +86,12 @@ export function AshaDirectTeleconsultPage() {
 
             {/* Search box */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-[#2C2C2A]">
+              <label className="block text-sm font-medium text-[#123B6D]">
                 Search Patient
               </label>
               <div className="flex gap-2">
-                <div className="flex flex-1 items-center border-2 border-[#D3D1C7] rounded bg-white focus-within:border-teal-500 transition-colors">
-                  <Search size={16} className="ml-3 text-[#5F5E5A] flex-shrink-0" />
+                <div className="flex flex-1 items-center border-2 border-[#123B6D] rounded-xl bg-white focus-within:border-[#E85D04] transition-colors">
+                  <Search size={16} className="ml-3 text-[#123B6D] flex-shrink-0" />
                   <input
                     type="text"
                     value={query}
@@ -105,7 +105,7 @@ export function AshaDirectTeleconsultPage() {
                 <button
                   onClick={handleSearch}
                   disabled={searching || !query.trim()}
-                  className="btn-primary px-5 flex-shrink-0"
+                  className="px-6 py-2.5 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-semibold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
                   {searching ? <Loader2 size={16} className="animate-spin" /> : 'Search'}
                 </button>
@@ -114,7 +114,7 @@ export function AshaDirectTeleconsultPage() {
 
             {/* Error */}
             {searchError && (
-              <div className="flex items-center gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-red-800 bg-red-50 border-2 border-red-300 rounded-xl px-4 py-3">
                 <AlertCircle size={16} className="flex-shrink-0" />
                 {searchError}
               </div>
@@ -128,30 +128,30 @@ export function AshaDirectTeleconsultPage() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-2"
                 >
-                  <p className="text-xs text-[#5F5E5A] font-medium">
+                  <p className="text-xs text-[#123B6D] font-semibold uppercase tracking-wide">
                     {results.length} patient{results.length !== 1 ? 's' : ''} found — tap to select
                   </p>
                   {results.map(p => (
                     <button
                       key={p.id}
                       onClick={() => selectPatient(p)}
-                      className="w-full text-left p-4 rounded-xl border-2 border-[#D3D1C7] hover:border-orange-400 hover:bg-orange-50/40 transition-all flex items-center gap-3"
+                      className="w-full text-left p-4 rounded-xl border-2 border-[#123B6D] hover:border-[#E85D04] hover:bg-orange-50 transition-all flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center font-semibold text-teal-700 flex-shrink-0 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-semibold text-[#123B6D] flex-shrink-0 text-sm">
                         {p.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[#2C2C2A] text-sm">{p.name}</p>
+                        <p className="font-semibold text-[#123B6D] text-sm">{p.name}</p>
                         <p className="text-xs text-[#5F5E5A]">
                           {p.age}y · {p.gender} · {p.village || ''}
                         </p>
                         {p.conditions?.length > 0 && (
-                          <p className="text-xs text-teal-700 mt-0.5">
+                          <p className="text-xs text-[#E85D04] mt-0.5 font-medium">
                             {p.conditions.slice(0, 2).join(', ')}
                           </p>
                         )}
                       </div>
-                      <ArrowRight size={16} className="text-orange-500 flex-shrink-0" />
+                      <ArrowRight size={16} className="text-[#E85D04] flex-shrink-0" />
                     </button>
                   ))}
                 </motion.div>
@@ -161,7 +161,7 @@ export function AshaDirectTeleconsultPage() {
             {/* Cancel */}
             <button
               onClick={() => navigate('/asha/teleconsult')}
-              className="btn-secondary w-full justify-center text-sm"
+              className="w-full px-6 py-3 bg-white border-2 border-[#123B6D] text-[#123B6D] rounded-xl font-semibold hover:bg-blue-50 transition-all flex items-center justify-center gap-2 text-sm"
             >
               <ArrowLeft size={16} />
               Go back
@@ -189,38 +189,38 @@ export function AshaDirectTeleconsultPage() {
         : 'text-green-600 bg-green-50 border-green-200'
 
     return (
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-orange-50 via-white to-teal-50 flex items-start justify-center p-4 pt-8">
+      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-start justify-center p-4 pt-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-xl"
         >
-          <div className="card p-8 space-y-6">
+          <div className="card p-8 space-y-6 border-2 border-[#123B6D]">
             {/* Header */}
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 border-2 border-green-600">
                 <UserCheck size={28} className="text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-[#2C2C2A]">Confirm Patient</h2>
+              <h2 className="text-xl font-bold text-[#123B6D]">Confirm Patient</h2>
               <p className="text-sm text-[#5F5E5A]">
                 Verify this is the correct patient before starting the assessment
               </p>
             </div>
 
             {/* Patient card */}
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-5 space-y-4">
+            <div className="bg-gradient-to-br from-blue-50 to-orange-50 border-2 border-[#123B6D] rounded-xl p-5 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-teal-200 flex items-center justify-center font-bold text-teal-800 text-lg flex-shrink-0">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#123B6D] to-blue-700 flex items-center justify-center font-bold text-white text-lg flex-shrink-0 shadow-md">
                   {selectedPatient.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-[#2C2C2A]">{selectedPatient.name}</p>
+                  <p className="text-lg font-bold text-[#123B6D]">{selectedPatient.name}</p>
                   <p className="text-sm text-[#5F5E5A]">
                     {selectedPatient.age}y · {selectedPatient.gender}
                     {selectedPatient.village ? ` · ${selectedPatient.village}` : ''}
                   </p>
                   {selectedPatient.healthId && (
-                    <p className="text-xs text-teal-700 font-mono mt-0.5">{selectedPatient.healthId}</p>
+                    <p className="text-xs text-[#123B6D] font-mono mt-0.5 font-semibold">{selectedPatient.healthId}</p>
                   )}
                 </div>
               </div>
@@ -228,10 +228,10 @@ export function AshaDirectTeleconsultPage() {
               {/* Conditions */}
               {selectedPatient.conditions?.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-[#5F5E5A] uppercase mb-2">Known Conditions</p>
+                  <p className="text-xs font-semibold text-[#123B6D] uppercase mb-2 tracking-wide">Known Conditions</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedPatient.conditions.map((c: string) => (
-                      <span key={c} className="text-xs px-2.5 py-1 bg-white border border-teal-300 text-teal-800 rounded-full">
+                      <span key={c} className="text-xs px-2.5 py-1 bg-white border-2 border-[#E85D04] text-[#123B6D] rounded-full font-medium">
                         {c}
                       </span>
                     ))}
@@ -241,7 +241,7 @@ export function AshaDirectTeleconsultPage() {
 
               {/* Risk level */}
               {riskLevel && (
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium ${riskColor}`}>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-semibold ${riskColor}`}>
                   <Heart size={12} />
                   Risk: {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
                   {riskScore ? ` (${riskScore}/100)` : ''}
@@ -258,10 +258,10 @@ export function AshaDirectTeleconsultPage() {
                 { icon: <Video size={16} />, label: 'Video Consultation', desc: 'Patient + doctor connect' },
               ].map((s, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm">
-                  <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#E85D04] to-[#d94f03] text-white flex items-center justify-center flex-shrink-0 shadow-md">
                     {s.icon}
                   </div>
-                  <span className="font-medium text-[#2C2C2A]">{s.label}</span>
+                  <span className="font-semibold text-[#123B6D]">{s.label}</span>
                   <span className="text-[#5F5E5A] text-xs ml-auto">{s.desc}</span>
                 </div>
               ))}
@@ -271,14 +271,14 @@ export function AshaDirectTeleconsultPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => { setSelectedPatient(null); setStep('search') }}
-                className="btn-secondary flex-1 justify-center"
+                className="flex-1 px-6 py-3 bg-white border-2 border-[#123B6D] text-[#123B6D] rounded-xl font-semibold hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
               >
                 <X size={16} />
                 Change Patient
               </button>
               <button
                 onClick={() => setStep('triage')}
-                className="btn-primary flex-1 justify-center"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#E85D04] to-[#d94f03] text-white rounded-xl font-semibold hover:shadow-xl transition-all flex items-center justify-center gap-2"
               >
                 <CheckCircle size={16} />
                 Start Assessment
@@ -312,8 +312,15 @@ export function AshaDirectTeleconsultPage() {
         triageSessionId={triageSessionId || ''}
         patientId={selectedPatient.id}
         onConsultationStart={() => {
-          // ASHA portal: navigate to the existing assisted teleconsult page
-          navigate('/asha/teleconsult')
+          // Navigate to teleconsult page with state to skip assessment
+          navigate('/asha/teleconsult', {
+            state: {
+              skipAssessment: true,
+              patientId: selectedPatient.id,
+              patientName: selectedPatient.name,
+              triageSessionId: triageSessionId
+            }
+          })
         }}
       />
     )

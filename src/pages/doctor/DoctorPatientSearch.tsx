@@ -109,8 +109,8 @@ export function DoctorPatientSearch() {
     }
   }
 
-  const urgencyBadge: Record<string, string> = { routine: 'badge-teal', urgent: 'badge-amber', emergency: 'badge-red' }
-  const statusBadge:  Record<string, string> = { pending: 'badge-amber', accepted: 'badge-green', treated: 'badge-teal', redirected: 'badge-amber' }
+  const urgencyBadge: Record<string, string> = { routine: 'badge-orange', urgent: 'badge-amber', emergency: 'badge-red' }
+  const statusBadge:  Record<string, string> = { pending: 'badge-amber', accepted: 'badge-green', treated: 'badge-navy', redirected: 'badge-amber' }
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-5 animate-fade-in">
@@ -193,7 +193,7 @@ export function DoctorPatientSearch() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-semibold text-[#2C2C2A]">{patient.name}</h2>
                   <span className="text-xs text-[#5F5E5A]">{patient.age}y · {patient.gender}</span>
-                  {patient.bloodGroup && <span className="badge-teal text-[10px]">{patient.bloodGroup}</span>}
+                  {patient.bloodGroup && <span className="badge-orange text-[10px]">{patient.bloodGroup}</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-[#5F5E5A]">
                   <span className="flex items-center gap-1"><MapPin size={10} />{patient.village}</span>
@@ -226,7 +226,7 @@ export function DoctorPatientSearch() {
               <button key={t.id} onClick={() => setActiveTab(t.id)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === t.id
-                    ? 'border-[#138808] text-[#138808]'
+                    ? 'border-[#E85D04] text-[#E85D04]'
                     : 'border-transparent text-[#5F5E5A] hover:text-[#2C2C2A]'
                 }`}>
                 {t.label}
@@ -236,7 +236,7 @@ export function DoctorPatientSearch() {
 
           {loadingRecords ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin text-[#138808]" size={28} />
+              <Loader2 className="animate-spin text-[#E85D04]" size={28} />
             </div>
           ) : (
             <>
@@ -287,10 +287,10 @@ export function DoctorPatientSearch() {
                             )}
                             {rec.vitals && Object.keys(rec.vitals).length > 0 && (
                               <div className="flex flex-wrap gap-2">
-                                {rec.vitals.bp    && <span className="badge-teal text-xs">BP {rec.vitals.bp}</span>}
-                                {rec.vitals.temp  && <span className="badge-teal text-xs">Temp {rec.vitals.temp}°F</span>}
-                                {rec.vitals.pulse && <span className="badge-teal text-xs">Pulse {rec.vitals.pulse}</span>}
-                                {rec.vitals.spo2  && <span className="badge-teal text-xs">SpO2 {rec.vitals.spo2}%</span>}
+                                {rec.vitals.bp    && <span className="badge-orange text-xs">BP {rec.vitals.bp}</span>}
+                                {rec.vitals.temp  && <span className="badge-orange text-xs">Temp {rec.vitals.temp}°F</span>}
+                                {rec.vitals.pulse && <span className="badge-orange text-xs">Pulse {rec.vitals.pulse}</span>}
+                                {rec.vitals.spo2  && <span className="badge-orange text-xs">SpO2 {rec.vitals.spo2}%</span>}
                               </div>
                             )}
                             {rec.medicines && rec.medicines.length > 0 && (
@@ -366,7 +366,7 @@ export function DoctorPatientSearch() {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-semibold text-sm text-[#2C2C2A]">{r.toFacilityName}</p>
-                            <span className={`${urgencyBadge[r.urgency] || 'badge-teal'} text-[10px]`}>{r.urgency}</span>
+                            <span className={`${urgencyBadge[r.urgency] || 'badge-orange'} text-[10px]`}>{r.urgency}</span>
                             <span className={`${statusBadge[r.status] || 'badge-amber'} text-[10px]`}>{r.status}</span>
                           </div>
                           <p className="text-xs text-[#5F5E5A]">By {r.createdBy} · {new Date(r.createdAt).toLocaleDateString('en-IN')}</p>

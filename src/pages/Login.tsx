@@ -91,6 +91,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Signing in...')
 
   async function handleQuickFill(acc: typeof DEMO_ACCOUNTS[0]) {
     setUsername(acc.username)
@@ -99,9 +100,23 @@ export function LoginPage() {
     
     // Auto-login after filling
     setLoading(true)
+    setLoadingMessage('Connecting to server...')
+    
+    // Show progress messages for slow networks
+    const progressTimer = setTimeout(() => {
+      setLoadingMessage('Authenticating...')
+    }, 2000)
+    
+    const slowNetworkTimer = setTimeout(() => {
+      setLoadingMessage('Slow network detected. Please wait...')
+    }, 5000)
     
     try {
       const res = await authApi.login(acc.username, acc.password)
+      
+      clearTimeout(progressTimer)
+      clearTimeout(slowNetworkTimer)
+      setLoadingMessage('Login successful! Redirecting...')
       
       // Set authentication data
       localStorage.setItem('swasthya_token', res.token)
@@ -119,10 +134,15 @@ export function LoginPage() {
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      window.location.href = path
+      // Small delay to show success message
+      setTimeout(() => {
+        window.location.href = path
+      }, 500)
     } catch (err) {
+      clearTimeout(progressTimer)
+      clearTimeout(slowNetworkTimer)
       console.error('Login error:', err)
-      setError('Login failed. Please try again.')
+      setError('Login failed. Please check your internet connection and try again.')
       setLoading(false)
     }
   }
@@ -131,9 +151,23 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    setLoadingMessage('Connecting to server...')
+    
+    // Show progress messages for slow networks
+    const progressTimer = setTimeout(() => {
+      setLoadingMessage('Authenticating...')
+    }, 2000)
+    
+    const slowNetworkTimer = setTimeout(() => {
+      setLoadingMessage('Slow network detected. Please wait...')
+    }, 5000)
     
     try {
       const res = await authApi.login(username.trim(), password)
+      
+      clearTimeout(progressTimer)
+      clearTimeout(slowNetworkTimer)
+      setLoadingMessage('Login successful! Redirecting...')
       
       // Set authentication data
       localStorage.setItem('swasthya_token', res.token)
@@ -151,8 +185,13 @@ export function LoginPage() {
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      window.location.href = path
+      // Small delay to show success message
+      setTimeout(() => {
+        window.location.href = path
+      }, 500)
     } catch (err) {
+      clearTimeout(progressTimer)
+      clearTimeout(slowNetworkTimer)
       console.error('Login error:', err)
       setError('Username or password is incorrect. Click a demo role card below to auto-fill.')
       setLoading(false)
@@ -354,16 +393,34 @@ export function LoginPage() {
                   </div>
                 </div>
 
-                {/* Error */}
-                <AnimatePresence>
+                {/* Error or Loading Status */}
+                <AnimatePresence mode="wait">
                   {error && (
                     <motion.div
+                      key="error"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl"
                     >
                       <p className="text-sm text-red-700 font-medium">{error}</p>
+                    </motion.div>
+                  )}
+                  {loading && !error && (
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-blue-50 border-l-4 border-[#123B6D] p-4 rounded-r-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full border-3 border-[#123B6D]/30 border-t-[#123B6D] animate-spin flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-[#123B6D] font-medium">{loadingMessage}</p>
+                          <p className="text-xs text-gray-600 mt-0.5">This may take a moment on first login</p>
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -377,7 +434,7 @@ export function LoginPage() {
                   {loading ? (
                     <>
                       <span className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin" />
-                      <span>Signing in…</span>
+                      <span>{loadingMessage}</span>
                     </>
                   ) : (
                     <>

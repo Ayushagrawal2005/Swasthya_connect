@@ -102,20 +102,25 @@ export function LoginPage() {
     setLoading(true)
     setLoadingMessage('Connecting to server...')
     
-    // Show progress messages for slow networks
+    // Show progress messages for slow networks and cold starts
     const progressTimer = setTimeout(() => {
       setLoadingMessage('Authenticating...')
     }, 2000)
     
     const slowNetworkTimer = setTimeout(() => {
-      setLoadingMessage('Slow network detected. Please wait...')
-    }, 5000)
+      setLoadingMessage('Server is starting up... This may take 30-60 seconds on first access.')
+    }, 6000)
+    
+    const coldStartTimer = setTimeout(() => {
+      setLoadingMessage('Still loading... Almost there! (Render free tier cold start)')
+    }, 20000)
     
     try {
       const res = await authApi.login(acc.username, acc.password)
       
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)
+      clearTimeout(coldStartTimer)
       setLoadingMessage('Login successful! Redirecting...')
       
       // Set authentication data
@@ -141,6 +146,7 @@ export function LoginPage() {
     } catch (err) {
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)
+      clearTimeout(coldStartTimer)
       console.error('Login error:', err)
       setError('Login failed. Please check your internet connection and try again.')
       setLoading(false)
@@ -153,20 +159,25 @@ export function LoginPage() {
     setLoading(true)
     setLoadingMessage('Connecting to server...')
     
-    // Show progress messages for slow networks
+    // Show progress messages for slow networks and cold starts
     const progressTimer = setTimeout(() => {
       setLoadingMessage('Authenticating...')
     }, 2000)
     
     const slowNetworkTimer = setTimeout(() => {
-      setLoadingMessage('Slow network detected. Please wait...')
-    }, 5000)
+      setLoadingMessage('Server is starting up... This may take 30-60 seconds on first access.')
+    }, 6000)
+    
+    const coldStartTimer = setTimeout(() => {
+      setLoadingMessage('Still loading... Almost there! (Render free tier cold start)')
+    }, 20000)
     
     try {
       const res = await authApi.login(username.trim(), password)
       
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)
+      clearTimeout(coldStartTimer)
       setLoadingMessage('Login successful! Redirecting...')
       
       // Set authentication data
@@ -192,6 +203,7 @@ export function LoginPage() {
     } catch (err) {
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)
+      clearTimeout(coldStartTimer)
       console.error('Login error:', err)
       setError('Username or password is incorrect. Click a demo role card below to auto-fill.')
       setLoading(false)

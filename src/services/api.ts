@@ -26,24 +26,39 @@ async function request<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`
   if (!isFormData) headers['Content-Type'] = 'application/json'
 
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
-  })
+  // Increase timeout for cold starts (Render free tier can take 60-90 seconds)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
 
-  if (res.status === 401) {
-    localStorage.removeItem('swasthya_token')
-    window.location.href = '/login'
-    throw new Error('Unauthorised')
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (res.status === 401) {
+      localStorage.removeItem('swasthya_token')
+      window.location.href = '/login'
+      throw new Error('Unauthorised')
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error((err as { error?: string }).error || res.statusText)
+    }
+
+    return res.json() as Promise<T>
+  } catch (err) {
+    clearTimeout(timeoutId)
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Request timeout - Server may be starting up. Please try again.')
+    }
+    throw err
   }
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error((err as { error?: string }).error || res.statusText)
-  }
-
-  return res.json() as Promise<T>
 }
 
 const get  = <T>(path: string) => request<T>('GET', path)

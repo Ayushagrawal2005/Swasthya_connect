@@ -16,13 +16,13 @@ type ProgressionStatus = 'stable' | 'improving' | 'worsening' | 'critical'
 
 const alertConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
   none:     { label: 'Stable',   color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
-  reminder: { label: 'Reminder', color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-200' },
-  warning:  { label: 'Warning',  color: 'text-coral-700',  bg: 'bg-coral-50',  border: 'border-coral-200' },
+  reminder: { label: 'Reminder', color: 'text-[#E85D04]',  bg: 'bg-[#E85D04]/10',  border: 'border-[#E85D04]/30' },
+  warning:  { label: 'Warning',  color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
   urgent:   { label: 'Urgent',   color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-300' },
 }
 
 const progressionConfig: Record<string, { label: string; color: string; arrow: string }> = {
-  stable:    { label: 'Stable',    color: 'text-teal-600',  arrow: '?' },
+  stable:    { label: 'Stable',    color: 'text-[#123B6D]',  arrow: '?' },
   improving: { label: 'Improving', color: 'text-green-600', arrow: '?' },
   worsening: { label: 'Worsening', color: 'text-red-600',   arrow: '?' },
   critical:  { label: 'Critical',  color: 'text-red-700',   arrow: '??' },
@@ -63,9 +63,9 @@ function PatientCard({ patient, onSelect, isSelected }: { patient: ChronicPatien
     <button onClick={onSelect}
       className={`card w-full text-left p-4 transition-all hover:shadow-card-hover border-l-4 ${
         patient.alertLevel === "urgent" ? "border-l-red-500" :
-        patient.alertLevel === "warning" ? "border-l-coral-500" :
-        patient.alertLevel === "reminder" ? "border-l-amber-400" : "border-l-teal-300"
-      } ${isSelected ? "ring-2 ring-teal-500/30" : ""}`}
+        patient.alertLevel === "warning" ? "border-l-orange-500" :
+        patient.alertLevel === "reminder" ? "border-l-[#E85D04]" : "border-l-[#123B6D]"
+      } ${isSelected ? "ring-2 ring-[#123B6D]/30" : ""}`}
       aria-pressed={isSelected}>
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-[#5F5E5A] flex-shrink-0">
@@ -109,8 +109,8 @@ function ProgressionChart({ patient }: { patient: ChronicPatient }) {
     label: r.value,
   }))
 
-  const color = patient.progressionStatus === "worsening" ? "#D85A30"
-    : patient.progressionStatus === "improving" ? "#0F6E56" : "#3C3489"
+  const color = patient.progressionStatus === "worsening" ? "#dc2626"
+    : patient.progressionStatus === "improving" ? "#16a34a" : "#123B6D"
 
   return (
     <div className="card p-4">
@@ -213,18 +213,18 @@ export function ChronicCareTracker() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-      {loading && <div className="flex justify-center items-center h-32"><Loader2 className="animate-spin text-teal-400" /></div>}
+      {loading && <div className="flex justify-center items-center h-32"><Loader2 className="animate-spin text-[#E85D04]" /></div>}
       {/* Header */}
-      <div className="px-4 sm:px-6 py-4 border-b border-[#D3D1C7] bg-white flex-shrink-0">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-xl font-semibold text-[#2C2C2A]">Chronic Care Tracker</h1>
-            <p className="text-sm text-[#5F5E5A] mt-0.5">Disease progression � auto-flagging � proactive outreach</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#123B6D]">Chronic Care Tracker</h1>
+            <p className="text-sm text-gray-600 mt-0.5">Disease progression � auto-flagging � proactive outreach</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {urgentCount > 0  && <span className="badge-red text-[10px]"><AlertTriangle size={10} /> {urgentCount} urgent</span>}
-            {warningCount > 0 && <span className="badge-amber text-[10px]">{warningCount} warning</span>}
-            {reminderCount > 0 && <span className="badge-teal text-[10px]">{reminderCount} reminder</span>}
+            {urgentCount > 0  && <span className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-[10px] font-medium flex items-center gap-1"><AlertTriangle size={10} /> {urgentCount} urgent</span>}
+            {warningCount > 0 && <span className="px-2 py-1 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-[10px] font-medium">{warningCount} warning</span>}
+            {reminderCount > 0 && <span className="px-2 py-1 bg-[#E85D04]/10 text-[#E85D04] border border-[#E85D04]/30 rounded-full text-[10px] font-medium">{reminderCount} reminder</span>}
           </div>
         </div>
         {/* Filter chips */}
@@ -232,7 +232,7 @@ export function ChronicCareTracker() {
           {(["all", "urgent", "warning", "reminder", "none"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize
-                ${filter === f ? "bg-teal-500 text-white border-teal-500" : "bg-white text-[#5F5E5A] border-[#D3D1C7] hover:border-teal-300"}`}>
+                ${filter === f ? "bg-[#123B6D] text-white border-[#123B6D]" : "bg-white text-gray-600 border-gray-300 hover:border-[#E85D04] hover:text-[#E85D04]"}`}>
               {f === "none" ? "Stable" : f}
             </button>
           ))}
@@ -242,7 +242,7 @@ export function ChronicCareTracker() {
       {/* Split pane */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left: patient list */}
-        <div className="w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-[#D3D1C7] overflow-y-auto bg-white p-3 space-y-2">
+        <div className="w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-gray-200 overflow-y-auto bg-gray-50 p-3 space-y-2">
           {filtered.map((p, i) => (
             <motion.div key={p.id} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
               <PatientCard patient={p} onSelect={() => setSelected(p)} isSelected={selected?.id === p.id} />
@@ -262,25 +262,25 @@ export function ChronicCareTracker() {
 
                 {/* Identity */}
                 <div className="card p-5 flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-lg font-semibold text-teal-700 flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-[#123B6D]/10 flex items-center justify-center text-lg font-semibold text-[#123B6D] flex-shrink-0">
                     {selected.name.split(" ").map(n => n[0]).join("")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h2 className="font-semibold text-[#2C2C2A]">{selected.name}</h2>
-                      <span className="text-sm text-[#5F5E5A]">{selected.age}y � {selected.gender}</span>
+                      <h2 className="font-bold text-[#123B6D]">{selected.name}</h2>
+                      <span className="text-sm text-gray-600">{selected.age}y � {selected.gender}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${conditionColors[selected.condition]}`}>
                         {selected.conditionLabel}
                       </span>
                     </div>
-                    <p className="text-xs text-[#5F5E5A]">{selected.village} � {selected.phone}</p>
-                    <p className="text-xs text-[#5F5E5A] mt-0.5">Worker: {selected.worker} � Since: {selected.since}</p>
+                    <p className="text-xs text-gray-600">{selected.village} � {selected.phone}</p>
+                    <p className="text-xs text-gray-600 mt-0.5">Worker: {selected.worker} � Since: {selected.since}</p>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className={`flex items-center gap-1 text-xs font-medium ${(progressionConfig[selected.progressionStatus] || progressionConfig['stable']).color}`}>
                         <ProgressionIcon status={selected.progressionStatus} />
                         {(progressionConfig[selected.progressionStatus] || progressionConfig['stable']).label}
                       </span>
-                      <span className="text-[#5F5E5A] text-xs">�</span>
+                      <span className="text-gray-400 text-xs">�</span>
                       <span className={`text-xs font-medium ${(alertConfig[selected.alertLevel] || alertConfig['none']).color}`}>
                         {(alertConfig[selected.alertLevel] || alertConfig['none']).label}
                       </span>
@@ -291,8 +291,8 @@ export function ChronicCareTracker() {
                 {/* Active alerts */}
                 {selected.alerts.filter(a => !acknowledged.has(a.id)).length > 0 && (
                   <section aria-label="Active alerts">
-                    <h3 className="section-header flex items-center gap-2">
-                      <Bell size={15} className="text-coral-500" aria-hidden="true" /> Auto-flagged alerts
+                    <h3 className="text-base sm:text-lg font-semibold text-[#123B6D] mb-3 flex items-center gap-2">
+                      <Bell size={16} className="text-[#E85D04]" aria-hidden="true" /> Auto-flagged alerts
                       <AIPill />
                     </h3>
                     <div className="space-y-3">
@@ -313,30 +313,30 @@ export function ChronicCareTracker() {
                             {/* Worker outreach actions */}
                             <div className="flex gap-2 flex-wrap">
                               <a href={`tel:${selected.phone}`}
-                                className="flex items-center gap-1.5 text-xs bg-white border border-[#D3D1C7] text-[#2C2C2A] px-3 py-1.5 rounded-full hover:border-teal-400 hover:text-teal-600 transition-colors font-medium"
+                                className="flex items-center gap-1.5 text-xs bg-white border border-gray-300 text-[#123B6D] px-3 py-1.5 rounded-lg hover:border-[#E85D04] hover:text-[#E85D04] transition-colors font-medium"
                                 aria-label={`Call ${selected.name}`}>
                                 <Phone size={11} /> Call patient
                               </a>
                               {!smsSent.has(selected.id) ? (
                                 <button onClick={() => sendSms(selected.id)}
-                                  className="flex items-center gap-1.5 text-xs bg-white border border-[#D3D1C7] text-[#2C2C2A] px-3 py-1.5 rounded-full hover:border-teal-400 hover:text-teal-600 transition-colors font-medium">
+                                  className="flex items-center gap-1.5 text-xs bg-white border border-gray-300 text-[#123B6D] px-3 py-1.5 rounded-lg hover:border-[#E85D04] hover:text-[#E85D04] transition-colors font-medium">
                                   Send SMS reminder
                                 </button>
                               ) : (
-                                <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                                <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
                                   <CheckCircle size={11} /> SMS sent
                                 </span>
                               )}
                               <button onClick={() => navigate("/asha/teleconsult")}
-                                className="flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors font-medium">
+                                className="flex items-center gap-1.5 text-xs bg-[#E85D04]/10 border border-[#E85D04]/30 text-[#E85D04] px-3 py-1.5 rounded-lg hover:bg-[#E85D04] hover:text-white transition-colors font-medium">
                                 <Video size={11} /> Start teleconsult
                               </button>
                               <button onClick={() => chronicApi.acknowledge(selected!.id, alert.id).then(() => setAcknowledged(p => new Set([...p, alert.id])))}
-                                className="flex items-center gap-1.5 text-xs bg-gray-50 border border-[#D3D1C7] text-[#5F5E5A] px-3 py-1.5 rounded-full hover:border-gray-400 transition-colors font-medium ml-auto">
+                                className="flex items-center gap-1.5 text-xs bg-gray-50 border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:border-gray-400 transition-colors font-medium ml-auto">
                                 <BellOff size={11} /> Acknowledge
                               </button>
                             </div>
-                            <p className="text-[10px] text-[#5F5E5A] mt-2 flex items-center gap-1">
+                            <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
                               <Clock size={9} /> Flagged: {alert.createdAt}
                             </p>
                           </div>

@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { UserPlus, ClipboardList, AlertTriangle, ArrowRight, Clock, Users, Siren, WifiOff, Loader2, RefreshCw } from 'lucide-react'
+import { UserPlus, ClipboardList, AlertTriangle, ArrowRight, Clock, Users, Siren, WifiOff, Loader2, RefreshCw, Activity, TrendingUp, Bell } from 'lucide-react'
 import { useApp, useT } from '../../context/AppContext'
-import { adminApi, referralsApi, followupsApi, type AshaDashboardData, type Referral, type FollowUp } from '../../services/api'
+import { adminApi, referralsApi, followupsApi, chronicApi, type AshaDashboardData, type Referral, type FollowUp, type ChronicPatient } from '../../services/api'
 
 const riskBorder: Record<string, string> = { high: 'border-l-4 border-l-red-500', medium: 'border-l-4 border-l-amber-400', low: 'border-l-4 border-l-green-400', emergency: 'border-l-4 border-l-red-700' }
 const riskBadge:  Record<string, string> = { high: 'bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-medium', medium: 'bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-medium', low: 'bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-medium', emergency: 'bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-medium' }
@@ -17,6 +17,7 @@ export function AshaDashboard() {
   const [data, setData]           = useState<AshaDashboardData | null>(null)
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [followups, setFollowups] = useState<FollowUp[]>([])
+  const [chronicPatients, setChronicPatients] = useState<ChronicPatient[]>([])
   const [loading, setLoading]     = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
@@ -25,10 +26,12 @@ export function AshaDashboard() {
       adminApi.dashboard().catch(() => null),
       referralsApi.list().catch(() => [] as Referral[]),
       followupsApi.list().catch(() => [] as FollowUp[]),
-    ]).then(([dash, refs, fups]) => {
+      chronicApi.list().catch(() => [] as ChronicPatient[]),
+    ]).then(([dash, refs, fups, chronic]) => {
       if (dash) setData(dash)
       setReferrals(refs as Referral[])
       setFollowups(fups as FollowUp[])
+      setChronicPatients(chronic as ChronicPatient[])
       setLastUpdated(new Date())
     }).finally(() => setLoading(false))
   }, [])
@@ -43,6 +46,8 @@ export function AshaDashboard() {
   const cases = data?.activeCases || []
   const pendingRefs      = referrals.filter(r => r.status === 'pending')
   const overdueFollowups = followups.filter(f => f.status !== 'completed')
+  const urgentChronic    = chronicPatients.filter(p => p.alertLevel === 'urgent' || p.alertLevel === 'warning')
+  const chronicWithAlerts = chronicPatients.filter(p => p.alerts.some(a => !a.acknowledged))
 
   const quickActions = [
     { labelKey: 'registerNewPatient', icon: <UserPlus size={24} />,      path: '/asha/register',  gradient: 'from-[#E85D04] to-[#d94f03]', descKey: 'createAbdmId' },
@@ -226,6 +231,122 @@ export function AshaDashboard() {
             </div>
           )}
         </section>
+
+        {/* Chronic Care Widget */}
+        {chronicPatients.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#123B6D] flex items-center gap-2">
+                <Activity size={24} className="text-[#E85D04]" />
+                Chronic Care Patients
+                {urgentChronic.length > 0 && (
+                  <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                    <Bell size={12} className="animate-pulse" />
+                    {urgentChronic.length} Need Attention
+                  </span>
+                )}
+              </h2>
+              <button 
+                onClick={() => navigate('/asha/chronic')} 
+                className="text-sm font-semibold text-[#E85D04] hover:text-[#d94f03] transition-colors"
+              >
+                View All Chronic Patients →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-gradient-to-br from-red-50 to-white rounded-2xl shadow-lg p-5 border-2 border-red-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-red-700">Urgent</span>
+                  <div className="p-2 rounded-lg bg-red-100">
+                    <AlertTriangle size={16} className="text-red-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-red-600">
+                  {chronicPatients.filter(p => p.alertLevel === 'urgent').length}
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl shadow-lg p-5 border-2 border-amber-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-amber-700">Warning</span>
+                  <div className="p-2 rounded-lg bg-amber-100">
+                    <TrendingUp size={16} className="text-amber-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-amber-600">
+                  {chronicPatients.filter(p => p.alertLevel === 'warning').length}
+                </p>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg p-5 border-2 border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-[#123B6D]">Total Managed</span>
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <Activity size={16} className="text-[#123B6D]" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-[#123B6D]">
+                  {chronicPatients.length}
+                </p>
+              </div>
+            </div>
+
+            {chronicWithAlerts.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Patients with Active Alerts:</p>
+                {chronicWithAlerts.slice(0, 3).map((patient, i) => (
+                  <motion.button
+                    key={patient.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    onClick={() => navigate('/asha/chronic')}
+                    className={`bg-white rounded-2xl shadow-lg w-full p-5 flex items-center gap-4 text-left border-2 hover:shadow-xl transition-all duration-200 group ${
+                      patient.alertLevel === 'urgent' ? 'border-l-4 border-l-red-500 bg-red-50/30' :
+                      patient.alertLevel === 'warning' ? 'border-l-4 border-l-amber-500 bg-amber-50/30' :
+                      'border-gray-100'
+                    } hover:border-[#E85D04]`}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#123B6D] to-[#1a5490] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                      {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <p className="font-bold text-[#123B6D] text-base">{patient.name}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          patient.alertLevel === 'urgent' ? 'bg-red-100 text-red-700' :
+                          patient.alertLevel === 'warning' ? 'bg-amber-100 text-amber-700' :
+                          patient.alertLevel === 'reminder' ? 'bg-orange-100 text-[#E85D04]' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {patient.conditionLabel}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 truncate mb-1">
+                        {patient.alerts.filter(a => !a.acknowledged).length} unacknowledged alert{patient.alerts.filter(a => !a.acknowledged).length !== 1 ? 's' : ''}
+                      </p>
+                      <p className="text-xs font-semibold text-[#E85D04]">Next checkup: {patient.nextCheckupDate}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        patient.alertLevel === 'urgent' ? 'bg-red-100 text-red-700' :
+                        patient.alertLevel === 'warning' ? 'bg-amber-100 text-amber-700' :
+                        patient.alertLevel === 'reminder' ? 'bg-orange-100 text-[#E85D04]' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {patient.alertLevel === 'urgent' ? 'Urgent' :
+                         patient.alertLevel === 'warning' ? 'Warning' :
+                         patient.alertLevel === 'reminder' ? 'Reminder' : 'Stable'}
+                      </span>
+                      <ArrowRight size={18} className="text-[#E85D04] group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Active cases */}
         <section>

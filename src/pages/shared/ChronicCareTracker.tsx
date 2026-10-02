@@ -17,7 +17,7 @@ type ProgressionStatus = 'stable' | 'improving' | 'worsening' | 'critical'
 const alertConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
   none:     { label: 'Stable',   color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
   reminder: { label: 'Reminder', color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-200' },
-  warning:  { label: 'Warning',  color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
+  warning:  { label: 'Warning',  color: 'text-coral-700',  bg: 'bg-coral-50',  border: 'border-coral-200' },
   urgent:   { label: 'Urgent',   color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-300' },
 }
 
@@ -55,9 +55,9 @@ const ProgressionIcon = ({ status }: { status: string }) => {
 }
 
 function PatientCard({ patient, onSelect, isSelected }: { patient: ChronicPatient; onSelect: () => void; isSelected: boolean }) {
-  const alertCfg = alertConfig[patient.alertLevel]
-  const progCfg  = progressionConfig[patient.progressionStatus]
-  const urgentAlerts = patient.alerts.filter(a => !a.acknowledged)
+  const alertCfg = alertConfig[patient.alertLevel] || alertConfig['none']
+  const progCfg  = progressionConfig[patient.progressionStatus] || progressionConfig['stable']
+  const urgentAlerts = patient.alerts?.filter(a => !a.acknowledged) || []
 
   return (
     <button onClick={onSelect}
@@ -276,13 +276,13 @@ export function ChronicCareTracker() {
                     <p className="text-xs text-[#5F5E5A]">{selected.village} � {selected.phone}</p>
                     <p className="text-xs text-[#5F5E5A] mt-0.5">Worker: {selected.worker} � Since: {selected.since}</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className={`flex items-center gap-1 text-xs font-medium ${progressionConfig[selected.progressionStatus].color}`}>
+                      <span className={`flex items-center gap-1 text-xs font-medium ${(progressionConfig[selected.progressionStatus] || progressionConfig['stable']).color}`}>
                         <ProgressionIcon status={selected.progressionStatus} />
-                        {progressionConfig[selected.progressionStatus].label}
+                        {(progressionConfig[selected.progressionStatus] || progressionConfig['stable']).label}
                       </span>
                       <span className="text-[#5F5E5A] text-xs">�</span>
-                      <span className={`text-xs font-medium ${alertConfig[selected.alertLevel].color}`}>
-                        {alertConfig[selected.alertLevel].label}
+                      <span className={`text-xs font-medium ${(alertConfig[selected.alertLevel] || alertConfig['none']).color}`}>
+                        {(alertConfig[selected.alertLevel] || alertConfig['none']).label}
                       </span>
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export function ChronicCareTracker() {
                     </h3>
                     <div className="space-y-3">
                       {selected.alerts.filter(a => !acknowledged.has(a.id)).map(alert => {
-                        const cfg = alertConfig[alert.level]
+                        const cfg = alertConfig[alert.level] || alertConfig['none']
                         return (
                           <div key={alert.id} className={`rounded-xl border-2 p-4 ${cfg.bg} ${cfg.border}`}>
                             <div className="flex items-start gap-2 mb-2">

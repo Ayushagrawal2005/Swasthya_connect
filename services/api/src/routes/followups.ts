@@ -6,6 +6,75 @@ import { notifyFollowUpCreated, notifyFollowUpCompleted, notifyFollowUpEscalated
 
 const router = Router()
 
+// ─── Chronic Care Integration ────────────────────────────────────────────────
+/**
+ * Auto-create follow-ups for chronic checkups that are due/overdue
+ * Called periodically or when chronic checkups are updated
+ */
+export function syncChronicCheckupsToFollowUps() {
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+  let syncedCount = 0
+  
+  db.chronicPatients.forEach(chronic => {
+    chronic.checkups
+      .filter(checkup => 
+        (checkup.status === 'due-today' || checkup.status === 'overdue') &&
+        !checkup.completedDate
+      )
+      .forEach(checkup => {
+        // Check if follow-up already exists
+        const existingFollowUp = db.followUps.find(f => 
+          f.sourceId === checkup.id && 
+          f.sourcePortal === 'chronic-care'
+        )
+        
+        if (!existingFollowUp) {
+          // Determine risk level from chronic alert level
+          let risk: 'low' | 'medium' | 'high' | 'emergency' = 'medium'
+          if (chronic.alertLevel === 'urgent') risk = 'emergency'
+          else if (chronic.alertLevel === 'warning') risk = 'high'
+          else if (chronic.alertLevel === 'reminder') risk = 'medium'
+          else risk = 'low'
+
+          // Find ASHA worker user ID
+          const ashaUser = db.users.find(u => u.name === chronic.worker)
+          
+          // Create new follow-up
+          const followUp: FollowUp = {
+            id: uuid(),
+            patientId: chronic.patientId,
+            patientName: chronic.name,
+            age: chronic.age,
+            phone: chronic.phone,
+            condition: chronic.conditionLabel,
+            risk,
+            dueDate: checkup.scheduledDate,
+            status: checkup.status === 'overdue' ? 'overdue' : 'due-today',
+            notes: `Chronic care checkup: ${checkup.type}. ${chronic.notes || ''}`,
+            nextStep: checkup.type,
+            lastVisit: chronic.lastContactDate,
+            assignedTo: ashaUser?.id || chronic.worker,
+            assignedToName: chronic.worker,
+            createdBy: 'system',
+            createdByName: 'Chronic Care System',
+            sourcePortal: 'chronic-care',
+            sourceId: checkup.id,
+            reminderSchedule: [checkup.scheduledDate],
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+          }
+          
+          db.followUps.push(followUp)
+          syncedCount++
+          console.log(`✅ Created follow-up for chronic patient ${chronic.name}: ${checkup.type}`)
+        }
+      })
+  })
+  
+  return syncedCount
+}
+
 // POST /followups — create new followup with auto-assignment and notifications
 router.post('/', requireAuth, (req, res) => {
   const now = new Date().toISOString()
@@ -92,6 +161,25 @@ router.patch('/:id/complete', requireAuth, (req, res) => {
   f.completionNotes = req.body.notes || ''
   f.updatedAt = new Date().toISOString()
   
+  // If this is a chronic care follow-up, update the checkup
+  if (f.sourcePortal === 'chronic-care' && f.sourceId) {
+    const chronic = db.chronicPatients.find(p => 
+      p.checkups.some(c => c.id === f.sourceId)
+    )
+    if (chronic) {
+      const checkup = chronic.checkups.find(c => c.id === f.sourceId)
+      if (checkup) {
+        checkup.status = 'completed'
+        checkup.completedDate = f.completedAt
+        checkup.note = f.completionNotes
+        if (req.body.result) {
+          checkup.result = req.body.result
+        }
+        console.log(`✅ Synced follow-up completion to chronic checkup: ${checkup.type}`)
+      }
+    }
+  }
+  
   notifyFollowUpCompleted(f)
   
   res.json(f)
@@ -140,9 +228,35 @@ router.patch('/:id/done', requireAuth, (req, res) => {
   f.completedBy = req.user!.userId
   f.updatedAt = new Date().toISOString()
   
+  // If this is a chronic care follow-up, update the checkup
+  if (f.sourcePortal === 'chronic-care' && f.sourceId) {
+    const chronic = db.chronicPatients.find(p => 
+      p.checkups.some(c => c.id === f.sourceId)
+    )
+    if (chronic) {
+      const checkup = chronic.checkups.find(c => c.id === f.sourceId)
+      if (checkup) {
+        checkup.status = 'completed'
+        checkup.completedDate = f.completedAt
+        console.log(`✅ Synced follow-up completion to chronic checkup: ${checkup.type}`)
+      }
+    }
+  }
+  
   notifyFollowUpCompleted(f)
   
   res.json(f)
+})
+
+// POST /followups/sync-chronic — Sync chronic checkups to follow-ups
+router.post('/sync-chronic', requireAuth, (req, res) => {
+  const syncedCount = syncChronicCheckupsToFollowUps()
+  const chronicFollowUps = db.followUps.filter(f => f.sourcePortal === 'chronic-care')
+  res.json({ 
+    synced: syncedCount, 
+    total: chronicFollowUps.length,
+    message: `Synced ${syncedCount} chronic checkups to follow-ups. Total chronic follow-ups: ${chronicFollowUps.length}`
+  })
 })
 
 export default router

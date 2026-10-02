@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Video, Clock, ChevronRight, User, Activity, Loader2, ArrowRight, RefreshCw, GitMerge, Phone, Bell } from 'lucide-react'
 import { AIPill } from '../../components/ui/AIPill'
-import { appointmentsApi, referralsApi, type Appointment, type Referral } from '../../services/api'
+import { appointmentsApi, referralsApi, chronicApi, type Appointment, type Referral, type ChronicPatient } from '../../services/api'
 import { useApp, useT } from '../../context/AppContext'
 import { webrtcService } from '../../services/webrtc'
 
@@ -28,6 +28,7 @@ export function DoctorHome() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [acceptedReferrals, setAcceptedReferrals] = useState<Referral[]>([])
   const [pendingReferrals, setPendingReferrals]   = useState<Referral[]>([])
+  const [chronicPatients, setChronicPatients] = useState<ChronicPatient[]>([])
   const [loading, setLoading]   = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
@@ -104,10 +105,12 @@ export function DoctorHome() {
     return Promise.all([
       appointmentsApi.list({ date: today }).catch(() => [] as Appointment[]),
       referralsApi.incoming().catch(() => [] as Referral[]),
-    ]).then(([appts, refs]) => {
+      chronicApi.list().catch(() => [] as ChronicPatient[]),
+    ]).then(([appts, refs, chronic]) => {
       setAppointments(appts as Appointment[])
       setAcceptedReferrals((refs as Referral[]).filter(r => r.status === 'accepted'))
       setPendingReferrals((refs as Referral[]).filter(r => r.status === 'pending'))
+      setChronicPatients(chronic as ChronicPatient[])
       setLastUpdated(new Date())
     }).finally(() => setLoading(false))
   }, [today])
@@ -238,6 +241,103 @@ export function DoctorHome() {
             ))}
           </div>
         </section>
+
+        {/* Chronic Care Summary */}
+        {chronicPatients.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#123B6D] flex items-center gap-2">
+                <Activity size={20} className="text-[#E85D04]" />
+                Chronic Care Patients
+                {chronicPatients.filter(p => p.alertLevel === 'urgent' || p.alertLevel === 'warning').length > 0 && (
+                  <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                    <Bell size={12} className="animate-pulse" />
+                    {chronicPatients.filter(p => p.alertLevel === 'urgent' || p.alertLevel === 'warning').length} Need Review
+                  </span>
+                )}
+              </h2>
+              <button 
+                onClick={() => navigate('/doctor/chronic')} 
+                className="text-sm font-semibold text-[#E85D04] hover:text-[#d94f03] transition-colors"
+              >
+                View All Chronic Patients →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-red-50 to-white rounded-2xl shadow-lg p-5 border-2 border-red-200 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-red-700">Urgent</span>
+                  <div className="p-2 rounded-lg bg-red-100">
+                    <Activity size={14} className="text-red-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-red-600">
+                  {chronicPatients.filter(p => p.alertLevel === 'urgent').length}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Need immediate attention</p>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-amber-50 to-white rounded-2xl shadow-lg p-5 border-2 border-amber-200 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-amber-700">Warning</span>
+                  <div className="p-2 rounded-lg bg-amber-100">
+                    <Activity size={14} className="text-amber-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-amber-600">
+                  {chronicPatients.filter(p => p.alertLevel === 'warning').length}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Worsening condition</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-orange-50 to-white rounded-2xl shadow-lg p-5 border-2 border-orange-200 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-[#E85D04]">Reminder</span>
+                  <div className="p-2 rounded-lg bg-orange-100">
+                    <Activity size={14} className="text-[#E85D04]" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-[#E85D04]">
+                  {chronicPatients.filter(p => p.alertLevel === 'reminder').length}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Routine follow-up needed</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg p-5 border-2 border-[#123B6D]/20 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-[#123B6D]">Total Managed</span>
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <Activity size={14} className="text-[#123B6D]" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-[#123B6D]">
+                  {chronicPatients.length}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">Under continuous care</p>
+              </motion.div>
+            </div>
+          </section>
+        )}
 
         {/* Teleconsult Requests Alert */}
         {teleconsultRequests.length > 0 && (

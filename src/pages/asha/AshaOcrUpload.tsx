@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, FileText, CheckCircle, Scan, Pill, User, X, Eye, Search, Loader, AlertCircle, Download, Zap, ArrowRight } from 'lucide-react'
+import { Upload, FileText, CheckCircle, Scan, Pill, User, X, Eye, Search, Loader, AlertCircle, Download, Zap, ArrowRight, Activity } from 'lucide-react'
 import axios from 'axios'
 import jsPDF from 'jspdf'
 import { useNavigate } from 'react-router-dom'

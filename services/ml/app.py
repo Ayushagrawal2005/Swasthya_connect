@@ -180,7 +180,7 @@ Respond ONLY with the JSON, nothing else."""
 
     return np.array(features, dtype=float).reshape(1, -1)
 
-@app.route('/health', methods=['GET'])
+@app.route('/health', methods=['GET', 'HEAD'])
 def health():
     return jsonify({
         'status': 'healthy',

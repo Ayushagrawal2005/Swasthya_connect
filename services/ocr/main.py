@@ -38,8 +38,9 @@ app.add_middleware(
 
 
 @app.get("/health")
+@app.head("/health")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "swasthya-ocr"}
 
 
 @app.post("/ocr/extract", response_model=OCRResult)

@@ -41,6 +41,19 @@ const OCR_SERVICE_URL = process.env.OCR_SERVICE_URL || 'https://swasthya-connect
 console.log('✅ OCR Service URL:', OCR_SERVICE_URL)
 
 // ═══════════════════════════════════════════════════════════════
+// HEALTH CHECK ENDPOINT - Prevents Render cold starts
+// ═══════════════════════════════════════════════════════════════
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    service: 'swasthya-connect-backend',
+    uptime: process.uptime()
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════
 // AUTH MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════
 

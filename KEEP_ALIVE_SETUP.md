@@ -58,9 +58,10 @@ Expected response:
 3. **Configure Monitor:**
    - **Monitor Type:** `HTTP(s)`
    - **Friendly Name:** `Swasthya Backend Keep-Alive`
-   - **URL (or IP):** `https://swasthya-connect-backend.onrender.com/health`
+   - **URL (or IP):** `https://swasthya-connect-1x6r.onrender.com/health`
    - **Monitoring Interval:** `5 minutes` (default)
    - **Monitor Timeout:** `30 seconds`
+   - **HTTP Method:** `GET` (important!)
 
 4. **Click "Create Monitor"**
 
@@ -71,12 +72,16 @@ Expected response:
 If you also have ML and OCR services on Render, add monitors for them too:
 
 **ML Service Monitor:**
-- URL: `https://swasthya-ml-backend.onrender.com/health`
+- URL: `https://swasthya-connect-ml.onrender.com/health`
 - Name: `Swasthya ML Keep-Alive`
+- HTTP Method: `GET`
 
 **OCR Service Monitor:**
 - URL: `https://swasthya-connect-ocr.onrender.com/health`
 - Name: `Swasthya OCR Keep-Alive`
+- HTTP Method: `GET`
+
+**⚠️ Important:** Make sure to select **GET** method, not HEAD, as FastAPI/Flask endpoints require GET.
 
 ---
 

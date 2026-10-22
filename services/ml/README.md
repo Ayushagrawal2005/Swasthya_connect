@@ -1,18 +1,29 @@
-# SwasthyaConnect ML Service
+---
+title: SwasthyaConnect ML Service
+emoji: 🏥
+colorFrom: blue
+colorTo: orange
+sdk: docker
+pinned: false
+app_port: 7860
+---
 
-AI-powered health triage and risk prediction service.
+# SwasthyaConnect ML Triage Service
 
-## Features
-- Risk prediction using ML models
-- Voice triage with Groq AI
-- Conversation engine for health assessment
+XGBoost-powered triage risk prediction for rural India healthcare.
 
-## API Endpoints
-- `POST /predict` - Health risk prediction
-- `POST /voice-triage` - Voice-based triage
-- `GET /health` - Health check
+## Endpoints
 
-## Environment Variables
-- `GROQ_API_KEY` - Your Groq API key
+- `GET /health` — Health check
+- `POST /predict` — Triage risk prediction
+- `POST /voice-triage/start` — Start voice triage session
+- `POST /voice-triage/next-question` — Get next adaptive question
+- `POST /voice-triage/finalize` — Finalize and get risk score
 
-Deployed on Hugging Face Spaces.
+## Model
+
+- Algorithm: XGBoost Classifier
+- Training samples: 27,606 (real + augmented rural India data)
+- Features: BP, temperature, SpO2, pulse, severity, duration, symptoms
+
+## Part of Swasthya Connect — Smart India Hackathon 2026

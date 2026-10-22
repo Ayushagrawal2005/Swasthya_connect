@@ -22,7 +22,7 @@ CORS(app, origins=[
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '')
-    if origin.endswith('.vercel.app') or origin.endswith('.onrender.com') or origin in [
+    if origin.endswith('.vercel.app') or origin.endswith('.onrender.com') or origin.endswith('.koyeb.app') or origin in [
         'http://localhost:5173', 'http://localhost:3000'
     ]:
         response.headers['Access-Control-Allow-Origin'] = origin

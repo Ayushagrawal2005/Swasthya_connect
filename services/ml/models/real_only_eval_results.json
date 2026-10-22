@@ -1,0 +1,35 @@
+{
+  "real_only_accuracy": 0.6683,
+  "real_only_accuracy_pct": 66.8,
+  "ci_low_pct": 64.7,
+  "ci_high_pct": 68.9,
+  "n_real_samples": 1857,
+  "n_correct": 1241,
+  "blended_accuracy_pct": 96.4,
+  "sources": [
+    {
+      "name": "UCI Heart Cleveland",
+      "n": 297
+    },
+    {
+      "name": "UCI Heart Hungarian",
+      "n": 1
+    },
+    {
+      "name": "UCI Heart Switzerland",
+      "n": 0
+    },
+    {
+      "name": "Statlog Heart",
+      "n": 271
+    },
+    {
+      "name": "Pima Diabetes",
+      "n": 768
+    },
+    {
+      "name": "Sylhet Diabetes Symptoms",
+      "n": 520
+    }
+  ]
+}

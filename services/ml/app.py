@@ -16,8 +16,20 @@ CORS(app, origins=[
     "http://localhost:5173",
     "http://localhost:3000",
     "https://swasthya-connect-9nwa.vercel.app",
-    r"https://.*\.vercel\.app$"  # Allow all Vercel preview deployments
 ], supports_credentials=True)
+
+# Allow all vercel.app and onrender.com origins dynamically
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin.endswith('.vercel.app') or origin.endswith('.onrender.com') or origin in [
+        'http://localhost:5173', 'http://localhost:3000'
+    ]:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
 
 # Load the trained model
 MODEL_PATH   = os.path.join(os.path.dirname(__file__), 'models', 'triage_model.pkl')

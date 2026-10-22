@@ -25,14 +25,25 @@ const server = createServer(app)
 const upload = multer({ storage: multer.memoryStorage() })
 
 // Middleware - Configure CORS to allow Vercel frontend
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://swasthya-connect-9nwa.vercel.app',
+]
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000', 
-    'https://swasthya-connect-9nwa.vercel.app',
-    /\.vercel\.app$/ // Allow all Vercel preview deployments
-  ],
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true)
+    // Allow any vercel.app subdomain + explicit list
+    if (ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+      return callback(null, true)
+    }
+    return callback(new Error(`CORS blocked: ${origin}`))
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 app.use(express.json())
 

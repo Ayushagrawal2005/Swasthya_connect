@@ -145,10 +145,8 @@ export function LoginPage() {
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      // Small delay to show success message, then navigate without full page reload
-      setTimeout(() => {
-        navigate(path, { replace: true })
-      }, 500)
+      // Navigate immediately after setting auth — no delay to avoid race conditions
+      navigate(path, { replace: true })
     } catch (err) {
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)
@@ -205,10 +203,8 @@ export function LoginPage() {
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      // Small delay to show success message, then navigate without full page reload
-      setTimeout(() => {
-        navigate(path, { replace: true })
-      }, 500)
+      // Navigate immediately after setting auth — no delay to avoid race conditions
+      navigate(path, { replace: true })
     } catch (err) {
       clearTimeout(progressTimer)
       clearTimeout(slowNetworkTimer)

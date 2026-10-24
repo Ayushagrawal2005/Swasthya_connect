@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { translate, type SupportedLanguage, type TranslationKey } from '../lib/i18n'
 
 export type Role = 'asha' | 'doctor' | 'admin' | 'patient' | null
@@ -50,6 +49,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
   
   // Handle unauthorized events from API service
+  // NOTE: We don't auto-navigate here to avoid conflicts with React Router
+  // The api.ts service clears localStorage and the AppContext will naturally update
   useEffect(() => {
     const handleUnauthorized = () => {
       // Clear local state
@@ -60,8 +61,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFacilityId(null)
       setPatientId(null)
       
-      // Navigate to login (will be handled by React Router, not full reload)
-      window.location.href = '/login'
+      // Don't use window.location.href - let React Router handle navigation
+      // The useEffect in App.tsx will detect role=null and redirect to /login
     }
     
     window.addEventListener('swasthya-unauthorized', handleUnauthorized)

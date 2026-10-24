@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'swasthya-connect-secret-2026'
+export const JWT_SECRET = process.env.JWT_SECRET || 'healthcare-secret-key-change-in-production'
 
 export interface JwtPayload {
   userId: string

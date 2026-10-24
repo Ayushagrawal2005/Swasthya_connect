@@ -76,12 +76,16 @@ function AppShell() {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Auto-logout when navigating to public pages
+  // Auto-redirect to login if not authenticated and trying to access protected routes
   useEffect(() => {
-    if (role && (location.pathname === '/' || location.pathname === '/login')) {
-      logout()
+    const publicPaths = ['/', '/login', '/ivr', '/test']
+    const isPublicPath = publicPaths.includes(location.pathname)
+    
+    if (!role && !isPublicPath) {
+      // User is not logged in and trying to access a protected route
+      navigate('/login', { replace: true })
     }
-  }, [location.pathname, role, logout])
+  }, [role, location.pathname, navigate])
 
   // Handle logout with navigation
   const handleLogout = () => {

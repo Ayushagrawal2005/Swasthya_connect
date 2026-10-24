@@ -29,11 +29,14 @@ export function PatientHome() {
   const [lastUpdated,  setLastUpdated]  = useState<Date | null>(null)
 
   const fetchAll = useCallback(() => {
-    const pid = patientId || 'P-PRIYA-002'
+    if (!patientId) {
+      setLoading(false)
+      return Promise.resolve()
+    }
     return Promise.all([
-      patientsApi.get(pid).catch(() => null),
-      appointmentsApi.list({ patientId: pid }).catch(() => [] as Appointment[]),
-      patientsApi.getReferrals(pid).catch(() => [] as Referral[]),
+      patientsApi.get(patientId).catch(() => null),
+      appointmentsApi.list({ patientId }).catch(() => [] as Appointment[]),
+      patientsApi.getReferrals(patientId).catch(() => [] as Referral[]),
     ]).then(([p, appts, refs]) => {
       setPatient(p)
       setAppointments(appts as Appointment[])
@@ -59,16 +62,24 @@ export function PatientHome() {
     { labelKey: 'videoConsult',    icon: <Video className="w-6 h-6" />,         path: '/patient/teleconsult',  color: 'from-[#123B6D] to-[#1a5490]' },
   ] as const
 
-  const vitals = [
+  const vitals = patient?.gender === 'F' ? [
     { labelKey: 'bloodPressure', value: '118/76', unit: 'mmHg', statusKey: 'normal', icon: <Activity className="w-5 h-5" />, ok: true },
     { labelKey: 'hemoglobin',    value: '11.2',   unit: 'g/dL', statusKey: 'low',    icon: <Heart className="w-5 h-5" />,   ok: false },
     { labelKey: 'temperature',   value: '98.4',   unit: '°F',   statusKey: 'normal', icon: <Thermometer className="w-5 h-5" />, ok: true },
+  ] : [
+    { labelKey: 'bloodPressure', value: '125/82', unit: 'mmHg', statusKey: 'normal', icon: <Activity className="w-5 h-5" />, ok: true },
+    { labelKey: 'heartRate',     value: '72',     unit: 'bpm',  statusKey: 'normal', icon: <Heart className="w-5 h-5" />,   ok: true },
+    { labelKey: 'temperature',   value: '98.2',   unit: '°F',   statusKey: 'normal', icon: <Thermometer className="w-5 h-5" />, ok: true },
   ] as const
 
-  const recentRecords = [
+  const recentRecords = patient?.gender === 'F' ? [
     { typeKey: 'visit',        title: 'ANC Check-up',     facility: 'PHC Beed', date: '20 Aug 2026' },
     { typeKey: 'lab',          title: 'CBC Report',        facility: 'PHC Beed', date: '18 Aug 2026' },
     { typeKey: 'prescription', title: 'Iron + Folic Acid', facility: 'PHC Beed', date: '15 Aug 2026' },
+  ] : [
+    { typeKey: 'visit',        title: 'General Check-up', facility: 'PHC Beed', date: '20 Aug 2026' },
+    { typeKey: 'lab',          title: 'Blood Test',       facility: 'PHC Beed', date: '18 Aug 2026' },
+    { typeKey: 'prescription', title: 'Paracetamol',      facility: 'PHC Beed', date: '15 Aug 2026' },
   ] as const
 
   return (
@@ -277,7 +288,9 @@ export function PatientHome() {
               <div className="flex-1">
                 <p className="text-sm font-bold text-[#E85D04] mb-2">{t('healthTip')} · {t('today')}</p>
                 <p className="text-base text-gray-700 leading-relaxed mb-3">
-                  Iron-rich foods like spinach, lentils, and fortified cereals can help manage low hemoglobin. Take your daily iron supplement with vitamin C for better absorption.
+                  {patient?.gender === 'F' 
+                    ? 'Iron-rich foods like spinach, lentils, and fortified cereals can help manage low hemoglobin. Take your daily iron supplement with vitamin C for better absorption.'
+                    : 'Stay hydrated by drinking at least 8 glasses of water daily. Regular exercise and a balanced diet help maintain good health and prevent lifestyle diseases.'}
                 </p>
                 <AIPill />
               </div>

@@ -1241,6 +1241,14 @@ export const translations = {
     te: 'హిమోగ్లోబిన్',
     bn: 'হিমোগ্লোবিন'
   },
+  heartRate: {
+    en: 'Heart Rate',
+    hi: 'हृदय गति',
+    mr: 'हृदय गती',
+    ta: 'இதய துடிப்பு',
+    te: 'గుండె స్పందన',
+    bn: 'হৃদস্পন্দন'
+  },
   checkSymptoms: {
     en: 'Check Symptoms',
     hi: 'लक्षण जांचें',

@@ -7,13 +7,16 @@ const router = Router()
 
 // POST /auth/login
 router.post('/login', (req, res) => {
-  const { email, password } = req.body as { email: string; password: string }
-  if (!email || !password) {
-    res.status(400).json({ error: 'Email and password required' })
+  const { username, email, password } = req.body as { username?: string; email?: string; password: string }
+  const loginIdentifier = username || email
+  
+  if (!loginIdentifier || !password) {
+    res.status(400).json({ error: 'Email/username and password required' })
     return
   }
 
-  const user = db.users.find(u => u.email === email && u.passwordHash === password)
+  // Find user by email (username is mapped to email for demo accounts)
+  const user = db.users.find(u => u.email === loginIdentifier && u.passwordHash === password)
   if (!user) {
     res.status(401).json({ error: 'Invalid credentials' })
     return
@@ -22,7 +25,7 @@ router.post('/login', (req, res) => {
   const payload = { userId: user.id, role: user.role, name: user.name, facilityId: user.facilityId, patientId: user.patientId }
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' })
 
-  res.json({ token, role: user.role, name: user.name, userId: user.id, facilityId: user.facilityId, patientId: user.patientId })
+  res.json({ token, user: { id: user.id, username: user.email, role: user.role, name: user.name, facilityId: user.facilityId, patientId: user.patientId } })
 })
 
 // GET /auth/me

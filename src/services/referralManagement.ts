@@ -3,7 +3,7 @@
  * Real-time referral tracking, notifications, and facility mapping
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
 
 // Debug log
 console.log('🔧 Referral Management API URL:', BASE_URL)

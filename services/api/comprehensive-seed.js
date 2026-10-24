@@ -152,6 +152,12 @@ async function comprehensiveSeed() {
       patientRefs[patient.healthId] = ref.id;
       console.log(`  ✅ ${patient.name} (${patient.gender}, ${patient.age}y)`);
     }
+    
+    // DEBUG: Log patientRefs to verify mapping
+    console.log('\n📝 Patient ID mapping:');
+    for (const [healthId, docId] of Object.entries(patientRefs)) {
+      console.log(`  ${healthId} → ${docId}`);
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // 2. CREATE USER ACCOUNTS
@@ -213,12 +219,13 @@ async function comprehensiveSeed() {
     ];
 
     for (const user of users) {
-      await db.collection('users').add({
+      const userDoc = {
         ...user,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
-      });
-      console.log(`  ✅ ${user.name} (${user.role})`);
+      };
+      await db.collection('users').add(userDoc);
+      console.log(`  ✅ ${user.name} (${user.role})${user.patientId ? ` [Patient ID: ${user.patientId}]` : ''}`);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -518,8 +525,10 @@ async function comprehensiveSeed() {
       }
     ];
 
+    const familyMemberRefs = {};
     for (const member of familyMembers) {
-      await db.collection('family_members').add(member);
+      const ref = await db.collection('family_members').add(member);
+      familyMemberRefs[member.name] = ref.id;
       console.log(`  ✅ ${member.name} (${member.relationship}, ${member.age}y)`);
     }
 
@@ -564,7 +573,7 @@ async function comprehensiveSeed() {
     const vaccinations = [
       {
         patientId: patientRefs['91-1234-5678-9001'],
-        familyMemberId: null, // For parent
+        familyMemberId: null, // For parent (Priya herself)
         vaccineName: 'Tetanus Toxoid',
         scheduledDate: daysAgo(10).split('T')[0],
         administeredDate: daysAgo(10).split('T')[0],
@@ -575,8 +584,8 @@ async function comprehensiveSeed() {
         createdAt: daysAgo(10)
       },
       {
-        patientId: patientRefs['91-1234-5678-9001'],
-        familyMemberId: 'child1', // Would need actual ID
+        patientId: null,
+        familyMemberId: familyMemberRefs['Aarav Sharma'], // For child 1
         vaccineName: 'MMR Vaccine',
         scheduledDate: daysAgo(20).split('T')[0],
         administeredDate: daysAgo(20).split('T')[0],
@@ -587,8 +596,8 @@ async function comprehensiveSeed() {
         createdAt: daysAgo(20)
       },
       {
-        patientId: patientRefs['91-1234-5678-9001'],
-        familyMemberId: 'child2', // Would need actual ID
+        patientId: null,
+        familyMemberId: familyMemberRefs['Diya Sharma'], // For child 2
         vaccineName: 'DTP Booster',
         scheduledDate: daysFromNow(7).split('T')[0],
         dueDate: daysFromNow(7).split('T')[0],

@@ -98,18 +98,34 @@ app.use('/api/emergency', emergencyRoutes)
 
 app.post('/auth/login', async (req, res) => {
   try {
+    console.log('🔐 Login attempt:', JSON.stringify(req.body, null, 2))
+    
     const { username, password } = req.body
     
+    console.log('📧 Username:', username)
+    console.log('🔑 Password provided:', password ? '✓' : '✗')
+    
+    if (!username || !password) {
+      console.error('❌ Missing credentials')
+      return res.status(400).json({ error: 'Username and password required' })
+    }
+    
     // Try to find user by username or email
+    console.log('🔍 Searching for user:', username)
     let user = await db.users.findByUsername(username) as any
     if (!user && username.includes('@')) {
       // If input looks like email, try email lookup
+      console.log('   Trying email lookup...')
       user = await db.users.findByEmail(username) as any
     }
 
     if (!user || user.password !== password) {
+      console.error('❌ User not found or password mismatch')
+      console.log('   Tried:', username, '/', password)
       return res.status(401).json({ error: 'Invalid credentials' })
     }
+
+    console.log('✅ User found:', user.name, '-', user.role)
 
     const payload: any = {
       userId: user.id,
@@ -126,6 +142,8 @@ app.post('/auth/login', async (req, res) => {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' })
 
+    console.log('🎫 Token generated successfully')
+
     res.json({ 
       token, 
       user: { 
@@ -133,11 +151,12 @@ app.post('/auth/login', async (req, res) => {
         username: user.username, 
         role: user.role, 
         name: user.name,
+        facilityId: user.facilityId,
         patientId: user.patientId
       } 
     })
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('❌ Login error:', error)
     res.status(500).json({ error: 'Login failed' })
   }
 })

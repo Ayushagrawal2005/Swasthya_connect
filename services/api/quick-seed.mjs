@@ -2,18 +2,18 @@
  * Quick seed - adds demo users to Firebase
  */
 
-import admin from 'firebase-admin';
+import pkg from 'firebase-admin';
+const { credential, firestore: firestoreAdmin, initializeApp } = pkg;
 import { readFileSync } from 'fs';
 
 // Initialize Firebase Admin
 const serviceAccount = JSON.parse(readFileSync('./serviceAccountKey.json', 'utf8'));
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://swasthyaconnect-4bfa1-default-rtdb.firebaseio.com'
+initializeApp({
+  credential: credential.cert(serviceAccount)
 });
 
-const db = admin.firestore();
+const db = firestoreAdmin();
 
 async function quickSeed() {
   console.log('🌱 Quick seeding Firebase with demo users...\n');
@@ -81,8 +81,8 @@ async function quickSeed() {
       // Create user
       const docRef = await db.collection('users').add({
         ...user,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: firestoreAdmin.FieldValue.serverTimestamp(),
+        updatedAt: firestoreAdmin.FieldValue.serverTimestamp()
       });
 
       console.log(`   ✅ Created: ${user.name} (${user.email}) - Role: ${user.role}`);

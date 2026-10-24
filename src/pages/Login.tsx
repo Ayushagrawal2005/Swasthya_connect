@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Stethoscope, Settings2, Shield, ArrowRight,
   Heart, Eye, EyeOff, Users, LogIn,
 } from 'lucide-react'
-import { useT } from '../context/AppContext'
+import { useT, useApp } from '../context/AppContext'
 import { authApi } from '../services/api'
 
 // Import logo and hero image
@@ -86,6 +87,8 @@ type CopyKey = string | null
 
 export function LoginPage() {
   const t = useT()
+  const { login: ctxLogin } = useApp()
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -133,15 +136,18 @@ export function LoginPage() {
         localStorage.setItem('swasthya_patientId', res.user.patientId)
       }
       
+      // Update context to prevent auto-logout race condition
+      ctxLogin(res.token, res.user.role, res.user.name, res.user.id, res.user.facilityId || '', res.user.patientId)
+      
       // Determine path
       let path = '/patient' // default
       if (res.user.role === 'patient') path = '/patient'
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      // Small delay to show success message
+      // Small delay to show success message, then navigate without full page reload
       setTimeout(() => {
-        window.location.href = path
+        navigate(path, { replace: true })
       }, 500)
     } catch (err) {
       clearTimeout(progressTimer)
@@ -190,15 +196,18 @@ export function LoginPage() {
         localStorage.setItem('swasthya_patientId', res.user.patientId)
       }
       
+      // Update context to prevent auto-logout race condition
+      ctxLogin(res.token, res.user.role, res.user.name, res.user.id, res.user.facilityId || '', res.user.patientId)
+      
       // Determine path
       let path = '/patient' // default
       if (res.user.role === 'patient') path = '/patient'
       else if (res.user.role === 'admin') path = '/facility'
       else path = `/${res.user.role}`
       
-      // Small delay to show success message
+      // Small delay to show success message, then navigate without full page reload
       setTimeout(() => {
-        window.location.href = path
+        navigate(path, { replace: true })
       }, 500)
     } catch (err) {
       clearTimeout(progressTimer)

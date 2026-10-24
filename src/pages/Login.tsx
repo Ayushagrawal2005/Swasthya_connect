@@ -73,10 +73,10 @@ const DEMO_ACCOUNTS: {
   {
     id: 'patient_male',
     label: 'Male Patient',
-    sublabel: 'Meena — view records, book appointments',
-    username: 'meena@swasthya.in',
+    sublabel: 'Rajesh — view records, book appointments',
+    username: 'rajesh@swasthya.in',
     password: 'demo1234',
-    name: 'Meena Patil',
+    name: 'Rajesh Patil',
     icon: <Heart className="w-4 h-4 sm:w-5 sm:h-5" />,
     color: 'bg-cyan-50 text-cyan-600 border-cyan-200',
     path: '/patient',

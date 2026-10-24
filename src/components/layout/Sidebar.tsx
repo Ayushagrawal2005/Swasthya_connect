@@ -78,9 +78,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // Must be before any early returns (Rules of Hooks)
   useEffect(() => {
     if (role === 'patient' && patientId) {
+      console.log('🔍 Sidebar: Fetching patient data for patientId:', patientId)
       patientsApi.get(patientId).then(patient => {
+        console.log('✅ Sidebar: Patient data received:', { name: patient.name, gender: patient.gender })
         setPatientGender(patient.gender)
-      }).catch(() => {})
+      }).catch((err) => {
+        console.error('❌ Sidebar: Failed to fetch patient:', err)
+      })
+    } else {
+      console.log('⏭️ Sidebar: Skipping patient fetch. Role:', role, 'PatientId:', patientId)
     }
   }, [role, patientId])
 

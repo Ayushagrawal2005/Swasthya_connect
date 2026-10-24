@@ -62,7 +62,7 @@ async function comprehensiveSeed() {
       },
       {
         healthId: '91-1234-5678-9002',
-        name: 'Meena Patil',
+        name: 'Rajesh Patil',
         age: 35,
         gender: 'M',
         dob: '1989-07-22',
@@ -201,11 +201,11 @@ async function comprehensiveSeed() {
         facilityId: 'patient-portal'
       },
       { 
-        username: 'meena@swasthya.in', 
-        email: 'meena@swasthya.in',
+        username: 'rajesh@swasthya.in', 
+        email: 'rajesh@swasthya.in',
         password: 'demo1234', 
         role: 'patient', 
-        name: 'Meena Patil',
+        name: 'Rajesh Patil',
         phone: '9876543211',
         patientId: patientRefs['91-1234-5678-9002'],
         facilityId: 'patient-portal'
@@ -280,7 +280,7 @@ async function comprehensiveSeed() {
       },
       {
         patientId: patientRefs['91-1234-5678-9002'],
-        patientName: 'Meena Patil',
+        patientName: 'Rajesh Patil',
         facilityId: 'F002',
         facilityName: 'PHC Beed',
         doctorId: 'doctor@swasthya.in',
@@ -346,7 +346,7 @@ async function comprehensiveSeed() {
       },
       {
         patientId: patientRefs['91-1234-5678-9002'],
-        patientName: 'Meena Patil',
+        patientName: 'Rajesh Patil',
         age: 35,
         phone: '9876543211',
         condition: 'Hypertension - BP monitoring',
@@ -469,7 +469,7 @@ async function comprehensiveSeed() {
       },
       {
         patientId: patientRefs['91-1234-5678-9002'],
-        patientName: 'Meena Patil',
+        patientName: 'Rajesh Patil',
         test: 'Lipid Profile',
         orderedBy: 'doctor@swasthya.in',
         orderedByName: 'Dr. Ramesh Patil',
@@ -639,7 +639,7 @@ async function comprehensiveSeed() {
       },
       {
         patientId: patientRefs['91-1234-5678-9002'],
-        name: 'Meena Patil',
+        name: 'Rajesh Patil',
         age: 35,
         gender: 'M',
         village: 'Beed',
@@ -696,7 +696,7 @@ async function comprehensiveSeed() {
     console.log('   • Doctor: doctor@swasthya.in');
     console.log('   • Admin: admin@swasthya.in');
     console.log('   • Patient (Female): priya@swasthya.in');
-    console.log('   • Patient (Male): meena@swasthya.in');
+    console.log('   • Patient (Male): rajesh@swasthya.in');
     
     console.log('\n✨ All portals now have demo data!');
     console.log('═'.repeat(60) + '\n');

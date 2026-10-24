@@ -1,0 +1,25 @@
+{
+  "name": "swasthya-uptime-bot",
+  "version": "1.0.0",
+  "description": "Uptime monitoring bot for Swasthya Connect services",
+  "main": "ping-services.js",
+  "scripts": {
+    "start": "node ping-services.js",
+    "pm2": "pm2 start ping-services.js --name swasthya-uptime",
+    "pm2:stop": "pm2 stop swasthya-uptime",
+    "pm2:restart": "pm2 restart swasthya-uptime",
+    "pm2:logs": "pm2 logs swasthya-uptime"
+  },
+  "keywords": [
+    "uptime",
+    "monitoring",
+    "health-check",
+    "render",
+    "swasthya-connect"
+  ],
+  "author": "Swasthya Connect Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

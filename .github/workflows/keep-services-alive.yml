@@ -1,0 +1,54 @@
+name: Keep Render Services Alive
+
+on:
+  schedule:
+    # Run every 5 minutes (GitHub Actions minimum is 5 minutes)
+    - cron: '*/5 * * * *'
+  
+  workflow_dispatch: # Allow manual trigger from Actions tab
+
+jobs:
+  ping-services:
+    name: Ping Health Endpoints
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Backend API
+        run: |
+          echo "🔄 Pinging Backend API..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://swasthya-connect-backend.onrender.com/health)
+          if [ "$response" = "200" ]; then
+            echo "✅ Backend API is alive (HTTP $response)"
+          else
+            echo "⚠️  Backend API returned HTTP $response"
+          fi
+        continue-on-error: true
+      
+      - name: Ping ML Service
+        run: |
+          echo "🔄 Pinging ML Service..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 https://swasthya-connect-ml.onrender.com/health)
+          if [ "$response" = "200" ]; then
+            echo "✅ ML Service is alive (HTTP $response)"
+          else
+            echo "⚠️  ML Service returned HTTP $response"
+          fi
+        continue-on-error: true
+      
+      - name: Ping OCR Service
+        run: |
+          echo "🔄 Pinging OCR Service..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://swasthya-connect-ocr.onrender.com/health)
+          if [ "$response" = "200" ]; then
+            echo "✅ OCR Service is alive (HTTP $response)"
+          else
+            echo "⚠️  OCR Service returned HTTP $response"
+          fi
+        continue-on-error: true
+      
+      - name: Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All health checks completed"
+          echo "Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

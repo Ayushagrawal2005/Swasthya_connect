@@ -161,6 +161,110 @@ app.post('/auth/login', async (req, res) => {
   }
 })
 
+// POST /auth/seed-users - one-time setup endpoint to create demo users
+app.post('/auth/seed-users', async (req, res) => {
+  try {
+    console.log('🌱 Seeding Firebase with demo users...')
+    
+    const users = [
+      { 
+        username: 'asha@swasthya.in', 
+        email: 'asha@swasthya.in',
+        password: 'demo1234', 
+        role: 'asha', 
+        name: 'ANM Kavita Shinde',
+        phone: '9876543210',
+        village: 'Mandav',
+        facilityId: 'F001'
+      },
+      { 
+        username: 'doctor@swasthya.in', 
+        email: 'doctor@swasthya.in',
+        password: 'demo1234', 
+        role: 'doctor', 
+        name: 'Dr. Ramesh Patil',
+        phone: '9876543220',
+        specialty: 'General Medicine',
+        facilityId: 'F002'
+      },
+      { 
+        username: 'admin@swasthya.in', 
+        email: 'admin@swasthya.in',
+        password: 'demo1234', 
+        role: 'admin', 
+        name: 'Admin Ravi Bhosale',
+        phone: '9876543230',
+        facilityId: 'F004'
+      },
+      { 
+        username: 'meena@swasthya.in', 
+        email: 'meena@swasthya.in',
+        password: 'demo1234', 
+        role: 'patient', 
+        name: 'Meena Patil',
+        phone: '9876543240',
+        patientId: 'P-MEENA-001',
+        facilityId: 'F002'
+      },
+      { 
+        username: 'priya@swasthya.in', 
+        email: 'priya@swasthya.in',
+        password: 'demo1234', 
+        role: 'patient', 
+        name: 'Priya Sharma',
+        phone: '9876543241',
+        patientId: 'P-PRIYA-002',
+        facilityId: 'F002'
+      }
+    ]
+
+    const created = []
+    const skipped = []
+
+    for (const user of users) {
+      // Check if user already exists
+      const existing = await db.users.findByEmail(user.email)
+      
+      if (existing) {
+        console.log(`   ⏭️  User already exists: ${user.name} (${user.email})`)
+        skipped.push(user.email)
+        continue
+      }
+
+      // Create user
+      const newUser = await db.users.create(user)
+      console.log(`   ✅ Created: ${user.name} (${user.email}) - Role: ${user.role}`)
+      created.push({ email: user.email, name: user.name, role: user.role })
+    }
+
+    console.log(`\n🎉 Seeding complete! Created: ${created.length}, Skipped: ${skipped.length}`)
+    
+    res.json({ 
+      success: true,
+      created: created.length,
+      skipped: skipped.length,
+      users: created,
+      message: 'Demo users created successfully. You can now log in with any of the demo accounts using password: demo1234'
+    })
+  } catch (error: any) {
+    console.error('❌ Seeding error:', error)
+    res.status(500).json({ error: 'Seeding failed', details: error.message })
+  }
+})
+
+// GET /auth/debug-users - temporary debug endpoint
+app.get('/auth/debug-users', async (req, res) => {
+  try {
+    console.log('🔍 Fetching all users from Firebase...')
+    const users = await db.users.getAll()
+    console.log(`Found ${users.length} users:`, users.map((u: any) => ({ email: u.email, username: u.username, role: u.role })))
+    res.json({ count: users.length, users: users.map((u: any) => ({ id: u.id, email: u.email, username: u.username, role: u.role, name: u.name })) })
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    res.status(500).json({ error: 'Failed to fetch users' })
+  }
+})
+
 app.get('/auth/me', authenticateToken, (req: any, res) => {
   res.json({ user: req.user })
 })

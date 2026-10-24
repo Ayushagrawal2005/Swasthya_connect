@@ -22,6 +22,8 @@ async function request<T>(
   isFormData = false,
 ): Promise<T> {
   const token = getToken()
+  console.log(`🌐 API ${method} ${path}`, token ? `Token: ${token.substring(0, 20)}...` : 'No token')
+  
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
   if (!isFormData) headers['Content-Type'] = 'application/json'
@@ -39,10 +41,22 @@ async function request<T>(
     })
 
     clearTimeout(timeoutId)
+    
+    console.log(`📡 API ${method} ${path} → Status ${res.status}`)
 
     if (res.status === 401) {
+      console.error('🚫 401 Unauthorized - clearing auth and dispatching event')
+      // Clear auth data but don't force reload - let React Router handle it
       localStorage.removeItem('swasthya_token')
-      window.location.href = '/login'
+      localStorage.removeItem('swasthya_role')
+      localStorage.removeItem('swasthya_userId')
+      localStorage.removeItem('swasthya_name')
+      localStorage.removeItem('swasthya_facilityId')
+      localStorage.removeItem('swasthya_patientId')
+      
+      // Dispatch custom event to notify AppContext of logout
+      window.dispatchEvent(new CustomEvent('swasthya-unauthorized'))
+      
       throw new Error('Unauthorised')
     }
 
@@ -57,6 +71,7 @@ async function request<T>(
     if (err instanceof Error && err.name === 'AbortError') {
       throw new Error('Request timeout - Server may be starting up. Please try again.')
     }
+    console.error(`❌ API ${method} ${path} failed:`, err)
     throw err
   }
 }

@@ -48,6 +48,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('offline', goOffline)
     }
   }, [])
+  
+  // Handle unauthorized events from API service
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      // Clear local state
+      setToken(null)
+      setRoleState(null)
+      setUserId(null)
+      setUserName(null)
+      setFacilityId(null)
+      setPatientId(null)
+      
+      // Navigate to login (will be handled by React Router, not full reload)
+      window.location.href = '/login'
+    }
+    
+    window.addEventListener('swasthya-unauthorized', handleUnauthorized)
+    return () => window.removeEventListener('swasthya-unauthorized', handleUnauthorized)
+  }, [])
 
   function login(tok: string, r: Role, name: string, uid: string, fid: string, pid?: string) {
     localStorage.setItem('swasthya_token',     tok)

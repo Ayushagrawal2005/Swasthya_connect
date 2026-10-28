@@ -192,6 +192,24 @@ Respond ONLY with the JSON, nothing else."""
 
     return np.array(features, dtype=float).reshape(1, -1)
 
+@app.route('/', methods=['GET'])
+def index():
+    """Root endpoint - service information"""
+    return jsonify({
+        'service': 'Swasthya Connect ML API',
+        'status': 'online',
+        'version': '1.0.0',
+        'model_loaded': model is not None,
+        'endpoints': {
+            'health': '/health',
+            'predict': '/predict (POST)',
+            'batch_predict': '/batch-predict (POST)',
+            'voice_triage': '/voice-triage/* (see docs)'
+        },
+        'documentation': 'https://github.com/Ayushagrawal2005/Swasthya_connect',
+        'timestamp': datetime.now().isoformat()
+    })
+
 @app.route('/health', methods=['GET', 'HEAD'])
 def health():
     return jsonify({

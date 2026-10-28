@@ -15,7 +15,7 @@ import { useApp } from '../../context/AppContext'
 type Step = 'language' | 'vitals' | 'symptoms' | 'done'
 interface Msg { role: 'ai' | 'user'; text: string; hint?: string }
 
-const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'https://swasthya-connect-ml.onrender.com'
+const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'https://swasthya-connect-ml-of1d.onrender.com'
 console.log('✅ ASHA Voice Triage ML API URL:', ML_API_URL)
 
 // Language code mapping for Web Speech API

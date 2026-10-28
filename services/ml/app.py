@@ -263,15 +263,86 @@ def predict_triage():
         print(f"   Extracted features shape: {features.shape}")
         print(f"   Features: {features}")
         
-        # Scale features
-        features_scaled = scaler.transform(features)
+        # ========== CRITICAL VITALS OVERRIDE ==========
+        # Check for emergency vitals BEFORE ML prediction
+        # This ensures life-threatening vitals are ALWAYS flagged as emergency
+        f = features[0]
+        emergency_override = False
+        override_reason = []
         
-        # Predict
-        urgency_level = model.predict(features_scaled)[0]
-        probabilities = model.predict_proba(features_scaled)[0]
-        confidence = float(max(probabilities))
+        # Temperature checks (index 2)
+        if f[2] >= 104:  # Hyperpyrexia
+            emergency_override = True
+            override_reason.append(f'Critical temperature: {f[2]}°F (hyperpyrexia)')
+        elif f[2] >= 102:  # High fever
+            if urgency_level < 2:  # Force at least "high" risk
+                urgency_level = 2
+                override_reason.append(f'High fever: {f[2]}°F')
         
-        print(f"✅ Prediction: urgency={urgency_level}, confidence={confidence:.2f}\n")
+        # SpO2 checks (index 3)
+        if f[3] < 85:  # Severe hypoxia
+            emergency_override = True
+            override_reason.append(f'Critical oxygen: {f[3]}% (severe hypoxia)')
+        elif f[3] < 90:  # Significant hypoxia
+            if urgency_level < 2:
+                urgency_level = 2
+                override_reason.append(f'Low oxygen: {f[3]}%')
+        
+        # Blood pressure checks (indices 0, 1)
+        if f[0] >= 180 or f[1] >= 120:  # Hypertensive crisis
+            emergency_override = True
+            override_reason.append(f'Hypertensive crisis: {int(f[0])}/{int(f[1])} mmHg')
+        elif f[0] < 90 or f[1] < 60:  # Severe hypotension
+            emergency_override = True
+            override_reason.append(f'Severe hypotension: {int(f[0])}/{int(f[1])} mmHg')
+        
+        # Pulse checks (index 4)
+        if f[4] > 140 or f[4] < 40:  # Critical pulse
+            emergency_override = True
+            override_reason.append(f'Critical pulse: {int(f[4])} bpm')
+        elif f[4] > 120 or f[4] < 50:  # Abnormal pulse
+            if urgency_level < 2:
+                urgency_level = 2
+                override_reason.append(f'Abnormal pulse: {int(f[4])} bpm')
+        
+        # Symptom checks (indices 7-11)
+        if f[7] == 1:  # Chest pain
+            if urgency_level < 2:
+                urgency_level = 2
+                override_reason.append('Chest pain reported')
+        
+        if f[11] == 1:  # Seizure
+            emergency_override = True
+            override_reason.append('Seizure/convulsion reported')
+        
+        if f[10] == 1:  # Bleeding
+            if urgency_level < 2:
+                urgency_level = 2
+                override_reason.append('Bleeding reported')
+        
+        if f[8] == 1 and f[2] >= 102:  # Breathing difficulty + high fever
+            if urgency_level < 2:
+                urgency_level = 2
+                override_reason.append('Respiratory distress with high fever')
+        
+        # If emergency override triggered, force urgency level to 3
+        if emergency_override:
+            print(f"🚨 EMERGENCY OVERRIDE TRIGGERED: {', '.join(override_reason)}")
+            urgency_level = 3
+            confidence = 0.95  # High confidence for rule-based override
+            probabilities = np.array([0.0, 0.0, 0.05, 0.95])  # 95% emergency
+        else:
+            # Scale features and use ML prediction
+            features_scaled = scaler.transform(features)
+            
+            # Predict
+            urgency_level = model.predict(features_scaled)[0]
+            probabilities = model.predict_proba(features_scaled)[0]
+            confidence = float(max(probabilities))
+        
+        print(f"✅ Final prediction: urgency={urgency_level}, confidence={confidence:.2f}")
+        if override_reason:
+            print(f"   Override reasons: {', '.join(override_reason)}\n")
         
         # Map urgency level to risk category
         risk_mapping = {
@@ -336,18 +407,20 @@ def predict_triage():
         # Generate flags FIRST (indices match FEATURE_COLS order)
         # FEATURE_COLS: bp_sys[0],bp_dia[1],temp[2],spo2[3],pulse[4],severity[5],
         #               duration_days[6],chest_pain[7],breathing[8],headache[9],bleeding[10],seizure[11]
-        flags = []
+        flags = override_reason.copy() if override_reason else []  # Start with override reasons
         f = features[0]
-        if f[0] > 180 or f[1] > 120:  flags.append('Critical blood pressure')
-        if f[2] >= 102:                flags.append('High fever')
-        if f[3] < 90:                  flags.append('Low oxygen saturation')
-        if f[4] > 120 or f[4] < 50:   flags.append('Abnormal pulse')
-        if f[5] >= 8:                  flags.append('Severe pain reported')
-        if f[7] == 1:                  flags.append('Chest pain reported')
-        if f[8] == 1:                  flags.append('Breathing difficulty')
-        if f[9] == 1:                  flags.append('Severe headache')
-        if f[10] == 1:                 flags.append('Bleeding reported')
-        if f[11] == 1:                 flags.append('Seizure / convulsion')
+        
+        # Add additional flags
+        if f[0] > 140 or f[1] > 90:  flags.append('Elevated blood pressure')
+        if f[2] >= 100.4 and 'temperature' not in ' '.join(flags).lower():  flags.append('Fever detected')
+        if f[3] < 95:  flags.append('Low oxygen saturation')
+        if f[4] > 100 or f[4] < 60:   flags.append('Abnormal heart rate')
+        if f[5] >= 7:  flags.append('Severe pain reported')
+        if f[7] == 1 and 'Chest pain' not in ' '.join(flags):  flags.append('Chest pain reported')
+        if f[8] == 1 and 'Respiratory' not in ' '.join(flags):  flags.append('Breathing difficulty')
+        if f[9] == 1:  flags.append('Severe headache')
+        if f[10] == 1 and 'Bleeding' not in ' '.join(flags):  flags.append('Bleeding reported')
+        if f[11] == 1 and 'Seizure' not in ' '.join(flags):  flags.append('Seizure / convulsion')
 
         text_all = ' '.join(data.get('answers', []))
         specialist_info = get_specialist(int(urgency_level), flags, text_all)

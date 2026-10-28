@@ -171,7 +171,7 @@ export default function BachaoBachaoEmergency() {
 
     if (confirm('Are you sure you want to cancel this emergency alert?')) {
       try {
-        const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+        const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
         await fetch(`${API_BASE}/api/emergency/${activeEmergency.id}/status`, {
           method: 'PATCH',
           headers: {

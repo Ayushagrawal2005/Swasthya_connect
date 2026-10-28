@@ -71,7 +71,7 @@ export function AshaOcrUploadPage() {
     const token = localStorage.getItem('swasthya_token')
     
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
       const response = await axios.get(
         `${API_BASE}/patients/search?q=${encodeURIComponent(searchQuery)}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -113,7 +113,7 @@ export function AshaOcrUploadPage() {
         // Try backend proxy first (port 4000 → port 8000)
         let data: OCRResult | null = null
         try {
-          const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+          const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
           const response = await axios.post(`${API_BASE}/api/ocr/extract`, formData, {
             headers: { Authorization: `Bearer ${token}` },
             timeout: 40000
@@ -170,7 +170,7 @@ export function AshaOcrUploadPage() {
 
     for (const result of ocrResults) {
       try {
-        const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+        const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
         await axios.post(
           `${API_BASE}/patients/${selectedPatient.id}/records`,
           {

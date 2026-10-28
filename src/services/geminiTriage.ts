@@ -9,7 +9,7 @@ import {
 } from '../lib/adaptiveQuestions'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+const API_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
 
 console.log('🔧 Triage Service Initialized - Using Backend API')
 console.log('✅ Gemini Triage API URL:', API_URL)

@@ -92,7 +92,7 @@ export function DoctorPatientSearch() {
     const headers = { Authorization: `Bearer ${token}` }
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+      const API_BASE = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
       const [recs, refs, meds] = await Promise.all([
         axios.get(`${API_BASE}/patients/${p.id}/records`, { headers })
           .then(r => Array.isArray(r.data) ? r.data : []).catch(() => []),

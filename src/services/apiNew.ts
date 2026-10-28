@@ -1,5 +1,5 @@
 // Backend API configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-1x6r.onrender.com'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://swasthya-connect-backend.onrender.com'
 
 console.log('✅ API New Base URL:', API_BASE_URL)
 

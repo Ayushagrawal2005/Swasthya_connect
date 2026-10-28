@@ -57,6 +57,7 @@ export function AshaReferralsPage() {
   const [reason, setReason]     = useState('')
   const [urgency, setUrgency]   = useState<UrgencyLevel>('routine')
   const [selectedFacility, setSelectedFacility] = useState('')
+  const [selectedFacilityId, setSelectedFacilityId] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const [currentExplanation, setCurrentExplanation] = useState<ReferralExplanation | null>(null)
@@ -83,13 +84,40 @@ export function AshaReferralsPage() {
 
   function createReferral() {
     if (!patient.trim() || !reason.trim() || !selectedFacility) return
-    referralsApi.create({ patientName: patient, toFacilityName: selectedFacility, reason, urgency })
+    
+    console.log('🔵 Creating referral:', { 
+      patientName: patient, 
+      toFacilityId: selectedFacilityId,
+      toFacilityName: selectedFacility, 
+      reason, 
+      urgency 
+    })
+    
+    referralsApi.create({ 
+      patientName: patient, 
+      toFacilityId: selectedFacilityId,
+      toFacilityName: selectedFacility, 
+      reason, 
+      urgency 
+    })
       .then(ref => {
+        console.log('✅ Referral created:', ref)
         setReferrals(p => [ref, ...p])
         setSubmitted(true)
-        setTimeout(() => { setSubmitted(false); setView('list'); setPatient(''); setReason(''); setUrgency('routine'); setSelectedFacility('') }, 2000)
+        setTimeout(() => { 
+          setSubmitted(false); 
+          setView('list'); 
+          setPatient(''); 
+          setReason(''); 
+          setUrgency('routine'); 
+          setSelectedFacility('');
+          setSelectedFacilityId('');
+        }, 2000)
       })
-      .catch(() => {/* silent */})
+      .catch((error) => {
+        console.error('❌ Referral creation failed:', error)
+        alert(`Failed to create referral: ${error.message || 'Unknown error'}`)
+      })
   }
 
   function showAIExplanation(referral: Referral) {
@@ -204,7 +232,11 @@ export function AshaReferralsPage() {
                     <button 
                       key={u} 
                       type="button" 
-                      onClick={() => { setUrgency(u); setSelectedFacility('') }}
+                      onClick={() => { 
+                        setUrgency(u); 
+                        setSelectedFacility('');
+                        setSelectedFacilityId('');
+                      }}
                       aria-pressed={urgency === u}
                       className={`w-full flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.02] ${
                         urgency === u 
@@ -249,7 +281,10 @@ export function AshaReferralsPage() {
                   <button 
                     key={f.id} 
                     type="button" 
-                    onClick={() => setSelectedFacility(f.name)}
+                    onClick={() => {
+                      setSelectedFacility(f.name)
+                      setSelectedFacilityId(f.id)
+                    }}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
                       selectedFacility === f.name 
                         ? 'border-teal-400 bg-gradient-to-r from-teal-50 to-teal-100' 
@@ -281,7 +316,10 @@ export function AshaReferralsPage() {
                     <button 
                       key={f.id} 
                       type="button" 
-                      onClick={() => setSelectedFacility(f.name)}
+                      onClick={() => {
+                        setSelectedFacility(f.name)
+                        setSelectedFacilityId(f.id)
+                      }}
                       className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 text-left text-sm transition-all ${
                         selectedFacility === f.name 
                           ? 'border-teal-400 bg-gradient-to-r from-teal-50 to-teal-100' 

@@ -757,7 +757,15 @@ export const translations = {
     mr: 'लसीकरण',
     ta: 'தடுப்பூசி',
     te: 'టీకాలు',
-    bn: 'টিকাকরণ'
+    bn: 'টিकाকরণ'
+  },
+  govtSchemes: {
+    en: 'Govt. Schemes',
+    hi: 'सरकारी योजनाएं',
+    mr: 'सरकारी योजना',
+    ta: 'அரசு திட்டங்கள்',
+    te: 'ప్రభుత్వ పథకాలు',
+    bn: 'সরকারি প্রকল্প'
   },
   symptomChecker: {
     en: 'Symptom Checker',

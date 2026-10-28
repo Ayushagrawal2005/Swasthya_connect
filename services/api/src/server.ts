@@ -16,6 +16,7 @@ import db from './services/db'
 import { generateAdaptiveTriageQuestion } from './services/geminiQuestions.js'
 import referralRoutes from './routes/referrals.js'
 import emergencyRoutes from './routes/emergency.js'
+import schemesRoutes from './routes/schemes-simple.js'
 
 const app = express()
 const server = createServer(app)
@@ -86,6 +87,11 @@ const authenticateToken = (req: any, res: any, next: any) => {
 // ENHANCED REFERRAL MANAGEMENT ROUTES
 // ═══════════════════════════════════════════════════════════════
 app.use('/api', referralRoutes)
+
+// ═══════════════════════════════════════════════════════════════
+// GOVERNMENT SCHEMES CHECKER ROUTES
+// ═══════════════════════════════════════════════════════════════
+app.use('/schemes', schemesRoutes)
 
 // ═══════════════════════════════════════════════════════════════
 // BACHAO BACHAO EMERGENCY ROUTES

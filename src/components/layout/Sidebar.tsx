@@ -3,7 +3,7 @@ import {
   Home, Calendar, FileText, Video, Pill, Heart, ClipboardList,
   Inbox, BarChart2, AlertTriangle, Package, FlaskConical,
   Siren, Users, ArrowRight, LogOut, UserPlus, Search, Upload, Stethoscope, Activity,
-  Baby, Droplet, Syringe, X,
+  Baby, Droplet, Syringe, X, BadgeIndianRupee,
 } from 'lucide-react'
 import { useApp, useT } from '../../context/AppContext'
 import { cn } from '../../lib/utils'
@@ -26,6 +26,7 @@ const patientNav: NavItem[] = [
   { labelKey: 'menstrualTracker', icon: <Droplet size={18} />,       path: '/patient/menstrual', femaleOnly: true },
   { labelKey: 'pregnancyTracker', icon: <Baby size={18} />,          path: '/patient/pregnancy', femaleOnly: true },
   { labelKey: 'vaccinations',     icon: <Syringe size={18} />,       path: '/patient/vaccinations' },
+  { labelKey: 'govtSchemes',      icon: <BadgeIndianRupee size={18} />, path: '/patient/schemes' },
 ]
 
 const ashaNav: NavItem[] = [
@@ -41,6 +42,7 @@ const ashaNav: NavItem[] = [
   { labelKey: 'chronicCare',       icon: <Activity size={18} />,      path: '/asha/chronic' },
   { labelKey: 'referrals',         icon: <ArrowRight size={18} />,    path: '/asha/referrals' },
   { labelKey: 'emergency',         icon: <Siren size={18} />,         path: '/asha/emergency' },
+  { labelKey: 'govtSchemes',       icon: <BadgeIndianRupee size={18} />, path: '/asha/schemes' },
 ]
 
 const doctorNav: NavItem[] = [

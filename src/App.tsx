@@ -26,6 +26,7 @@ import { AshaDirectTeleconsultPage } from './pages/asha/AshaDirectTeleconsult'
 import { AshaOcrUploadPage }     from './pages/asha/AshaOcrUpload'
 import { EmergencyEscalationPage as AshaEmergencyPage } from './pages/doctor/EmergencyEscalation'
 import BachaoBachaoEmergency from './pages/emergency/BachaoBachaoEmergency'
+import AshaSchemeChecker from './pages/asha/AshaSchemeChecker'
 
 // Doctor
 import { DoctorHome }              from './pages/doctor/DoctorHome'
@@ -60,6 +61,7 @@ import PregnancyTrackerPage     from './pages/patient/PregnancyTracker'
 import VaccinationTrackerPage   from './pages/patient/VaccinationTracker'
 import { TeleconsultPage }      from './pages/patient/Teleconsult'
 import { DirectTeleconsultPage } from './pages/patient/DirectTeleconsult'
+import SchemeChecker            from './pages/patient/SchemeChecker'
 
 // Facility Portal
 import { FacilityPortal }                from './pages/facility/FacilityPortal'
@@ -135,6 +137,7 @@ function AppShell() {
             <Route path="/asha/chronic"     element={<ChronicCareTracker />} />
             <Route path="/asha/emergency"   element={<AshaEmergencyPage />} />
             <Route path="/asha/emergency/bachao-bachao" element={<BachaoBachaoEmergency />} />
+            <Route path="/asha/schemes"     element={<AshaSchemeChecker />} />
 
             {/* Doctor */}
             <Route path="/doctor"           element={<DoctorHome />} />
@@ -169,6 +172,7 @@ function AppShell() {
             <Route path="/patient/teleconsult"  element={<TeleconsultPage />} />
             <Route path="/patient/direct-teleconsult" element={<DirectTeleconsultPage />} />
             <Route path="/patient/chronic"      element={<ChronicCareTracker />} />
+            <Route path="/patient/schemes"      element={<SchemeChecker />} />
 
             {/* Facility Portal */}
             <Route path="/facility"            element={<FacilityPortal />} />

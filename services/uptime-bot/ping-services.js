@@ -19,7 +19,7 @@ const SERVICES = [
   },
   {
     name: 'ML Service',
-    url: 'https://swasthya-connect-ml.onrender.com/health',
+    url: 'https://swasthya-connect-ml-of1d.onrender.com/health',
     timeout: 60000 // 60 seconds (ML can be slower)
   },
   {

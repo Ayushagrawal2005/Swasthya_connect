@@ -7,7 +7,7 @@ import { generateAdaptiveTriageQuestion } from '../services/geminiQuestions.js'
 
 const router = Router()
 
-const ML_API_URL = process.env.ML_API_URL || 'https://swasthya-connect-ml.onrender.com'
+const ML_API_URL = process.env.ML_API_URL || 'https://swasthya-connect-ml-of1d.onrender.com'
 console.log('✅ Backend Triage ML API URL:', ML_API_URL)
 
 const HOSPITAL_LEVELS: Record<string, { level: number; label: string; desc: string }> = {

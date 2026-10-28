@@ -11,7 +11,7 @@ Set up automated health checks to keep services awake by pinging them every 5-10
 | Service | URL | Endpoint |
 |---------|-----|----------|
 | Backend API | https://swasthya-connect-backend.onrender.com | /health |
-| ML Service | https://swasthya-connect-ml.onrender.com | /health |
+| ML Service | https://swasthya-connect-ml-of1d.onrender.com | /health |
 | OCR Service | https://swasthya-connect-ocr.onrender.com | /health |
 
 ## Method 1: UptimeRobot (Recommended - Free & Easy)
@@ -34,7 +34,7 @@ Set up automated health checks to keep services awake by pinging them every 5-10
 **ML Service Monitor**
 - Monitor Type: HTTP(s)
 - Friendly Name: Swasthya ML
-- URL: `https://swasthya-connect-ml.onrender.com/health`
+- URL: `https://swasthya-connect-ml-of1d.onrender.com/health`
 - Monitoring Interval: 5 minutes
 - Monitor Timeout: 30 seconds
 
@@ -78,7 +78,7 @@ jobs:
         run: curl -f https://swasthya-connect-backend.onrender.com/health || exit 0
       
       - name: Ping ML Service
-        run: curl -f https://swasthya-connect-ml.onrender.com/health || exit 0
+        run: curl -f https://swasthya-connect-ml-of1d.onrender.com/health || exit 0
       
       - name: Ping OCR Service
         run: curl -f https://swasthya-connect-ocr.onrender.com/health || exit 0
@@ -157,7 +157,7 @@ All services have `/health` endpoints that return:
 - Response Time: < 500ms (when warm)
 
 ### ML Service
-- URL: `https://swasthya-connect-ml.onrender.com/health`
+- URL: `https://swasthya-connect-ml-of1d.onrender.com/health`
 - Port: 5000
 - Response Time: < 1000ms (when warm)
 
@@ -193,7 +193,7 @@ After setup, you'll have:
 1. **Sign up to UptimeRobot** (2 minutes)
 2. **Add 3 monitors** (3 minutes):
    - Backend: https://swasthya-connect-backend.onrender.com/health
-   - ML: https://swasthya-connect-ml.onrender.com/health
+   - ML: https://swasthya-connect-ml-of1d.onrender.com/health
    - OCR: https://swasthya-connect-ocr.onrender.com/health
 3. **Set interval to 5 minutes**
 4. **Done!** Services will stay warm
@@ -207,7 +207,7 @@ Test that health checks work:
 curl https://swasthya-connect-backend.onrender.com/health
 
 # Test ML
-curl https://swasthya-connect-ml.onrender.com/health
+curl https://swasthya-connect-ml-of1d.onrender.com/health
 
 # Test OCR
 curl https://swasthya-connect-ocr.onrender.com/health

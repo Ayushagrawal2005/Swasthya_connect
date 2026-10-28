@@ -134,7 +134,7 @@ When ML service is working, you should get:
 |---------|-----------|----------------|
 | Frontend | http://localhost:5173 | https://swasthya-connect-snowy.vercel.app |
 | Backend | http://localhost:4000 | https://swasthya-connect-backend.onrender.com |
-| ML Service | http://localhost:5000 | https://swasthya-connect-ml.onrender.com |
+| ML Service | http://localhost:5000 | https://swasthya-connect-ml-of1d.onrender.com |
 | OCR Service | http://localhost:8000 | https://swasthya-connect-ocr.onrender.com |
 
 ## Next Steps

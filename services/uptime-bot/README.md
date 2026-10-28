@@ -77,7 +77,7 @@ The bot logs all pings to console:
 ⏰ Ping interval: 5 minutes
 📡 Monitoring 3 services:
    - Backend API: https://swasthya-connect-backend.onrender.com/health
-   - ML Service: https://swasthya-connect-ml.onrender.com/health
+   - ML Service: https://swasthya-connect-ml-of1d.onrender.com/health
    - OCR Service: https://swasthya-connect-ocr.onrender.com/health
 
 🔄 [2026-10-24T10:30:00.000Z] Pinging all services...
@@ -94,7 +94,7 @@ The bot logs all pings to console:
 The bot pings these endpoints:
 
 1. **Backend API**: `https://swasthya-connect-backend.onrender.com/health`
-2. **ML Service**: `https://swasthya-connect-ml.onrender.com/health`
+2. **ML Service**: `https://swasthya-connect-ml-of1d.onrender.com/health`
 3. **OCR Service**: `https://swasthya-connect-ocr.onrender.com/health`
 
 Each endpoint returns:
